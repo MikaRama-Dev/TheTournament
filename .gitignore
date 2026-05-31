@@ -1,0 +1,25 @@
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+npm-debug.log*
+
+# Backups
+*.bak
+*.backup
+backup-*
+
+# Local files non versionnés
+.env
+.env.local
+secrets.txt
