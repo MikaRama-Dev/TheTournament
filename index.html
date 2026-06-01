@@ -744,6 +744,89 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
   color: var(--paper);
 }
 
+.mode-toggle {
+  display: flex; gap: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+.mode-toggle-opt {
+  flex: 1;
+  padding: 0.75rem 0.5rem;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 11px; font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-mute);
+  cursor: pointer;
+  border-right: 1px solid var(--line-strong);
+  background: var(--paper);
+  transition: all 0.2s ease;
+  line-height: 1.4;
+}
+.mode-toggle-opt:last-child { border-right: none; }
+.mode-toggle-opt:hover { color: var(--ink); background: var(--paper-soft); }
+.mode-toggle-opt.active {
+  background: var(--accent);
+  color: var(--paper);
+  border-color: var(--accent);
+}
+.mode-toggle-opt small {
+  display: block;
+  font-size: 9px;
+  opacity: 0.8;
+  margin-top: 2px;
+  letter-spacing: 0.05em;
+  text-transform: none;
+  font-style: italic;
+}
+
+.consent-box {
+  margin-top: 1.25rem;
+  padding: 1.1rem 1.25rem;
+  background: var(--paper-soft);
+  border: 1px solid var(--line-strong);
+  border-left: 3px solid var(--accent);
+  border-radius: 2px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.consent-box label {
+  display: flex;
+  gap: 0.65rem;
+  align-items: flex-start;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+.consent-box input[type="checkbox"] {
+  margin-top: 3px;
+  flex-shrink: 0;
+  accent-color: var(--accent);
+  width: 15px; height: 15px;
+  cursor: pointer;
+}
+.consent-box a { color: var(--accent); }
+
+.real-signup-success {
+  text-align: center;
+}
+.real-signup-success .icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--paper);
+  font-size: 1.5rem;
+  margin: 0 auto 1.5rem;
+}
+
 /* ===========================================
    DASHBOARD
    =========================================== */
@@ -1731,14 +1814,14 @@ async function submitRealSignup(type, data, consents) {
   };
 
   try {
-    const { data: inserted, error: err1 } = await supabaseClient.from(table).insert([payload]).select();
+    const { error: err1 } = await supabaseClient.from(table).insert([payload]);
     if (err1) {
       if (err1.code === '23505') return { error: 'Cette adresse email est déjà enregistrée. Si c\'est un oubli, écris-nous à contact@letournoi.foot.' };
       return { error: 'Inscription impossible : ' + err1.message };
     }
     // Log de consentement (non bloquant si ça échoue)
     await supabaseClient.from('consents').insert([consentRow]);
-    return { account: inserted[0] };
+    return { account: { email: data.email, name: data.name } };
   } catch (e) {
     return { error: 'Erreur réseau : ' + e.message };
   }
