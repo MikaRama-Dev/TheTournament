@@ -356,13 +356,20 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
   display: flex; flex-direction: column;
 }
 .role-card:hover { background: var(--paper-soft); }
+.role-card-icon {
+  width: 52px; height: 52px;
+  background: rgba(184, 92, 60, 0.08);
+  border-radius: 2px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--accent);
+  margin-bottom: 1.1rem;
+}
 .role-card-eye {
   font-family: var(--font-mono);
-  font-size: 11px; font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
+  font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.15em;
   color: var(--accent);
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.75rem;
 }
 .role-card-title {
   font-family: var(--font-serif);
@@ -744,89 +751,6 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
   color: var(--paper);
 }
 
-.mode-toggle {
-  display: flex; gap: 0;
-  border: 1px solid var(--line-strong);
-  border-radius: 2px;
-  overflow: hidden;
-  margin-bottom: 1.5rem;
-}
-.mode-toggle-opt {
-  flex: 1;
-  padding: 0.75rem 0.5rem;
-  text-align: center;
-  font-family: var(--font-mono);
-  font-size: 11px; font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--ink-mute);
-  cursor: pointer;
-  border-right: 1px solid var(--line-strong);
-  background: var(--paper);
-  transition: all 0.2s ease;
-  line-height: 1.4;
-}
-.mode-toggle-opt:last-child { border-right: none; }
-.mode-toggle-opt:hover { color: var(--ink); background: var(--paper-soft); }
-.mode-toggle-opt.active {
-  background: var(--accent);
-  color: var(--paper);
-  border-color: var(--accent);
-}
-.mode-toggle-opt small {
-  display: block;
-  font-size: 9px;
-  opacity: 0.8;
-  margin-top: 2px;
-  letter-spacing: 0.05em;
-  text-transform: none;
-  font-style: italic;
-}
-
-.consent-box {
-  margin-top: 1.25rem;
-  padding: 1.1rem 1.25rem;
-  background: var(--paper-soft);
-  border: 1px solid var(--line-strong);
-  border-left: 3px solid var(--accent);
-  border-radius: 2px;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-.consent-box label {
-  display: flex;
-  gap: 0.65rem;
-  align-items: flex-start;
-  font-size: 12px;
-  line-height: 1.55;
-  color: var(--ink-soft);
-  cursor: pointer;
-}
-.consent-box input[type="checkbox"] {
-  margin-top: 3px;
-  flex-shrink: 0;
-  accent-color: var(--accent);
-  width: 15px; height: 15px;
-  cursor: pointer;
-}
-.consent-box a { color: var(--accent); }
-
-.real-signup-success {
-  text-align: center;
-}
-.real-signup-success .icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 56px; height: 56px;
-  border-radius: 50%;
-  background: var(--accent);
-  color: var(--paper);
-  font-size: 1.5rem;
-  margin: 0 auto 1.5rem;
-}
-
 /* ===========================================
    DASHBOARD
    =========================================== */
@@ -992,7 +916,12 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
   border-bottom: 1px solid var(--line);
   margin-bottom: 2.5rem;
   overflow-x: auto;
+  /* Hide scrollbar — tabs wrap on small screens instead */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  flex-wrap: wrap;
 }
+.detail-tabs::-webkit-scrollbar { display: none; }
 .detail-tab {
   padding: 0.9rem 1.25rem;
   font-family: var(--font-mono);
@@ -1752,6 +1681,618 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
 .delay-1 { animation-delay: 0.12s; }
 .delay-2 { animation-delay: 0.24s; }
 
+/* ===== Real signup success screen ===== */
+.real-signup-success .icon {
+  font-family: var(--font-serif); font-style: italic;
+  font-size: 3rem; color: var(--accent);
+  margin-bottom: 1rem; line-height: 1; text-align: center;
+}
+.real-signup-success { padding: 0.5rem 0; }
+
+/* ===== User dropdown menu (connected nav) ===== */
+.nav-user-menu { position: relative; }
+.nav-user-btn { padding: 0.35rem 0.7rem; border: 1px solid var(--line); }
+.nav-user-btn:hover { border-color: var(--ink); }
+.nav-user-dropdown {
+  position: absolute; top: calc(100% + 0.5rem); right: 0;
+  background: var(--paper); border: 1px solid var(--ink);
+  min-width: 240px; z-index: 200;
+  display: none;
+  border-radius: 2px;
+  box-shadow: 0 8px 24px rgba(26, 31, 46, 0.12);
+  overflow: hidden;
+}
+.nav-user-dropdown.open { display: block; }
+.nav-dd-head {
+  padding: 1rem 1.1rem 0.85rem;
+  border-bottom: 1px solid var(--line);
+  background: var(--paper-soft);
+}
+.nav-dd-name {
+  font-family: var(--font-serif); font-weight: 400;
+  font-size: 1rem; letter-spacing: -0.015em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.nav-dd-sub {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 500;
+  text-transform: uppercase; letter-spacing: 0.12em;
+  color: var(--accent); margin-top: 0.3rem;
+}
+.nav-dd-link {
+  display: block; width: 100%; text-align: left;
+  padding: 0.7rem 1.1rem;
+  font-family: var(--font-sans); font-size: 13px;
+  color: var(--ink-soft); cursor: pointer;
+  background: transparent; border: none;
+  letter-spacing: -0.005em;
+  transition: background 0.15s, color 0.15s;
+}
+.nav-dd-link:hover {
+  background: var(--paper-soft); color: var(--ink);
+}
+.nav-dd-sep { border-top: 1px solid var(--line); margin: 0.25rem 0; }
+.nav-dd-logout { color: var(--accent-deep) !important; }
+.nav-dd-logout:hover { background: rgba(151, 73, 46, 0.06) !important; color: var(--accent-deep) !important; }
+
+/* ===== Tournament detail info grid ===== */
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.info-item {
+  background: var(--paper);
+  padding: 1rem 1.1rem;
+}
+.info-label {
+  font-family: var(--font-mono);
+  font-size: 10px; font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--ink-mute);
+  margin-bottom: 0.5rem;
+}
+.info-val {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 1.05rem;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+  line-height: 1.3;
+}
+
+/* ===== Venue box ===== */
+.venue-box {
+  background: var(--paper-soft);
+  border: 1px solid var(--line);
+  padding: 1.25rem 1.5rem;
+  border-radius: 2px;
+}
+.venue-name {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 1.2rem;
+  letter-spacing: -0.015em;
+  margin-bottom: 0.4rem;
+}
+.venue-address {
+  font-family: var(--font-serif);
+  font-weight: 300;
+  font-style: italic;
+  color: var(--ink-mute);
+  margin-bottom: 0.85rem;
+}
+.venue-map-link {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 11px; font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+  border-bottom: 1px solid var(--accent);
+  padding-bottom: 1px;
+}
+.venue-map-link:hover { color: var(--accent-deep); }
+
+/* ===== Contact box ===== */
+.contact-box {
+  background: var(--paper-soft);
+  border: 1px solid var(--line);
+  padding: 1.25rem 1.5rem;
+  border-radius: 2px;
+}
+.contact-box > p {
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  letter-spacing: -0.015em;
+  margin-bottom: 0.75rem;
+}
+.contact-lines { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+.contact-line {
+  font-family: var(--font-mono);
+  font-size: 13px; font-weight: 500;
+  color: var(--ink-soft);
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 1px;
+  transition: color 0.2s;
+}
+.contact-line:hover { color: var(--accent); border-color: var(--accent); }
+
+/* ===== Pain section (3 douleurs) ===== */
+.section-pain {
+  padding: 5rem var(--container);
+  background: var(--paper);
+}
+.pain-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  margin-top: 3rem;
+}
+@media (max-width: 900px) { .pain-grid { grid-template-columns: 1fr; } }
+.pain-card {
+  background: var(--paper);
+  padding: 2rem 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+.pain-card-icon {
+  width: 56px; height: 56px;
+  background: rgba(184, 92, 60, 0.08);
+  border-radius: 2px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--accent);
+  margin-bottom: 1.25rem;
+  flex-shrink: 0;
+}
+.pain-num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.pain-title {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 1.25rem;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  line-height: 1.25;
+}
+.pain-desc {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--ink-soft);
+}
+
+/* ===== How it works section ===== */
+.section-how {
+  padding: 5rem var(--container);
+  background: var(--paper-soft);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.how-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-top: 3rem;
+  border: 1px solid var(--line);
+}
+.how-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 2rem;
+  padding: 2rem 2.5rem;
+  border-bottom: 1px solid var(--line);
+  background: var(--paper);
+  transition: background 0.2s;
+}
+.how-step:last-child { border-bottom: none; }
+.how-step:hover { background: var(--paper-soft); }
+.how-step-icon {
+  color: var(--accent);
+  flex-shrink: 0;
+  width: 40px; height: 40px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(184, 92, 60, 0.08);
+  border-radius: 2px;
+  margin-top: 0.15rem;
+}
+.how-step-num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--accent);
+  background: rgba(184, 92, 60, 0.08);
+  width: 40px; height: 40px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  border-radius: 2px;
+  margin-top: 0.15rem;
+}
+.how-step-body { flex: 1; }
+.how-step-title {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 1.15rem;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+  margin-bottom: 0.5rem;
+}
+.how-step-desc {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--ink-soft);
+}
+
+/* ===== CTA section ===== */
+.section-cta {
+  background: var(--ink);
+  padding: 5rem var(--container);
+  border-top: 3px solid var(--accent);
+}
+.cta-inner {
+  max-width: 620px;
+}
+.cta-title {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  color: var(--paper);
+  margin: 0.75rem 0 1rem;
+}
+.cta-title em {
+  font-style: italic;
+  color: var(--accent-soft);
+}
+.cta-sub {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.6;
+  color: rgba(245, 239, 228, 0.65);
+  margin-bottom: 2rem;
+}
+.cta-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* ===== Tournament search bar ===== */
+.search-bar-wrap {
+  background: var(--paper-soft);
+  border: 1px solid var(--line);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 2rem;
+  border-radius: 2px;
+}
+.search-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+@media (max-width: 600px) { .search-row { grid-template-columns: 1fr; } }
+.search-field-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.search-icon {
+  position: absolute;
+  left: 0.85rem;
+  width: 15px; height: 15px;
+  color: var(--ink-mute);
+  pointer-events: none;
+  flex-shrink: 0;
+}
+.search-field {
+  width: 100%;
+  padding: 0.75rem 0.9rem 0.75rem 2.4rem;
+  background: var(--paper);
+  border: 1px solid var(--line-strong);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--ink);
+  border-radius: 2px;
+  transition: border-color 0.2s;
+}
+.search-field:focus {
+  outline: none;
+  border-color: var(--ink);
+}
+.filter-row {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.filter-select {
+  padding: 0.55rem 0.85rem;
+  background: var(--paper);
+  border: 1px solid var(--line-strong);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink);
+  cursor: pointer;
+  border-radius: 2px;
+  transition: border-color 0.2s;
+}
+.filter-select:focus { outline: none; border-color: var(--ink); }
+.search-count {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ink-mute);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* ===== Badge pills ===== */
+.badge-pill {
+  display: inline-flex; align-items: center; gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  border-radius: 2px;
+  border: 1px solid;
+  white-space: nowrap;
+}
+.badge-gold { color: #8B6914; background: rgba(212,175,55,0.12); border-color: rgba(212,175,55,0.4); }
+.badge-silver { color: var(--ink-mute); background: rgba(100,100,110,0.08); border-color: var(--line-strong); }
+.badge-bronze { color: var(--accent); background: rgba(184,92,60,0.08); border-color: rgba(184,92,60,0.3); }
+
+/* ===== Contact locked / reveal ===== */
+.contact-locked {
+  background: var(--paper-soft);
+}
+.contact-lock-msg {
+  display: flex; align-items: flex-start; gap: 1rem; padding: 0.25rem 0;
+}
+.contact-lock-icon { font-size: 1.4rem; flex-shrink: 0; margin-top: 0.1rem; }
+.contact-reveal-wrap { display: inline-block; margin-right: 0.5rem; margin-bottom: 0.4rem; }
+.contact-reveal-btn {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+  letter-spacing: 0.05em;
+}
+/* .contact-revealed obsolète — remplacé par .contact-css-reveal */
+
+/* ===== View counter ===== */
+.view-count {
+  font-family: var(--font-mono);
+  font-size: 10px; font-weight: 500;
+  text-transform: uppercase; letter-spacing: 0.12em;
+  color: var(--ink-mute);
+  display: inline-flex; align-items: center; gap: 0.3rem;
+}
+
+/* ===== Badges organisateur / équipe ===== */
+.lt-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: 2px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.lt-badge-debutant, .lt-badge-active {
+  background: rgba(184, 92, 60, 0.08);
+  color: var(--accent);
+  border: 1px solid rgba(184, 92, 60, 0.25);
+}
+.lt-badge-confirme, .lt-badge-reguliere {
+  background: rgba(26, 31, 46, 0.07);
+  color: var(--ink);
+  border: 1px solid var(--line-strong);
+}
+.lt-badge-expert, .lt-badge-fidele {
+  background: var(--ink);
+  color: var(--paper);
+  border: 1px solid var(--ink);
+}
+
+/* ===== Secure contact block ===== */
+.secure-contact-wrap {
+  margin-top: 0.5rem;
+}
+.secure-contact-gate {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+  background: var(--paper-soft);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  padding: 0.85rem 1rem;
+  border-radius: 2px;
+}
+.secure-contact-icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+.secure-contact-msg {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+  flex: 1;
+  min-width: 160px;
+}
+.secure-contact-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.secure-contact-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: var(--paper-soft);
+  border: 1px solid var(--line-strong);
+  padding: 0.65rem 1rem;
+  border-radius: 2px;
+  font-family: var(--font-serif);
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+  text-align: left;
+}
+.secure-contact-btn:hover {
+  border-color: var(--accent);
+  color: var(--ink);
+}
+.secure-contact-dots {
+  font-family: var(--font-mono);
+  letter-spacing: 0.2em;
+  color: var(--ink-mute);
+  font-size: 12px;
+}
+.secure-contact-revealed {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1rem;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: 2px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+  text-decoration: none;
+  transition: border-color 0.2s;
+}
+.secure-contact-revealed:hover { border-color: var(--accent); }
+.secure-contact-note {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 11px;
+  color: var(--ink-mute);
+  margin-top: 0.5rem;
+}
+
+/* Anti-scraper contact display — email/tel affiché via CSS pseudo-éléments  */
+/* Un aspirateur de HTML brut ne voit que data-a et data-b fragmentés         */
+/* Un robot sans CSS ne peut pas reconstituer l'adresse complète              */
+.contact-css-reveal {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.65rem 1rem;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: 2px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+  cursor: pointer;
+  transition: border-color 0.2s;
+  /* Empêche la sélection directe du texte par les bots                       */
+  user-select: none;
+  -webkit-user-select: none;
+}
+.contact-css-reveal:hover { border-color: var(--accent); color: var(--accent); }
+/* Les deux moitiés du contact sont assemblées uniquement via CSS content     */
+.contact-css-reveal::before {
+  content: attr(data-a);
+  letter-spacing: 0;
+}
+.contact-css-reveal::after {
+  content: attr(data-b);
+  letter-spacing: 0;
+}
+/* Icône selon le type */
+.contact-css-reveal[data-k="email"]::before {
+  content: "✉  " attr(data-a);
+}
+.contact-css-reveal[data-k="phone"]::before {
+  content: "☎  " attr(data-a);
+}
+
+/* ===== Sponsors preview chips (overview tab) ===== */
+.sponsors-preview {
+  display: flex; flex-wrap: wrap; gap: 0.65rem;
+}
+.sponsor-chip {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  background: var(--paper-soft);
+  border: 1px solid var(--line);
+  padding: 0.6rem 1rem;
+  border-radius: 2px;
+  transition: border-color 0.2s;
+}
+.sponsor-chip:hover { border-color: var(--ink); }
+.sponsor-chip-icon { font-size: 0.85rem; line-height: 1; }
+.sponsor-chip-name {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 0.98rem;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+/* ===== Activities preview chips (overview tab) ===== */
+.activities-preview {
+  display: flex; flex-wrap: wrap; gap: 0.5rem;
+}
+.activity-chip {
+  display: inline-block;
+  background: var(--paper-soft);
+  border: 1px solid var(--line);
+  padding: 0.5rem 0.9rem;
+  font-family: var(--font-serif);
+  font-weight: 300;
+  font-size: 0.92rem;
+  color: var(--ink-soft);
+  border-radius: 2px;
+}
+
+/* ===== Tournament detail "open to teams" callout ===== */
+.tourn-open-callout {
+  background: var(--paper-soft);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+  border-radius: 2px;
+  display: flex; align-items: center; gap: 1rem;
+  flex-wrap: wrap;
+}
+.tourn-open-callout-text {
+  flex: 1; min-width: 200px;
+  font-family: var(--font-serif); font-weight: 300;
+  font-style: italic; font-size: 0.98rem; line-height: 1.55;
+  color: var(--ink-soft);
+}
 </style>
 </head>
 <body>
@@ -1763,8 +2304,6 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
 <div id="modal-container"></div>
 
 <script>
-
-
 // ===========================================
 // SUPABASE CONFIGURATION
 // ===========================================
@@ -1814,14 +2353,14 @@ async function submitRealSignup(type, data, consents) {
   };
 
   try {
-    const { error: err1 } = await supabaseClient.from(table).insert([payload]);
+    const { data: inserted, error: err1 } = await supabaseClient.from(table).insert([payload]).select();
     if (err1) {
       if (err1.code === '23505') return { error: 'Cette adresse email est déjà enregistrée. Si c\'est un oubli, écris-nous à contact@letournoi.foot.' };
       return { error: 'Inscription impossible : ' + err1.message };
     }
     // Log de consentement (non bloquant si ça échoue)
     await supabaseClient.from('consents').insert([consentRow]);
-    return { account: { email: data.email, name: data.name } };
+    return { account: inserted[0] };
   } catch (e) {
     return { error: 'Erreur réseau : ' + e.message };
   }
@@ -1838,7 +2377,49 @@ let signupMode = 'demo';  // 'demo' ou 'real'
 let loginType = 'club';
 
 function loadState() {
-  try { const s = localStorage.getItem(KEY); if (s) return JSON.parse(s); } catch(e){}
+  try {
+    const s = localStorage.getItem(KEY);
+    if (s) {
+      const loaded = JSON.parse(s);
+      // Migration v1.A — injecte les nouveaux catalogues si absents du localStorage existant
+      if (!loaded.catalog) loaded.catalog = {};
+      const fresh = seed();
+      if (!loaded.catalog.matchSizes)        loaded.catalog.matchSizes        = fresh.catalog.matchSizes;
+      if (!loaded.catalog.genders)           loaded.catalog.genders           = fresh.catalog.genders;
+      if (!loaded.catalog.surfaces)          loaded.catalog.surfaces          = fresh.catalog.surfaces;
+      if (!loaded.catalog.competitionFormats)loaded.catalog.competitionFormats= fresh.catalog.competitionFormats;
+      // Always refresh formats catalog to get latest labels and new categories
+      loaded.catalog.formats = fresh.catalog.formats;
+      if (!loaded.catalog.positions)         loaded.catalog.positions         = fresh.catalog.positions;
+      if (!loaded.catalog.levels)            loaded.catalog.levels            = fresh.catalog.levels;
+      if (!loaded.catalog.days)              loaded.catalog.days              = fresh.catalog.days;
+      // Migration — add contact privacy fields to existing accounts
+      ['clubs','teams','sponsors'].forEach(coll => {
+        if (!loaded[coll]) return;
+        loaded[coll].forEach(acc => {
+          if (acc.shareEmail === undefined) acc.shareEmail = true;
+          if (acc.sharePhone === undefined) acc.sharePhone = true;
+          if (!acc.website) acc.website = '';
+          // Encode existing plain-text contacts if not yet encoded
+          if (acc.email && !acc._contactsEncoded) {
+            acc.emailEncoded = encodeContact(acc.email);
+            acc.phoneEncoded = encodeContact(acc.phone || '');
+            acc._contactsEncoded = true;
+          }
+        });
+      });
+      // Migration v1.B — add new animation IDs if missing from existing catalog
+      if (loaded.catalog.animations) {
+        const existingIds = new Set(loaded.catalog.animations.map(a => a.id));
+        fresh.catalog.animations.forEach(fa => {
+          if (!existingIds.has(fa.id)) loaded.catalog.animations.push(fa);
+        });
+      } else {
+        loaded.catalog.animations = fresh.catalog.animations;
+      }
+      return loaded;
+    }
+  } catch(e) {}
   return seed();
 }
 function saveState() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){} }
@@ -1980,23 +2561,32 @@ function seed() {
     ],
     catalog: {
       animations: [
-        { id: 'anim-1', name: 'Cage à concours', icon: '⚽', desc: 'Concours de tirs à la lucarne pour le public', price: 250 },
-        { id: 'anim-2', name: 'Foot freestyle', icon: '★', desc: '2h de show par un freestyler pro', price: 400 },
-        { id: 'anim-3', name: 'Photographe pro', icon: '◉', desc: 'Photo journée + remise USB à chaque équipe', price: 350 },
-        { id: 'anim-4', name: 'Drone vidéo', icon: '◇', desc: 'Captation aérienne pour les phases finales', price: 280 },
-        { id: 'anim-5', name: 'Food truck partenaire', icon: '◆', desc: 'Food truck halal sur place toute la journée', price: 0 },
-        { id: 'anim-6', name: 'Animateur micro', icon: '♪', desc: 'Speaker pro pour annoncer les matchs', price: 320 },
-        { id: 'anim-7', name: 'Trophées personnalisés', icon: '♛', desc: 'Coupe + médailles vainqueur, finaliste, meilleur buteur', price: 180 },
-        { id: 'anim-8', name: 'Jeux gonflables', icon: '◎', desc: 'Structure gonflable foot pour les petits frères et sœurs', price: 220 },
-        { id: 'anim-9', name: 'Arbitres officiels FFF', icon: '⚑', desc: '3 arbitres officiels pour la journée', price: 450 },
-        { id: 'anim-10', name: 'Ancien joueur pro', icon: '✦', desc: 'Présence d\'un ancien pro pour la remise', price: 500 }
+        { id: 'anim-1',  name: 'Cage à concours',        icon: '⚽', desc: 'Concours de tirs à la lucarne pour le public' },
+        { id: 'anim-2',  name: 'Foot freestyle',           icon: '★',  desc: '2h de show par un freestyler pro' },
+        { id: 'anim-3',  name: 'Photographe pro',          icon: '◉',  desc: 'Photo journée + remise USB à chaque équipe' },
+        { id: 'anim-4',  name: 'Drone vidéo',              icon: '◇',  desc: 'Captation aérienne pour les phases finales' },
+        { id: 'anim-5',  name: 'Food truck',               icon: '◆',  desc: 'Food truck sur place toute la journée' },
+        { id: 'anim-6',  name: 'Animateur micro',          icon: '♪',  desc: 'Speaker pro pour annoncer les matchs' },
+        { id: 'anim-7',  name: 'Trophées personnalisés',   icon: '♛',  desc: 'Coupe + médailles vainqueur, finaliste, meilleur buteur' },
+        { id: 'anim-8',  name: 'Jeux gonflables',          icon: '◎',  desc: 'Structure gonflable foot pour les enfants' },
+        { id: 'anim-9',  name: 'Arbitres officiels FFF',   icon: '⚑',  desc: '3 arbitres officiels pour la journée' },
+        { id: 'anim-10', name: 'Ancien joueur pro',        icon: '✦',  desc: 'Présence d\'un ancien pro pour la remise' },
+        { id: 'anim-11', name: 'Concours de tirs au but',  icon: '🥅', desc: 'Épreuve de penalties ouverte au public' },
+        { id: 'anim-12', name: 'Concours de jongles',      icon: '⊙',  desc: 'Défi jonglerie pour joueurs et public, avec chrono' },
+        { id: 'anim-13', name: 'Stand jeux vidéo',         icon: '▣',  desc: 'Console(s) avec FIFA / EA FC pour les spectateurs' },
+        { id: 'anim-14', name: 'Buvette',                  icon: '☕', desc: 'Vente de boissons et snacks sur place' },
+        { id: 'anim-15', name: 'DJ / Musique',             icon: '♫',  desc: 'Ambiance musicale live ou playlist DJ toute la journée' },
+        { id: 'anim-16', name: 'Concert / Showcase',       icon: '🎤', desc: 'Artiste local en showcase ou entre phases' },
+        { id: 'anim-17', name: 'Barbecue',                 icon: '♨',  desc: 'Grillades sur place pour équipes et supporters' },
+        { id: 'anim-18', name: 'Terrains avec gradins',    icon: '▤',  desc: 'Terrains équipés de gradins pour accueillir le public' }
       ],
       formats: [
-        { v: 'u9', l: 'U9 à 5', s: 5 }, { v: 'u11', l: 'U11 à 7', s: 7 },
-        { v: 'u13', l: 'U13 à 7', s: 7 }, { v: 'u15', l: 'U15 à 11', s: 11 },
-        { v: 'u17', l: 'U17 à 11', s: 11 }, { v: 'seniors', l: 'Seniors à 11', s: 11 },
-        { v: 'feminin', l: 'Féminin', s: 11 }, { v: 'futsal', l: 'Futsal à 5', s: 5 },
-        { v: 'veterans', l: 'Vétérans', s: 11 }
+        { v: 'enfants', l: 'Enfants' }, { v: 'u7', l: 'U7' },
+        { v: 'u9', l: 'U9' }, { v: 'u11', l: 'U11' },
+        { v: 'u13', l: 'U13' }, { v: 'u15', l: 'U15' },
+        { v: 'u17', l: 'U17' }, { v: 'u18', l: 'U18' },
+        { v: 'seniors', l: 'Seniors' }, { v: 'feminin', l: 'Féminin' },
+        { v: 'futsal', l: 'Futsal' }, { v: 'veterans', l: 'Vétérans' }
       ],
       positions: [
         { v: 'GK', l: 'Gardien' }, { v: 'DEF', l: 'Défenseur' },
@@ -2007,6 +2597,31 @@ function seed() {
         { v: 'r3', l: 'Régional 3' }, { v: 'r2', l: 'Régional 2' },
         { v: 'r1', l: 'Régional 1' }, { v: 'n3', l: 'National 3' },
         { v: 'loisir', l: 'Loisir' }
+      ],
+      matchSizes: [
+        { v: '5v5', l: '5 contre 5' },
+        { v: '7v7', l: '7 contre 7' },
+        { v: '11v11', l: '11 contre 11' },
+        { v: 'futsal', l: 'Futsal' }
+      ],
+      genders: [
+        { v: 'mixte', l: 'Mixte' },
+        { v: 'hommes', l: 'Hommes' },
+        { v: 'femmes', l: 'Femmes' }
+      ],
+      surfaces: [
+        { v: 'gazon', l: 'Gazon naturel' },
+        { v: 'synthetique', l: 'Synthétique' },
+        { v: 'stabilise', l: 'Stabilisé' },
+        { v: 'beton', l: 'Béton' },
+        { v: 'indoor', l: 'Indoor' }
+      ],
+      competitionFormats: [
+        { v: 'pools_elim', l: 'Poules + élimination directe' },
+        { v: 'elim_direct', l: 'Élimination directe' },
+        { v: 'pools_consolante_elim', l: 'Poules + consolante + élimination' },
+        { v: 'championnat', l: 'Championnat (matchs aller)' },
+        { v: 'autres', l: 'Autre format' }
       ],
       days: [
         { k: 'mon', l: 'Lundi', s: 'Lun' }, { k: 'tue', l: 'Mardi', s: 'Mar' },
@@ -2044,6 +2659,36 @@ function fmtMoney(n) { return n === 0 ? 'Gratuit' : `${n} €`; }
 function formatLabel(v) { const f = state.catalog.formats.find(x => x.v === v); return f ? f.l : v; }
 function levelLabel(v) { const l = state.catalog.levels.find(x => x.v === v); return l ? l.l : v; }
 function posLabel(v) { const p = state.catalog.positions.find(x => x.v === v); return p ? p.l : v; }
+function matchSizeLabel(v) { const m = state.catalog.matchSizes?.find(x => x.v === v); return m ? m.l : v; }
+function genderLabel(v) { const g = state.catalog.genders?.find(x => x.v === v); return g ? g.l : v; }
+function surfaceLabel(v) { const s = state.catalog.surfaces?.find(x => x.v === v); return s ? s.l : v; }
+function compFormatLabel(v) { const c = state.catalog.competitionFormats?.find(x => x.v === v); return c ? c.l : v; }
+// Backward-compat helpers — old tournaments only have 'location' & 'format' (single)
+function tournVenue(t) {
+  if (t.venueName && t.venueAddress) return { name: t.venueName, address: t.venueAddress };
+  if (t.venueName) return { name: t.venueName, address: '' };
+  if (t.location) return { name: t.location, address: '' };
+  return { name: '', address: '' };
+}
+function tournCategories(t) {
+  if (Array.isArray(t.categories) && t.categories.length) return t.categories;
+  if (t.format) return [t.format];
+  return [];
+}
+function tournCategoriesLabel(t) {
+  const cats = tournCategories(t);
+  if (!cats.length) return '—';
+  return cats.map(c => formatLabel(c)).join(' · ');
+}
+function tournDateRange(t) {
+  if (t.dateEnd && t.dateEnd !== t.date) return `${fmtDate(t.date)} → ${fmtDate(t.dateEnd)}`;
+  return fmtDate(t.date);
+}
+function tournTimeRange(t) {
+  if (!t.timeStart) return '';
+  if (t.timeEnd) return t.timeStart + ' → ' + t.timeEnd;
+  return 'à partir de ' + t.timeStart;
+}
 
 function toast(msg, type='') {
   const el = document.createElement('div');
@@ -2102,6 +2747,7 @@ function render() {
   if (r === '/dashboard') return requireAuth(renderDashboard);
   if (r === '/tournaments') return renderTournaments();
   if (r === '/tournaments/new') return requireAuth(renderCreateTournament, ['club']);
+  if (r.match(/^\/tournaments\/[^\/]+\/edit$/)) return requireAuth(() => renderEditTournament(r.split('/')[2]), ['club']);
   if (r.startsWith('/tournaments/')) return renderTournamentDetail(r.split('/')[2]);
   if (r === '/teams') return renderTeamsList();
   if (r.startsWith('/teams/')) return renderTeamProfile(r.split('/')[2]);
@@ -2123,20 +2769,40 @@ function requireAuth(cb, allowed) {
 function renderNav() {
   const a = getAccount();
   const r = getRoute();
-  const label = a?.type === 'club' ? 'CLUB' : a?.type === 'team' ? 'ÉQUIPE' : a?.type === 'sponsor' ? 'SPONSOR' : '';
+  const label = a?.type === 'club' ? 'ORGANISATEUR' : a?.type === 'team' ? 'ÉQUIPE' : a?.type === 'sponsor' ? 'SPONSOR' : '';
   document.getElementById('nav').innerHTML = `
     <a href="#/" class="brand"><div class="brand-mark"><span>T</span></div><div class="brand-name">Le Tournoi</div></a>
     <div class="nav-links">
       <a href="#/tournaments" class="nav-link ${r.startsWith('/tournaments') && r !== '/tournaments/new' ? 'active' : ''}">Tournois</a>
       <a href="#/teams" class="nav-link ${r.startsWith('/teams') ? 'active' : ''}">Équipes</a>
-      <a href="#/sponsors" class="nav-link ${r.startsWith('/sponsors') ? 'active' : ''}">Sponsors</a>
+      
       ${a ? `<a href="#/dashboard" class="nav-link ${r === '/dashboard' ? 'active' : ''}">Dashboard</a>` : ''}
     </div>
     <div class="nav-right">
       ${a ? `
-        ${a.type === 'club' ? `<a href="#/tournaments/new" class="btn btn-orange btn-sm">+ Tournoi</a>` : ''}
+        ${a.type === 'club' ? `<a href="#/tournaments/new" class="btn btn-orange btn-sm">+ Nouveau tournoi</a>` : ''}
         <span class="role-badge">${label}</span>
-        <button class="btn btn-ghost btn-sm" onclick="logout()">${esc(a.mark || '?')}</button>
+        <div class="nav-user-menu">
+          <button class="btn btn-ghost btn-sm nav-user-btn" onclick="toggleUserMenu(event)" title="${esc(a.name || '')}">
+            <span style="display: inline-flex; align-items: center; gap: 0.45rem;">
+              <span style="display: inline-flex; width: 26px; height: 26px; background: var(--paper-deep); color: var(--ink); align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 10px; font-weight: 600; border-radius: 2px;">${esc(a.mark || '?')}</span>
+              <span style="font-family: var(--font-mono); font-size: 11px;">▾</span>
+            </span>
+          </button>
+          <div class="nav-user-dropdown" id="nav-user-dd">
+            <div class="nav-dd-head">
+              <div class="nav-dd-name">${esc(a.name || '')}</div>
+              <div class="nav-dd-sub">${label}</div>
+            </div>
+            <a href="#/dashboard" class="nav-dd-link" onclick="closeUserMenu()">Mon tableau de bord</a>
+            ${a.type === 'team' ? `<a href="#/teams/${a.id}" class="nav-dd-link" onclick="closeUserMenu()">Mon profil équipe</a>` : ''}
+            ${a.type === 'sponsor' ? `<a href="#/sponsors/${a.id}" class="nav-dd-link" onclick="closeUserMenu()">Mon profil sponsor</a>` : ''}
+            ${a.type === 'club' ? `<a href="#/tournaments/new" class="nav-dd-link" onclick="closeUserMenu()">Créer un tournoi</a>` : ''}
+            <a href="#/tournaments" class="nav-dd-link" onclick="closeUserMenu()">Tous les tournois</a>
+            <div class="nav-dd-sep"></div>
+            <button class="nav-dd-link nav-dd-logout" onclick="logout()">Déconnexion</button>
+          </div>
+        </div>
       ` : `
         <a href="#/login" class="btn btn-ghost btn-sm">Connexion</a>
         <a href="#/signup" class="btn btn-primary btn-sm">S'inscrire</a>
@@ -2148,23 +2814,23 @@ function renderFooter() {
     <div class="footer-inner">
       <div class="footer-brand">
         <div class="brand"><div class="brand-mark"><span>T</span></div><div class="brand-name">Le Tournoi</div></div>
-        <p class="footer-tag">La plateforme qui connecte clubs, équipes et sponsors autour des tournois amateurs.</p>
+        <p class="footer-tag">La plateforme de gestion de tournois de foot amateur en Île-de-France.</p>
       </div>
       <div class="footer-cols">
         <div>
-          <p class="footer-col-title">Clubs</p>
+          <p class="footer-col-title">Organisateurs</p>
           <a href="#/tournaments/new" class="footer-link">Créer un tournoi</a>
           <a href="#/tournaments" class="footer-link">Tous les tournois</a>
         </div>
         <div>
           <p class="footer-col-title">Équipes</p>
           <a href="#/teams" class="footer-link">Annuaire</a>
-          <a href="#/signup" class="footer-link">Créer mon profil</a>
+          <a href="#/signup" class="footer-link">Créer un profil équipe</a>
         </div>
         <div>
-          <p class="footer-col-title">Sponsors</p>
-          <a href="#/sponsors" class="footer-link">Annuaire</a>
-          <a href="#/signup" class="footer-link">Devenir partenaire</a>
+          <p class="footer-col-title">Sponsors & Activités</p>
+          <a href="#/signup" class="footer-link">Proposer un sponsoring</a>
+          <a href="#/tournaments" class="footer-link">Tournois avec partenaires</a>
         </div>
         <div>
           <p class="footer-col-title">Démo</p>
@@ -2172,82 +2838,202 @@ function renderFooter() {
         </div>
       </div>
     </div>
-    <div class="footer-bottom"><span>© Le Tournoi · 2026 · MVP démo</span><span>letournoi.foot · Paris</span></div>`;
+    <div class="footer-bottom"><span>© Le Tournoi · 2026 · Île-de-France</span><span>letournoi.foot · contact@letournoi.foot</span></div>`;
 }
 
 // HOME
 function renderHome() {
+  const openTournaments = state.tournaments.filter(t => t.status === 'open');
   document.getElementById('app').innerHTML = `
+
+    <!-- HERO -->
     <section class="hero">
       <div class="hero-deco">⚽</div>
       <div class="hero-grid">
         <div class="hero-content fade-in">
-          <div class="hero-eyebrow">La plateforme des tournois amateurs</div>
-          <h1 class="hero-h1">Clubs, <em>équipes,</em><br>sponsors —<br><span class="underline">un seul</span> endroit.</h1>
-          <p class="hero-sub">Le Tournoi rassemble les trois acteurs du tournoi amateur : les clubs qui organisent, les équipes qui s'inscrivent, les sponsors qui soutiennent. Tout au même endroit.</p>
+          <div class="hero-eyebrow">Foot amateur · Île-de-France</div>
+          <h1 class="hero-h1">Le tournoi.<br><em>De l'annonce</em><br>au <span class="underline">résultat.</span></h1>
+          <p class="hero-sub">De la publication du tournoi jusqu'au bilan financier — une plateforme pensée pour les clubs de foot amateur en Île-de-France.</p>
           <div class="hero-actions">
-            <a href="#/signup" class="btn btn-primary btn-lg">Créer mon compte <span class="btn-arrow"></span></a>
-            <a href="#/tournaments" class="btn btn-outline btn-lg">Voir les tournois</a>
+            <a href="#/signup" class="btn btn-primary btn-lg" onclick="signupType='club'">Créer un compte organisateur <span class="btn-arrow"></span></a>
+            <a href="#/tournaments" class="btn btn-outline btn-lg">Parcourir les tournois</a>
           </div>
         </div>
         <div class="hero-numbers fade-in delay-2">
-          <div><div class="hero-number-val">${state.clubs.length}</div><div class="hero-number-label">Clubs</div></div>
-          <div><div class="hero-number-val"><em>${state.teams.length}</em></div><div class="hero-number-label">Équipes</div></div>
-          <div><div class="hero-number-val">${state.sponsors.length}</div><div class="hero-number-label">Sponsors</div></div>
-          <div><div class="hero-number-val">${state.tournaments.length}</div><div class="hero-number-label">Tournois</div></div>
+          <div><div class="hero-number-val">${state.clubs.length}</div><div class="hero-number-label">Clubs organisateurs</div></div>
+          <div><div class="hero-number-val"><em>${state.teams.length}</em></div><div class="hero-number-label">Équipes inscrites</div></div>
+          <div><div class="hero-number-val">${openTournaments.length}</div><div class="hero-number-label">Tournois ouverts</div></div>
+          <div><div class="hero-number-val">${state.tournaments.length}</div><div class="hero-number-label">Tournois organisés</div></div>
         </div>
       </div>
     </section>
 
+    <!-- BÉNÉFICES -->
+    <section class="section-pain container">
+      <div class="section-eyebrow">Ce que la plateforme apporte</div>
+      <h2 class="section-h2">Un tournoi bien organisé,<br><em>ça se prépare.</em></h2>
+      <div class="pain-grid">
+        <div class="pain-card">
+          <div class="pain-card-icon">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/><path d="M9 12h6M9 16h4"/>
+            </svg>
+          </div>
+          <h3 class="pain-title">Annonce structurée et durable</h3>
+          <p class="pain-desc">La fiche du tournoi regroupe toutes les informations utiles, reste accessible en ligne et se partage par lien. Les inscriptions arrivent directement, sans intermédiaire.</p>
+        </div>
+        <div class="pain-card">
+          <div class="pain-card-icon">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M9 16l2 2 4-4"/>
+            </svg>
+          </div>
+          <h3 class="pain-title">Suivi en temps réel le jour J</h3>
+          <p class="pain-desc">Calendrier, brackets et scores publiés au fil des matchs. Joueurs et accompagnateurs suivent le tournoi depuis leur téléphone, sans solliciter l'organisateur.</p>
+        </div>
+        <div class="pain-card">
+          <div class="pain-card-icon">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 1 0 0 7h5a3.5 3.5 0 1 1 0 7H6"/>
+            </svg>
+          </div>
+          <h3 class="pain-title">Bilan financier sans calcul manuel</h3>
+          <p class="pain-desc">Recettes et dépenses centralisées dans un tableau de bord. Le résultat financier du tournoi est disponible immédiatement après l'événement.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ROLES — trois profils -->
     <section class="roles-section">
       <div style="max-width: 1400px; margin: 0 auto 2.5rem;">
-        <div class="section-eyebrow">Trois comptes, trois usages</div>
-        <h2 class="section-h2">Qui es-tu sur <em>Le Tournoi ?</em></h2>
+        <div class="section-eyebrow">Une plateforme, trois usages</div>
+        <h2 class="section-h2">Chaque acteur dispose <em>de son espace.</em></h2>
       </div>
       <div class="roles-grid">
+
+        <!-- ORGANISATEUR -->
         <div class="role-card fade-in">
-          <div class="role-card-eye">▶ Compte Club</div>
-          <h3 class="role-card-title">Je suis un <em>club organisateur</em></h3>
-          <p class="role-card-desc">Tu veux monter ton tournoi de fin d'année et le faire tourner sans y perdre la saison.</p>
+          <div class="role-card-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+          </div>
+          <div class="role-card-eye">Organisateurs</div>
+          <h3 class="role-card-title">Espace <em>Organisateur</em></h3>
+          <p class="role-card-desc">Clubs, associations sportives, mairies — pour publier et gérer un tournoi de bout en bout, des inscriptions au bilan financier.</p>
           <ul class="role-card-bullets">
-            <li>Créer un tournoi en 5 minutes</li>
-            <li>Approuver ou refuser les inscriptions</li>
-            <li>Gérer sponsors et animations</li>
-            <li>Construire le calendrier des matchs</li>
+            <li>Fiche tournoi partageable par lien</li>
+            <li>Validation des équipes et suivi des places</li>
+            <li>Gestion des sponsors et des animations</li>
+            <li>Tableau de bord financier après l'événement</li>
           </ul>
-          <a href="#/signup" class="btn btn-orange btn-full" onclick="signupType='club'">Créer mon club <span class="btn-arrow"></span></a>
+          <a href="#/signup" class="btn btn-orange btn-full" onclick="signupType='club'">Ouvrir un espace organisateur <span class="btn-arrow"></span></a>
         </div>
+
+        <!-- ÉQUIPE -->
         <div class="role-card fade-in delay-1">
-          <div class="role-card-eye">▶ Compte Équipe</div>
-          <h3 class="role-card-title">Je représente une <em>équipe</em></h3>
-          <p class="role-card-desc">Tu cherches des tournois adaptés à ton niveau, à tes dates, à ton périmètre.</p>
+          <div class="role-card-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          </div>
+          <div class="role-card-eye">Équipes participantes</div>
+          <h3 class="role-card-title">Espace <em>Équipe</em></h3>
+          <p class="role-card-desc">Pour les équipes — jeunes et seniors — qui souhaitent trouver des tournois correspondant à leur niveau, leur catégorie et leur zone géographique.</p>
           <ul class="role-card-bullets">
-            <li>Créer ton profil + tes joueurs</li>
-            <li>Indiquer tes disponibilités</li>
-            <li>Postuler à un tournoi en un clic</li>
-            <li>Suivre tes candidatures</li>
+            <li>Recherche par catégorie, ville et format</li>
+            <li>Profil équipe avec préférences et mobilité</li>
+            <li>Candidature en ligne, réponse traçable</li>
+            <li>Suivi des matchs et scores le jour J</li>
           </ul>
-          <a href="#/signup" class="btn btn-orange btn-full" onclick="signupType='team'">Créer mon équipe <span class="btn-arrow"></span></a>
+          <a href="#/signup" class="btn btn-orange btn-full" onclick="signupType='team'">Ouvrir un espace équipe <span class="btn-arrow"></span></a>
         </div>
+
+        <!-- SPONSOR -->
         <div class="role-card fade-in delay-2">
-          <div class="role-card-eye">▶ Compte Sponsor</div>
-          <h3 class="role-card-title">Je suis un <em>sponsor</em></h3>
-          <p class="role-card-desc">Tu veux soutenir le foot amateur local et gagner en visibilité auprès des familles.</p>
+          <div class="role-card-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+          </div>
+          <div class="role-card-eye">Sponsors & Partenaires</div>
+          <h3 class="role-card-title">Espace <em>Sponsor</em></h3>
+          <p class="role-card-desc">Commerces et entreprises locales qui souhaitent soutenir le foot amateur de leur territoire, avec une présence visible auprès des clubs, joueurs et familles.</p>
           <ul class="role-card-bullets">
-            <li>Définir ton budget et préférences</li>
-            <li>Parcourir les tournois ouverts</li>
-            <li>Proposer ton sponsoring en direct</li>
-            <li>Suivre tes engagements</li>
+            <li>Présence sur l'événement selon le palier choisi</li>
+            <li>Paliers avec avantages listés et budget défini</li>
+            <li>Relation directe avec l'organisateur</li>
+            <li>Visibilité auprès des clubs, joueurs et familles</li>
           </ul>
-          <a href="#/signup" class="btn btn-orange btn-full" onclick="signupType='sponsor'">Devenir sponsor <span class="btn-arrow"></span></a>
+          <a href="#/signup" class="btn btn-orange btn-full" onclick="signupType='sponsor'">Ouvrir un espace sponsor <span class="btn-arrow"></span></a>
         </div>
       </div>
     </section>
 
+    <!-- COMMENT ÇA MARCHE — séquence en 3 étapes -->
+    <section class="section-how container">
+      <div class="section-eyebrow">Fonctionnement</div>
+      <h2 class="section-h2">Trois étapes,<br><em>un événement réussi.</em></h2>
+      <div class="how-grid">
+        <div class="how-step">
+          <div class="how-step-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 20h9"/><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"/>
+            </svg>
+          </div>
+          <div class="how-step-body">
+            <h4 class="how-step-title">Publication du tournoi</h4>
+            <p class="how-step-desc">La fiche est créée en quelques minutes — dates, lieu, catégories, format, contact. Un lien unique permet aux équipes de s'inscrire directement depuis tout appareil.</p>
+          </div>
+        </div>
+        <div class="how-step">
+          <div class="how-step-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          </div>
+          <div class="how-step-body">
+            <h4 class="how-step-title">Gestion des inscriptions</h4>
+            <p class="how-step-desc">Les candidatures sont validées depuis le tableau de bord. Sponsors et animations gérés dans le même espace, jusqu'au jour J.</p>
+          </div>
+        </div>
+        <div class="how-step">
+          <div class="how-step-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+            </svg>
+          </div>
+          <div class="how-step-body">
+            <h4 class="how-step-title">Jour J et bilan</h4>
+            <p class="how-step-desc">Scores et brackets mis à jour en temps réel. Le bilan financier est disponible à l'issue de l'événement.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TOURNOIS OUVERTS -->
     <section class="section container">
-      <div class="section-eyebrow">Tournois ouverts</div>
-      <h2 class="section-h2">Ce qu'organisent <em>les clubs</em> en ce moment.</h2>
-      <div class="grid grid-3">${state.tournaments.slice(0, 3).map(tournCard).join('')}</div>
+      <div class="section-eyebrow">Tournois en cours d'inscription</div>
+      <h2 class="section-h2">Des tournois <em>ouverts aux équipes.</em></h2>
+      <div class="grid grid-3">${state.tournaments.filter(t => t.status === 'open').slice(0, 3).map(tournCard).join('')}</div>
+      <div style="text-align: center; margin-top: 2.5rem;">
+        <a href="#/tournaments" class="btn btn-outline btn-lg">Voir tous les tournois disponibles →</a>
+      </div>
+    </section>
+
+    <!-- CTA FINAL -->
+    <section class="section-cta">
+      <div class="container">
+        <div class="cta-inner">
+          <div class="section-eyebrow" style="color: var(--accent-soft);">Démarrer</div>
+          <h2 class="cta-title">Organisez votre prochain tournoi<br><em>avec Le Tournoi.</em></h2>
+          <p class="cta-sub">Inscription gratuite. Un interlocuteur dédié vous accompagne sur la prise en main pour votre premier tournoi.</p>
+          <div class="cta-actions">
+            <a href="#/signup" class="btn btn-primary btn-lg" onclick="signupType='club'">Créer un compte organisateur <span class="btn-arrow"></span></a>
+            <a href="#/tournaments" class="btn btn-ghost btn-lg" style="color: var(--paper); border-color: rgba(245,239,228,0.35);">Voir les tournois disponibles</a>
+          </div>
+        </div>
+      </div>
     </section>`;
 }
 
@@ -2261,13 +3047,17 @@ function tournCard(t) {
         <div class="t-card-num">${approved}</div>
       </div>
       <div class="t-card-body">
-        <div class="t-card-club">${esc(club?.name || '')} · ${esc(club?.city || '')}</div>
+        <div class="t-card-club">
+          ${esc(club?.name || '')} · ${esc(club?.city || '')}
+          ${renderBadge(clubBadge(t.clubId), 'margin-left:0.4rem;font-size:9px;')}
+        </div>
         <h3 class="t-card-title">${esc(t.name)}</h3>
-        <p class="t-card-meta">${esc(t.edition)} · ${formatLabel(t.format)} · ${fmtDate(t.date)}</p>
+        <p class="t-card-meta">${esc(t.edition)} · ${esc(tournCategoriesLabel(t))} · ${esc(tournDateRange(t))}</p>
         <div class="t-card-foot">
           <span class="t-card-status ${t.status}">${t.status === 'open' ? 'Ouvert' : t.status === 'draft' ? 'Brouillon' : 'En cours'}</span>
           <span class="t-card-progress">${approved}/${t.maxTeams} équipes</span>
         </div>
+        ${(() => { const b = clubBadge(t.clubId); return b ? `<div style="padding:0.5rem 1.1rem 0.75rem;"><span class="lt-badge lt-badge-${b.level}" style="font-size:10px;">${b.icon} ${b.label}</span></div>` : ''; })()}
       </div>
     </div>`;
 }
@@ -2277,9 +3067,9 @@ function renderSignup() {
   document.getElementById('app').innerHTML = `
     <div class="auth-page">
       <div class="auth-card">
-        <div class="auth-eyebrow">▶ Nouveau compte</div>
-        <h1 class="auth-title">Choisis ton <em>profil</em>.</h1>
-        <p class="auth-sub">Trois types de comptes. Cinq minutes pour s'inscrire.</p>
+        <div class="auth-eyebrow">▶ Inscription — Le Tournoi · Île-de-France</div>
+        <h1 class="auth-title">Bienvenue sur <em>Le Tournoi.</em></h1>
+        <p class="auth-sub">Choisissez votre profil pour accéder aux fonctionnalités adaptées à votre rôle sur la plateforme.</p>
 
         <div class="mode-toggle">
           <div class="mode-toggle-opt ${signupMode === 'demo' ? 'active' : ''}" onclick="signupMode='demo'; renderSignup()">
@@ -2293,8 +3083,8 @@ function renderSignup() {
         </div>
 
         <div class="auth-tabs">
-          <div class="auth-tab ${signupType === 'club' ? 'active' : ''}" onclick="signupType='club'; renderSignup()">Club</div>
-          <div class="auth-tab ${signupType === 'team' ? 'active' : ''}" onclick="signupType='team'; renderSignup()">Équipe</div>
+          <div class="auth-tab ${signupType === 'club' ? 'active' : ''}" onclick="signupType='club'; renderSignup()">Organisateur</div>
+          <div class="auth-tab ${signupType === 'team' ? 'active' : ''}" onclick="signupType='team'; renderSignup()">Équipe participante</div>
           <div class="auth-tab ${signupType === 'sponsor' ? 'active' : ''}" onclick="signupType='sponsor'; renderSignup()">Sponsor</div>
         </div>
         <div id="signup-err" class="form-error"></div>
@@ -2320,29 +3110,35 @@ function renderConsentBox() {
 }
 
 function renderSignupForm(type) {
+  const HP = `<input type="text" name="website" id="f-hp-website" style="position:absolute; left:-9999px; opacity:0; pointer-events:none;" tabindex="-1" autocomplete="off">`;
   if (type === 'club') return `
-    <form onsubmit="handleSignup(event, 'club')">
-      <div class="form-group"><label class="form-label">Nom du club</label><input class="input" id="f-name" required placeholder="FC Belleville"></div>
+    <form onsubmit="handleSignup(event, 'club')" autocomplete="off">
+      ${HP}
+      <div class="form-group"><label class="form-label">Nom de l'organisateur</label><input class="input" id="f-name" required placeholder="FC Belleville, Mairie de Pantin, Association sportive..."></div>
+      <div class="form-group"><label class="form-label">Email</label><input type="email" class="input" id="f-email" required></div>
       <div class="form-row">
-        <div class="form-group"><label class="form-label">Email</label><input type="email" class="input" id="f-email" required></div>
-        <div class="form-group"><label class="form-label">Mot de passe</label><input type="password" class="input" id="f-pwd" required minlength="4"></div>
+        <div class="form-group"><label class="form-label">Mot de passe</label><input type="password" class="input" id="f-pwd" required minlength="6" placeholder="6 caractères minimum"></div>
+        <div class="form-group"><label class="form-label">Confirmer le mot de passe</label><input type="password" class="input" id="f-pwd2" required minlength="6"></div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label class="form-label">Président·e</label><input class="input" id="f-pres" required></div>
+        <div class="form-group"><label class="form-label">Responsable / Président·e</label><input class="input" id="f-pres" required></div>
         <div class="form-group"><label class="form-label">Ville</label><input class="input" id="f-city" required></div>
       </div>
-      <div class="form-group"><label class="form-label">Téléphone</label><input class="input" id="f-phone"></div>
-      <button type="submit" class="btn btn-primary btn-full btn-lg">Créer mon club <span class="btn-arrow"></span></button>
+      <div class="form-group"><label class="form-label">Téléphone</label><input class="input" id="f-phone" placeholder="06 12 34 56 78"></div>
+      <div class="form-group"><label class="form-label">Site web <span style="font-weight:400;color:var(--ink-mute);text-transform:none;letter-spacing:0;">(optionnel)</span></label><input type="url" class="input" id="f-website" placeholder="https://..."></div>
+      <button type="submit" class="btn btn-primary btn-full btn-lg">Créer un compte organisateur <span class="btn-arrow"></span></button>
     </form>`;
   if (type === 'team') return `
-    <form onsubmit="handleSignup(event, 'team')">
+    <form onsubmit="handleSignup(event, 'team')" autocomplete="off">
+      ${HP}
       <div class="form-row">
         <div class="form-group"><label class="form-label">Nom de l'équipe</label><input class="input" id="f-name" required placeholder="FCB U15 A"></div>
         <div class="form-group"><label class="form-label">Club d'origine</label><input class="input" id="f-club" required placeholder="FC Belleville"></div>
       </div>
+      <div class="form-group"><label class="form-label">Email</label><input type="email" class="input" id="f-email" required></div>
       <div class="form-row">
-        <div class="form-group"><label class="form-label">Email</label><input type="email" class="input" id="f-email" required></div>
-        <div class="form-group"><label class="form-label">Mot de passe</label><input type="password" class="input" id="f-pwd" required minlength="4"></div>
+        <div class="form-group"><label class="form-label">Mot de passe</label><input type="password" class="input" id="f-pwd" required minlength="6" placeholder="6 caractères minimum"></div>
+        <div class="form-group"><label class="form-label">Confirmer le mot de passe</label><input type="password" class="input" id="f-pwd2" required minlength="6"></div>
       </div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Catégorie</label><select class="select" id="f-cat" required>
@@ -2356,15 +3152,18 @@ function renderSignupForm(type) {
         <div class="form-group"><label class="form-label">Responsable</label><input class="input" id="f-mgr" required></div>
         <div class="form-group"><label class="form-label">Ville</label><input class="input" id="f-city" required></div>
       </div>
-      <div class="form-group"><label class="form-label">Téléphone</label><input class="input" id="f-phone"></div>
-      <button type="submit" class="btn btn-primary btn-full btn-lg">Créer mon équipe <span class="btn-arrow"></span></button>
+      <div class="form-group"><label class="form-label">Téléphone</label><input class="input" id="f-phone" placeholder="06 12 34 56 78"></div>
+      <div class="form-group"><label class="form-label">Site web de l'équipe <span style="font-weight:400;color:var(--ink-mute);text-transform:none;letter-spacing:0;">(optionnel)</span></label><input type="url" class="input" id="f-website" placeholder="https://..."></div>
+      <button type="submit" class="btn btn-primary btn-full btn-lg">Créer un compte équipe <span class="btn-arrow"></span></button>
     </form>`;
   return `
-    <form onsubmit="handleSignup(event, 'sponsor')">
+    <form onsubmit="handleSignup(event, 'sponsor')" autocomplete="off">
+      ${HP}
       <div class="form-group"><label class="form-label">Nom de l'entreprise</label><input class="input" id="f-name" required placeholder="Boulangerie Naïma"></div>
+      <div class="form-group"><label class="form-label">Email</label><input type="email" class="input" id="f-email" required></div>
       <div class="form-row">
-        <div class="form-group"><label class="form-label">Email</label><input type="email" class="input" id="f-email" required></div>
-        <div class="form-group"><label class="form-label">Mot de passe</label><input type="password" class="input" id="f-pwd" required minlength="4"></div>
+        <div class="form-group"><label class="form-label">Mot de passe</label><input type="password" class="input" id="f-pwd" required minlength="6" placeholder="6 caractères minimum"></div>
+        <div class="form-group"><label class="form-label">Confirmer le mot de passe</label><input type="password" class="input" id="f-pwd2" required minlength="6"></div>
       </div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Secteur</label><input class="input" id="f-sect" required placeholder="Restauration, Auto, Beauté..."></div>
@@ -2372,7 +3171,7 @@ function renderSignupForm(type) {
       </div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Contact</label><input class="input" id="f-cont" required></div>
-        <div class="form-group"><label class="form-label">Téléphone</label><input class="input" id="f-phone"></div>
+        <div class="form-group"><label class="form-label">Téléphone</label><input class="input" id="f-phone" placeholder="06 12 34 56 78"></div>
       </div>
       <div class="form-group">
         <label class="form-label">Budget annuel sponsoring</label>
@@ -2384,7 +3183,7 @@ function renderSignupForm(type) {
           <option value="5000€+">Plus de 5000€</option>
         </select>
       </div>
-      <button type="submit" class="btn btn-primary btn-full btn-lg">Devenir sponsor <span class="btn-arrow"></span></button>
+      <button type="submit" class="btn btn-primary btn-full btn-lg">Créer un compte sponsor <span class="btn-arrow"></span></button>
     </form>`;
 }
 
@@ -2396,6 +3195,31 @@ async function handleSignup(e, type) {
   e.preventDefault();
   const errEl = document.getElementById('signup-err');
   errEl.classList.remove('show');
+
+  // ===== Anti-spam honeypot =====
+  const hp = document.getElementById('f-hp-website');
+  if (hp && hp.value.trim() !== '') {
+    // Silently reject bots — pretend success without doing anything
+    console.log('[Le Tournoi] honeypot triggered, blocking');
+    return;
+  }
+
+  // ===== Password confirmation check =====
+  const pwd = document.getElementById('f-pwd').value;
+  const pwd2 = document.getElementById('f-pwd2') ? document.getElementById('f-pwd2').value : pwd;
+  if (pwd !== pwd2) {
+    errEl.textContent = 'Les deux mots de passe ne correspondent pas. Re-saisis-les à l\'identique.';
+    errEl.classList.add('show');
+    document.getElementById('f-pwd2').focus();
+    return;
+  }
+  if (pwd.length < 6) {
+    errEl.textContent = 'Le mot de passe doit faire au moins 6 caractères.';
+    errEl.classList.add('show');
+    document.getElementById('f-pwd').focus();
+    return;
+  }
+
   const name = document.getElementById('f-name').value.trim();
   let d;
   if (type === 'club') {
@@ -2447,17 +3271,44 @@ async function handleSignup(e, type) {
       if (submitBtn) submitBtn.innerHTML = type === 'club' ? 'Créer mon club <span class="btn-arrow"></span>' : type === 'team' ? 'Créer mon équipe <span class="btn-arrow"></span>' : 'Devenir sponsor <span class="btn-arrow"></span>';
       return;
     }
-    // Succès inscription réelle — affichage écran de confirmation
+    // Succès inscription réelle — écran de confirmation détaillé
+    const typeLabel = type === 'club' ? 'organisateur' : type === 'team' ? 'équipe participante' : 'sponsor';
     document.getElementById('app').innerHTML = `
-      <div class="auth-page">
+      <div class="auth-page" style="max-width: 640px;">
         <div class="auth-card real-signup-success">
           <div class="icon">✓</div>
-          <h1 class="auth-title" style="margin-bottom: 1rem;">Merci <em>${escapeHtml(name)}</em>.</h1>
-          <p class="detail-text" style="margin-bottom: 1.5rem;">On a bien reçu ta demande d'inscription. <strong>On te recontacte sous 24h</strong> pour t'expliquer la suite et t'accompagner sur tes premiers usages.</p>
-          <p class="detail-text" style="margin-bottom: 2rem;">Si tu as une question urgente, écris à <a href="mailto:contact@letournoi.foot" style="border-bottom: 1px solid var(--accent);">contact@letournoi.foot</a>.</p>
-          <a href="#/" class="btn btn-primary">Retour à l'accueil</a>
+          <div class="auth-eyebrow" style="text-align: center; margin-bottom: 0.5rem;">▶ Inscription confirmée</div>
+          <h1 class="auth-title" style="text-align: center; margin-bottom: 1.25rem;">Merci <em>${escapeHtml(name)}</em>.</h1>
+          <p class="detail-text" style="margin-bottom: 1.5rem;">Ta demande d'inscription en tant que <strong>${typeLabel}</strong> a bien été enregistrée sur Le Tournoi.</p>
+
+          <div style="background: var(--paper-soft); border: 1px solid var(--line); padding: 1.25rem 1.4rem; margin-bottom: 1.5rem; border-radius: 2px;">
+            <div style="font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--ink-mute); margin-bottom: 0.85rem;">Récapitulatif de ton inscription</div>
+            <div style="font-family: var(--font-serif); font-size: 0.98rem; line-height: 1.7;">
+              <strong>Nom :</strong> ${escapeHtml(name)}<br>
+              <strong>Email :</strong> ${escapeHtml(d.email)}<br>
+              <strong>Ville :</strong> ${escapeHtml(d.city)}
+              ${d.phone ? `<br><strong>Téléphone :</strong> ${escapeHtml(d.phone)}` : ''}
+            </div>
+          </div>
+
+          <div style="background: var(--ink); color: var(--paper); padding: 1.25rem 1.4rem; margin-bottom: 1.5rem; border-radius: 2px;">
+            <div style="font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--accent-soft); margin-bottom: 0.85rem;">Prochaines étapes</div>
+            <ol style="font-family: var(--font-serif); font-size: 0.98rem; line-height: 1.65; padding-left: 1.4rem; margin: 0;">
+              <li style="margin-bottom: 0.5rem;">Notre équipe te recontacte <strong>sous 24h</strong> par email pour finaliser ton accès.</li>
+              <li style="margin-bottom: 0.5rem;">Tu recevras tes <strong>identifiants de connexion</strong> et un guide de démarrage personnalisé.</li>
+              <li>Il sera possible de créer un premier tournoi ou de rejoindre un tournoi existant.</li>
+            </ol>
+          </div>
+
+          <p class="detail-text" style="margin-bottom: 1.75rem; text-align: center; font-size: 0.92rem;">Une question ? Écris-nous à <a href="mailto:contact@letournoi.foot" style="border-bottom: 1px solid var(--accent); color: var(--ink);">contact@letournoi.foot</a></p>
+
+          <div style="display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap;">
+            <a href="#/" class="btn btn-primary">Retour à l'accueil</a>
+            <a href="#/tournaments" class="btn btn-outline">Voir les tournois</a>
+          </div>
         </div>
       </div>`;
+    window.scrollTo(0, 0);
     return;
   }
 
@@ -2478,12 +3329,12 @@ function renderLogin() {
   document.getElementById('app').innerHTML = `
     <div class="auth-page">
       <div class="auth-card">
-        <div class="auth-eyebrow">▶ Connexion</div>
+        <div class="auth-eyebrow">▶ Connexion — Le Tournoi · Île-de-France</div>
         <h1 class="auth-title">Re-<em>bonjour</em>.</h1>
-        <p class="auth-sub">Retrouve ton compte.</p>
+        <p class="auth-sub">Accédez à votre espace et retrouvez vos tournois, équipes et données.</p>
         <div class="auth-tabs">
-          <div class="auth-tab ${loginType === 'club' ? 'active' : ''}" onclick="loginType='club'; renderLogin()">Club</div>
-          <div class="auth-tab ${loginType === 'team' ? 'active' : ''}" onclick="loginType='team'; renderLogin()">Équipe</div>
+          <div class="auth-tab ${loginType === 'club' ? 'active' : ''}" onclick="loginType='club'; renderLogin()">Organisateur</div>
+          <div class="auth-tab ${loginType === 'team' ? 'active' : ''}" onclick="loginType='team'; renderLogin()">Équipe participante</div>
           <div class="auth-tab ${loginType === 'sponsor' ? 'active' : ''}" onclick="loginType='sponsor'; renderLogin()">Sponsor</div>
         </div>
         <div id="login-err" class="form-error"></div>
@@ -2494,8 +3345,8 @@ function renderLogin() {
         </form>
         <div class="auth-demo">
           <strong>COMPTES DÉMO :</strong><br>
-          <strong>Clubs</strong> · demo@letournoi.foot · pantin@letournoi.foot · montreuil@letournoi.foot<br>
-          <strong>Équipes</strong> · aulnay@letournoi.foot · suresnes@letournoi.foot<br>
+          <strong>Organisateurs</strong> · demo@letournoi.foot · pantin@letournoi.foot · montreuil@letournoi.foot<br>
+          <strong>Équipes participantes</strong> · aulnay@letournoi.foot · suresnes@letournoi.foot<br>
           <strong>Sponsors</strong> · auto@letournoi.foot · naima@letournoi.foot · intermarche@letournoi.foot<br>
           Mot de passe : <code>demo</code>
         </div>
@@ -2521,15 +3372,19 @@ function renderDashboard() {
 
 function renderClubDashboard(c) {
   const myTs = state.tournaments.filter(t => t.clubId === c.id);
-  const totTeams = myTs.reduce((s, t) => s + t.registrations.filter(r => r.status !== 'rejected').length, 0);
+  const cb = clubBadge(c.id);
+  const totTeams = myTs.reduce((s, t) => s + t.registrations.filter(r => r.status === 'approved').length, 0);
   const totSp = myTs.reduce((s, t) => s + t.sponsorProposals.reduce((sum, sp) => sum + (sp.status === 'confirme' ? sp.amount : 0), 0), 0);
   const pendT = myTs.reduce((s, t) => s + t.registrations.filter(r => r.status === 'pending').length, 0);
   const pendS = myTs.reduce((s, t) => s + t.sponsorProposals.filter(sp => sp.status === 'pending').length, 0);
 
   document.getElementById('app').innerHTML = `
     <div class="container" style="padding-top: 2.5rem; padding-bottom: 3rem;">
-      <h1 class="dash-greeting">Salut <em>${esc(c.name)}</em>.</h1>
-      <p class="dash-sub">Ton tableau de bord club.</p>
+      <h1 class="dash-greeting"><em>${esc(c.name)}</em></h1>
+      <p class="dash-sub" style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+        Tableau de bord organisateur.
+        ${renderBadge(cb)}
+      </p>
       <div class="dash-stats">
         <div class="dash-stat"><div class="dash-stat-label">Tournois actifs</div><div class="dash-stat-val">${myTs.filter(t => t.status === 'open').length}</div></div>
         <div class="dash-stat"><div class="dash-stat-label">Équipes inscrites</div><div class="dash-stat-val">${totTeams}</div></div>
@@ -2556,7 +3411,7 @@ function renderClubDashboard(c) {
         ${myTs.length ? `<div class="grid grid-3">${myTs.map(tournCard).join('')}</div>` : `
           <div class="dash-empty">
             <div class="dash-empty-title">Aucun tournoi</div>
-            <p class="dash-empty-text">Crée ton premier tournoi en 5 minutes.</p>
+            <p class="dash-empty-text">Créez un premier tournoi en 5 minutes.</p>
             <a href="#/tournaments/new" class="btn btn-primary btn-sm">Créer un tournoi</a>
           </div>`}
       </div>
@@ -2572,8 +3427,8 @@ function renderTeamDashboard(team) {
 
   document.getElementById('app').innerHTML = `
     <div class="container" style="padding-top: 2.5rem; padding-bottom: 3rem;">
-      <h1 class="dash-greeting">Salut <em>${esc(team.name)}</em>.</h1>
-      <p class="dash-sub">Ton tableau de bord équipe.</p>
+      <h1 class="dash-greeting"><em>${esc(team.name)}</em></h1>
+      <p class="dash-sub">Tableau de bord équipe participante.</p>
       <div class="dash-stats">
         <div class="dash-stat"><div class="dash-stat-label">Joueurs</div><div class="dash-stat-val">${team.players.length}</div></div>
         <div class="dash-stat"><div class="dash-stat-label">Tournois acceptés</div><div class="dash-stat-val">${approved}</div></div>
@@ -2601,6 +3456,13 @@ function renderTeamDashboard(team) {
               ${state.catalog.days.map(d => `<div class="avail-day ${team.availability?.includes(d.k) ? 'on' : ''}">${d.s}</div>`).join('')}
             </div>
           </div>
+          ${team.preferences ? `
+          <div style="margin-top: 0.85rem; padding-top: 0.85rem; border-top: 1px dashed var(--line);">
+            <div class="aside-share-label" style="margin-bottom: 0.5rem;">Mobilité</div>
+            <span class="avail-day on" style="font-size:11px;">
+              ${{ locale:'Locale', departementale:'Départementale', regionale:'Régionale', nationale:'Nationale' }[team.preferences.mobility] || team.preferences.mobility}
+            </span>
+          </div>` : ''}
         </div>
       </div>
 
@@ -2623,7 +3485,7 @@ function renderTeamDashboard(team) {
           </div>` : `
           <div class="dash-empty">
             <div class="dash-empty-title">Aucun joueur</div>
-            <p class="dash-empty-text">Ajoute tes joueurs pour compléter ton profil.</p>
+            <p class="dash-empty-text">Ajoutez des joueurs pour compléter le profil.</p>
             <button class="btn btn-primary btn-sm" onclick="addPlayerModal()">+ Premier joueur</button>
           </div>`}
       </div>
@@ -2631,7 +3493,7 @@ function renderTeamDashboard(team) {
       <div class="dash-section">
         <div class="dash-section-h">
           <div class="dash-section-title">Mes candidatures (${myApps.length})</div>
-          <a href="#/tournaments" class="btn btn-outline btn-sm">Trouver d'autres tournois →</a>
+          <button class="btn btn-outline btn-sm" onclick="navigateToTournamentsWithPrefs()">Parcourir les tournois →</button>
         </div>
         ${myApps.length ? `
           <div class="list">
@@ -2648,7 +3510,7 @@ function renderTeamDashboard(team) {
           </div>` : `
           <div class="dash-empty">
             <div class="dash-empty-title">Aucune candidature</div>
-            <p class="dash-empty-text">Trouve un tournoi qui te correspond.</p>
+            <p class="dash-empty-text">Parcourez les tournois disponibles en Île-de-France.</p>
           </div>`}
       </div>
 
@@ -2673,8 +3535,8 @@ function renderSponsorDashboard(s) {
 
   document.getElementById('app').innerHTML = `
     <div class="container" style="padding-top: 2.5rem; padding-bottom: 3rem;">
-      <h1 class="dash-greeting">Salut <em>${esc(s.name)}</em>.</h1>
-      <p class="dash-sub">Ton tableau de bord sponsor.</p>
+      <h1 class="dash-greeting"><em>${esc(s.name)}</em></h1>
+      <p class="dash-sub">Tableau de bord sponsor.</p>
       <div class="dash-stats">
         <div class="dash-stat"><div class="dash-stat-label">Tournois soutenus</div><div class="dash-stat-val">${conf}</div></div>
         <div class="dash-stat"><div class="dash-stat-label">Propositions ouvertes</div><div class="dash-stat-val"><em>${pend}</em></div></div>
@@ -2734,15 +3596,77 @@ function renderSponsorDashboard(s) {
 // PROFILE EDIT MODALS
 function editTeamProfileModal() {
   const team = getAccount();
+  const prefs = team.preferences || {};
+  const mobilityOptions = [
+    { v: 'locale',        l: 'Locale (même ville / quartier)' },
+    { v: 'departementale',l: 'Départementale' },
+    { v: 'regionale',     l: 'Régionale' },
+    { v: 'nationale',     l: 'Nationale' },
+  ];
   modal('Modifier mon profil',
-    `<div class="form-group"><label class="form-label">Bio (présentation)</label>
-       <textarea class="textarea" id="ed-bio" placeholder="Présente ton équipe en quelques phrases...">${esc(team.bio || '')}</textarea>
-     </div>
-     <div class="form-group"><label class="form-label">Disponibilités</label>
-       <div class="day-checks" id="ed-days">
-         ${state.catalog.days.map(d => `<div class="day-check ${team.availability?.includes(d.k) ? 'selected' : ''}" data-k="${d.k}" onclick="this.classList.toggle('selected')">${d.s}</div>`).join('')}
-       </div>
-     </div>`,
+    `<div style="max-height:70vh;overflow-y:auto;padding-right:0.25rem;">
+
+      <div class="form-group"><label class="form-label">Bio (présentation)</label>
+        <textarea class="textarea" id="ed-bio" placeholder="Présente ton équipe en quelques phrases...">${esc(team.bio || '')}</textarea>
+      </div>
+
+      <div class="form-group"><label class="form-label">Disponibilités</label>
+        <div class="day-checks" id="ed-days">
+          ${state.catalog.days.map(d => `<div class="day-check ${team.availability?.includes(d.k) ? 'selected' : ''}" data-k="${d.k}" onclick="this.classList.toggle('selected')">${d.s}</div>`).join('')}
+        </div>
+      </div>
+
+      <div class="form-group"><label class="form-label">Ville / Localisation</label>
+        <input class="input" id="ed-location" value="${esc(team.city || '')}" placeholder="Paris, Montreuil, Pantin...">
+        <p class="form-help">Ville de référence pour trouver des tournois près de chez toi.</p>
+      </div>
+
+      <div class="form-group"><label class="form-label">Mobilité</label>
+        <div class="day-checks" id="ed-mobility">
+          ${mobilityOptions.map(m => `<div class="day-check ${(prefs.mobility||'regionale') === m.v ? 'selected' : ''}" data-v="${m.v}" onclick="this.parentNode.querySelectorAll('.day-check').forEach(el=>el.classList.remove('selected')); this.classList.add('selected');">${m.l}</div>`).join('')}
+        </div>
+        <p class="form-help">Distance maximale pour se déplacer à un tournoi.</p>
+      </div>
+
+      <div class="form-group"><label class="form-label">Catégories préférées</label>
+        <div class="day-checks" id="ed-pref-cats">
+          ${(state.catalog.formats||[]).map(f => `<div class="day-check ${(prefs.categories||[]).includes(f.v) ? 'selected' : ''}" data-v="${f.v}" onclick="this.classList.toggle('selected')">${esc(f.l)}</div>`).join('')}
+        </div>
+        <p class="form-help">Catégories ouvertes à votre équipe.</p>
+      </div>
+
+      <div class="form-group"><label class="form-label">Types de match préférés</label>
+        <div class="day-checks" id="ed-pref-match">
+          ${(state.catalog.matchSizes||[]).map(m => `<div class="day-check ${(prefs.matchSizes||[]).includes(m.v) ? 'selected' : ''}" data-v="${m.v}" onclick="this.classList.toggle('selected')">${esc(m.l)}</div>`).join('')}
+        </div>
+      </div>
+
+      <div class="form-group"><label class="form-label">Surfaces préférées</label>
+        <div class="day-checks" id="ed-pref-surfaces">
+          ${(state.catalog.surfaces||[]).map(s => `<div class="day-check ${(prefs.surfaces||[]).includes(s.v) ? 'selected' : ''}" data-v="${s.v}" onclick="this.classList.toggle('selected')">${esc(s.l)}</div>`).join('')}
+        </div>
+      </div>
+
+      <div class="form-group"><label class="form-label">Site web <span style="font-weight:400;color:var(--ink-mute);text-transform:none;letter-spacing:0;">(optionnel)</span></label>
+        <input class="input" id="ed-website" value="${esc(team.website || '')}" placeholder="https://...">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Coordonnées visibles aux comptes connectés</label>
+        <div style="display:flex;flex-direction:column;gap:0.5rem;margin-top:0.5rem;">
+          <label style="display:flex;align-items:center;gap:0.65rem;font-family:var(--font-serif);font-size:0.95rem;cursor:pointer;">
+            <input type="checkbox" id="ed-share-email" ${team.shareEmail !== false ? 'checked' : ''} style="accent-color:var(--accent);width:16px;height:16px;">
+            Partager l'adresse email
+          </label>
+          <label style="display:flex;align-items:center;gap:0.65rem;font-family:var(--font-serif);font-size:0.95rem;cursor:pointer;">
+            <input type="checkbox" id="ed-share-phone" ${team.sharePhone !== false ? 'checked' : ''} style="accent-color:var(--accent);width:16px;height:16px;">
+            Partager le numéro de téléphone
+          </label>
+        </div>
+        <p class="form-help" style="margin-top:0.5rem;">Les coordonnées masquées ne sont jamais affichées, même aux utilisateurs connectés.</p>
+      </div>
+
+    </div>`,
     `<button class="btn btn-ghost" onclick="closeModal()">Annuler</button>
      <button class="btn btn-orange" onclick="saveTeamProfile()">Enregistrer</button>`);
 }
@@ -2750,6 +3674,27 @@ function saveTeamProfile() {
   const team = getAccount();
   team.bio = document.getElementById('ed-bio').value.trim();
   team.availability = [...document.querySelectorAll('#ed-days .day-check.selected')].map(el => el.dataset.k);
+  const locEl = document.getElementById('ed-location');
+  if (locEl) team.city = locEl.value.trim();
+  const websiteEl = document.getElementById('ed-website');
+  if (websiteEl) team.website = websiteEl.value.trim();
+  // Contact sharing preferences
+  const shareEmailEl = document.getElementById('ed-share-email');
+  const sharePhoneEl = document.getElementById('ed-share-phone');
+  if (shareEmailEl) team.shareEmail = shareEmailEl.checked;
+  if (sharePhoneEl) team.sharePhone = sharePhoneEl.checked;
+  // Re-encode contacts
+  team.emailEncoded = encodeContact(team.email || '');
+  team.phoneEncoded = encodeContact(team.phone || '');
+  team._contactsEncoded = true;
+  // Save preferences
+  const mobilityEl = document.querySelector('#ed-mobility .day-check.selected');
+  team.preferences = {
+    mobility: mobilityEl ? mobilityEl.dataset.v : 'regionale',
+    categories: [...document.querySelectorAll('#ed-pref-cats .day-check.selected')].map(el => el.dataset.v),
+    matchSizes: [...document.querySelectorAll('#ed-pref-match .day-check.selected')].map(el => el.dataset.v),
+    surfaces: [...document.querySelectorAll('#ed-pref-surfaces .day-check.selected')].map(el => el.dataset.v),
+  };
   saveState(); closeModal(); toast('Profil mis à jour', 'success'); render();
 }
 function addPlayerModal() {
@@ -2785,11 +3730,27 @@ function editSponsorProfileModal() {
     `<div class="form-group"><label class="form-label">Description</label>
        <textarea class="textarea" id="ed-desc">${esc(s.description || '')}</textarea>
      </div>
+     <div class="form-group"><label class="form-label">Site web <span style="font-weight:400;color:var(--ink-mute);text-transform:none;letter-spacing:0;">(optionnel)</span></label>
+       <input class="input" id="ed-website" value="${esc(s.website || '')}" placeholder="https://...">
+     </div>
      <div class="form-group"><label class="form-label">Catégories préférées</label>
        <div class="day-checks" id="ed-cats">
          ${state.catalog.formats.map(f => `<div class="day-check ${s.preferredCategories?.includes(f.v) ? 'selected' : ''}" data-v="${f.v}" onclick="this.classList.toggle('selected')">${esc(f.l.split(' ')[0])}</div>`).join('')}
        </div>
-       <p class="form-help">Catégories que tu préfères sponsoriser.</p>
+       <p class="form-help">Catégories de tournois à privilégier pour le sponsoring.</p>
+     </div>
+     <div class="form-group">
+       <label class="form-label">Coordonnées visibles aux comptes connectés</label>
+       <div style="display:flex;flex-direction:column;gap:0.5rem;margin-top:0.5rem;">
+         <label style="display:flex;align-items:center;gap:0.65rem;font-family:var(--font-serif);font-size:0.95rem;cursor:pointer;">
+           <input type="checkbox" id="ed-share-email" ${s.shareEmail !== false ? 'checked' : ''} style="accent-color:var(--accent);width:16px;height:16px;">
+           Partager l'adresse email
+         </label>
+         <label style="display:flex;align-items:center;gap:0.65rem;font-family:var(--font-serif);font-size:0.95rem;cursor:pointer;">
+           <input type="checkbox" id="ed-share-phone" ${s.sharePhone !== false ? 'checked' : ''} style="accent-color:var(--accent);width:16px;height:16px;">
+           Partager le numéro de téléphone
+         </label>
+       </div>
      </div>`,
     `<button class="btn btn-ghost" onclick="closeModal()">Annuler</button>
      <button class="btn btn-orange" onclick="saveSponsorProfile()">Enregistrer</button>`);
@@ -2797,57 +3758,217 @@ function editSponsorProfileModal() {
 function saveSponsorProfile() {
   const s = getAccount();
   s.description = document.getElementById('ed-desc').value.trim();
+  s.website = document.getElementById('ed-website')?.value.trim() || '';
   s.preferredCategories = [...document.querySelectorAll('#ed-cats .day-check.selected')].map(el => el.dataset.v);
+  const shareEmailEl = document.getElementById('ed-share-email');
+  const sharePhoneEl = document.getElementById('ed-share-phone');
+  if (shareEmailEl) s.shareEmail = shareEmailEl.checked;
+  if (sharePhoneEl) s.sharePhone = sharePhoneEl.checked;
+  s.emailEncoded = encodeContact(s.email || '');
+  s.phoneEncoded = encodeContact(s.phone || '');
+  s._contactsEncoded = true;
   saveState(); closeModal(); toast('Profil mis à jour', 'success'); render();
 }
 
 // TOURNAMENTS LIST
+// State for tournament search filters
+let tournamentSearchQuery = '';
+let tournamentSearchLocation = '';
+let tournamentSearchCategory = '';
+let tournamentSearchStatus = '';
+
 function renderTournaments() {
+  const a = getAccount();
+  const filtered = filterTournaments(tournamentSearchQuery, tournamentSearchLocation, tournamentSearchCategory, tournamentSearchStatus);
+  const totalCount = state.tournaments.length;
+
   document.getElementById('app').innerHTML = `
     <div class="page-head">
-      <div class="page-eyebrow">Tous les tournois</div>
-      <h1 class="page-title">${state.tournaments.length} tournois<br><em>organisés</em> sur Le Tournoi.</h1>
-      <p class="page-sub">Trouve un tournoi, postule avec ton équipe, propose ton sponsoring.</p>
-      <div class="page-head-actions"><a href="#/tournaments/new" class="btn btn-orange">+ Créer un tournoi</a></div>
+      <div class="page-eyebrow">Tournois foot amateur · Île-de-France</div>
+      <h1 class="page-title">${totalCount} tournoi${totalCount > 1 ? 's' : ''}<br><em>à rejoindre</em> ou à créer.</h1>
+      <p class="page-sub">Recherchez par nom, ville, catégorie ou statut. L'inscription se fait directement depuis la fiche du tournoi.</p>
+      <div class="page-head-actions"><a href="#/tournaments/new" class="btn btn-orange">+ Publier un tournoi</a></div>
     </div>
-    <div class="container" style="padding-top: 2.5rem; padding-bottom: 3rem;">
-      <div class="grid grid-3">${state.tournaments.map(tournCard).join('')}</div>
+    <div class="container" style="padding-top: 2rem; padding-bottom: 3rem;">
+
+      <div class="search-bar-wrap">
+        <div class="search-row">
+          <div class="search-field-wrap">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input class="search-field" id="s-name" type="text"
+              placeholder="Rechercher par nom de tournoi..."
+              value="${esc(tournamentSearchQuery)}"
+              oninput="tournamentSearchQuery = this.value; renderTournaments();">
+          </div>
+          <div class="search-field-wrap">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"/><circle cx="12" cy="10" r="3"/></svg>
+            <input class="search-field" id="s-loc" type="text"
+              placeholder="Ville ou localité..."
+              value="${esc(tournamentSearchLocation)}"
+              oninput="tournamentSearchLocation = this.value; renderTournaments();">
+          </div>
+        </div>
+        <div class="filter-row">
+          <select class="filter-select" id="s-cat" onchange="tournamentSearchCategory = this.value; renderTournaments();">
+            <option value="">Toutes catégories</option>
+            ${(state.catalog.formats||[]).map(f => `<option value="${f.v}" ${tournamentSearchCategory === f.v ? 'selected' : ''}>${esc(f.l)}</option>`).join('')}
+          </select>
+          <select class="filter-select" id="s-status" onchange="tournamentSearchStatus = this.value; renderTournaments();">
+            <option value="">Tous statuts</option>
+            <option value="open" ${tournamentSearchStatus === 'open' ? 'selected' : ''}>Inscriptions ouvertes</option>
+            <option value="draft" ${tournamentSearchStatus === 'draft' ? 'selected' : ''}>En préparation</option>
+          </select>
+          ${(tournamentSearchQuery || tournamentSearchLocation || tournamentSearchCategory || tournamentSearchStatus) ? `
+            <button class="btn btn-ghost btn-sm" onclick="tournamentSearchQuery=''; tournamentSearchLocation=''; tournamentSearchCategory=''; tournamentSearchStatus=''; renderTournaments();">
+              Effacer les filtres
+            </button>` : ''}
+          <span class="search-count">${filtered.length} résultat${filtered.length !== 1 ? 's' : ''}</span>
+        </div>
+      </div>
+
+      ${filtered.length === 0 ? `
+        <div class="dash-empty">
+          <div class="dash-empty-title">Aucun tournoi trouvé</div>
+          <p class="dash-empty-text">Modifiez les critères de recherche, ou publiez un nouveau tournoi.</p>
+          <button class="btn btn-ghost btn-sm" onclick="tournamentSearchQuery=''; tournamentSearchLocation=''; tournamentSearchCategory=''; tournamentSearchStatus=''; renderTournaments();">Voir tous les tournois</button>
+        </div>` : `
+        <div class="grid grid-3">${filtered.map(tournCard).join('')}</div>`}
     </div>`;
+}
+
+function filterTournaments(query, location, category, status) {
+  return state.tournaments.filter(t => {
+    const club = getClub(t.clubId);
+    const nameMatch = !query || t.name.toLowerCase().includes(query.toLowerCase()) || (t.edition||'').toLowerCase().includes(query.toLowerCase());
+    const venue = tournVenue(t);
+    const locationMatch = !location || (venue.name||'').toLowerCase().includes(location.toLowerCase()) || (venue.address||'').toLowerCase().includes(location.toLowerCase()) || (club?.city||'').toLowerCase().includes(location.toLowerCase()) || (t.location||'').toLowerCase().includes(location.toLowerCase());
+    const cats = tournCategories(t);
+    const categoryMatch = !category || cats.includes(category);
+    const statusMatch = !status || t.status === status;
+    return nameMatch && locationMatch && categoryMatch && statusMatch;
+  });
 }
 
 // CREATE TOURNAMENT
 function renderCreateTournament() {
+  const a = getAccount();
   document.getElementById('app').innerHTML = `
     <div class="page-head">
       <div class="page-eyebrow">Nouveau tournoi</div>
       <h1 class="page-title">Lance ton<br><em>tournoi</em>.</h1>
-      <p class="page-sub">Remplis les essentiels — équipes, sponsors, matchs et animations s'ajoutent ensuite.</p>
+      <p class="page-sub">Renseignez les informations du tournoi. Tout est modifiable ensuite.</p>
     </div>
-    <div class="container" style="max-width: 720px; padding-top: 2rem; padding-bottom: 3rem;">
+    <div class="container" style="max-width: 760px; padding-top: 2rem; padding-bottom: 3rem;">
       <div class="auth-card" style="margin-top: 0;">
         <div id="t-err" class="form-error"></div>
-        <form onsubmit="handleCreateT(event)">
-          <div class="form-group"><label class="form-label">Nom du tournoi</label><input class="input" id="t-name" required></div>
+        <form onsubmit="handleCreateT(event)" autocomplete="off">
+
+          <h3 class="detail-section-title" style="font-size: 1.1rem; margin-bottom: 1rem;">Informations générales</h3>
+
+          <div class="form-group"><label class="form-label">Nom du tournoi</label><input class="input" id="t-name" required placeholder="Coupe de Belleville"></div>
           <div class="form-row">
             <div class="form-group"><label class="form-label">Édition</label><input class="input" id="t-ed" value="1ère édition"></div>
-            <div class="form-group"><label class="form-label">Date</label><input type="date" class="input" id="t-date" required></div>
-          </div>
-          <div class="form-group"><label class="form-label">Lieu</label><input class="input" id="t-loc" required></div>
-          <div class="form-group"><label class="form-label">Format</label>
-            <div class="radio-cards" style="grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));">
-              ${state.catalog.formats.map(f => `<label class="radio-c" onclick="selFormat(this, '${f.v}', ${f.s})">
-                <div class="radio-c-title">${esc(f.l.split(' ')[0])}</div>
-                <div class="radio-c-sub">${esc(f.l)}</div>
-              </label>`).join('')}
-            </div>
-            <input type="hidden" id="t-fmt" required><input type="hidden" id="t-sz" required>
-          </div>
-          <div class="form-row">
-            <div class="form-group"><label class="form-label">Nb max d'équipes</label><input type="number" class="input" id="t-max" required min="4" max="64" value="8"></div>
             <div class="form-group"><label class="form-label">Frais d'inscription (€)</label><input type="number" class="input" id="t-fee" required min="0" value="80"></div>
           </div>
-          <div class="form-group"><label class="form-label">Description</label><textarea class="textarea" id="t-desc" required></textarea></div>
-          <div style="display:flex; gap: 0.6rem; margin-top: 1.5rem;">
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Date de début</label>
+              <input type="date" class="input" id="t-date" required
+                min="${new Date().toISOString().split('T')[0]}"
+                oninvalid="this.setCustomValidity('La date doit être dans le futur')"
+                oninput="this.setCustomValidity(''); const df = document.getElementById('t-date-end'); if (df && !df.value) df.min = this.value;">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Date de fin <span style="font-weight:400;color:var(--ink-mute);text-transform:none;letter-spacing:0;">(optionnel — si plusieurs jours)</span></label>
+              <input type="date" class="input" id="t-date-end"
+                oninput="const ds = document.getElementById('t-date'); if (ds && this.value && this.value < ds.value) { this.setCustomValidity('La date de fin doit être après la date de début'); this.reportValidity(); } else { this.setCustomValidity(''); }">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Heure de début</label>
+              <input type="time" class="input" id="t-time-start" value="09:00">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Heure de fin <span style="font-weight:400;color:var(--ink-mute);text-transform:none;letter-spacing:0;">(optionnel)</span></label>
+              <input type="time" class="input" id="t-time-end">
+            </div>
+          </div>
+
+          <h3 class="detail-section-title" style="font-size: 1.1rem; margin: 2rem 0 1rem;">Lieu</h3>
+
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Nom du lieu</label><input class="input" id="t-venue-name" required placeholder="Stade Léo Lagrange"></div>
+            <div class="form-group"><label class="form-label">Surface</label>
+              <select class="select" id="t-surface" required>
+                ${(state.catalog.surfaces||[]).map(s => `<option value="${s.v}">${esc(s.l)}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+          <div class="form-group"><label class="form-label">Adresse complète</label><input class="input" id="t-venue-address" required placeholder="68 boulevard Mortier, 75020 Paris"></div>
+
+          <h3 class="detail-section-title" style="font-size: 1.1rem; margin: 2rem 0 1rem;">Catégories et format</h3>
+
+          <div class="form-group">
+            <label class="form-label">Catégories d'âge (plusieurs possibles)</label>
+            <div class="day-checks" id="t-categories">
+              ${(state.catalog.formats||[]).map(f => `<div class="day-check" data-v="${f.v}" onclick="this.classList.toggle('selected')">${esc(f.l.split(' ')[0])}</div>`).join('')}
+            </div>
+            <p class="form-help">Sélectionne toutes les catégories ouvertes au tournoi.</p>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Type de match</label>
+              <select class="select" id="t-matchsize" required>
+                ${(state.catalog.matchSizes||[]).map(m => `<option value="${m.v}">${esc(m.l)}</option>`).join('')}
+              </select>
+            </div>
+            <div class="form-group"><label class="form-label">Genre</label>
+              <select class="select" id="t-gender" required>
+                ${(state.catalog.genders||[]).map(g => `<option value="${g.v}">${esc(g.l)}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group"><label class="form-label">Format de compétition</label>
+            <select class="select" id="t-compformat" required onchange="document.getElementById('t-compformat-other-wrap').style.display = this.value === 'autres' ? 'block' : 'none';">
+              ${(state.catalog.competitionFormats||[]).map(c => `<option value="${c.v}">${esc(c.l)}</option>`).join('')}
+            </select>
+          </div>
+          <div class="form-group" id="t-compformat-other-wrap" style="display: none;">
+            <label class="form-label">Précise le format</label>
+            <input class="input" id="t-compformat-other" placeholder="Ex : Round Robin avec petite finale">
+          </div>
+
+          <div class="form-group"><label class="form-label">Nombre max d'équipes</label><input type="number" class="input" id="t-max" required min="2" max="64" value="8"></div>
+
+          <h3 class="detail-section-title" style="font-size: 1.1rem; margin: 2rem 0 1rem;">Contact pour les inscriptions</h3>
+
+          <div style="background: var(--paper-soft); border: 1px solid var(--line); padding: 1rem 1.25rem; border-radius: 2px; margin-bottom: 1rem;">
+            <p style="font-family: var(--font-serif); font-style: italic; font-size: 0.92rem; color: var(--ink-mute); margin-bottom: 0.85rem;">Les informations de votre compte sont pré-remplies ci-dessous. Modifiez-les si ce tournoi a un contact différent.</p>
+            <div class="form-row">
+              <div class="form-group"><label class="form-label">Nom du contact</label><input class="input" id="t-contact-name" value="${esc(a?.president || a?.name || '')}"></div>
+              <div class="form-group"><label class="form-label">Téléphone</label><input class="input" id="t-contact-phone" value="${esc(a?.phone || '')}"></div>
+            </div>
+            <div class="form-group"><label class="form-label">Email de contact</label><input type="email" class="input" id="t-contact-email" value="${esc(a?.email || '')}"></div>
+          </div>
+
+          <div style="background: var(--paper-soft); border: 1px solid var(--line); padding: 0.85rem 1.25rem; border-radius: 2px; margin-bottom: 0.5rem;">
+            <label style="display: flex; align-items: flex-start; gap: 0.75rem; cursor: pointer;">
+              <input type="checkbox" id="t-contact-visible" checked style="margin-top: 3px; accent-color: var(--accent);">
+              <div>
+                <span style="font-family: var(--font-serif); font-weight: 400; font-size: 0.95rem;">Rendre ces coordonnées visibles aux comptes connectés</span>
+                <p style="font-family: var(--font-sans); font-size: 12px; color: var(--ink-mute); margin-top: 0.25rem;">Les visiteurs non connectés verront une invitation à créer un compte. Les coordonnées sont masquées par défaut et révélées au clic.</p>
+              </div>
+            </label>
+          </div>
+
+          <h3 class="detail-section-title" style="font-size: 1.1rem; margin: 2rem 0 1rem;">Présentation</h3>
+
+          <div class="form-group"><label class="form-label">Description du tournoi</label><textarea class="textarea" id="t-desc" required placeholder="Présente ton tournoi : ambiance, organisation, points forts..."></textarea></div>
+
+          <div style="display:flex; gap: 0.6rem; margin-top: 2rem;">
             <a href="#/dashboard" class="btn btn-ghost">Annuler</a>
             <button type="submit" class="btn btn-primary btn-full" style="flex:1;">Créer mon tournoi <span class="btn-arrow"></span></button>
           </div>
@@ -2864,47 +3985,329 @@ function selFormat(el, v, sz) {
 function handleCreateT(e) {
   e.preventDefault();
   const club = getAccount();
-  const fmt = document.getElementById('t-fmt').value;
-  if (!fmt) { const el = document.getElementById('t-err'); el.textContent = 'Choisis un format.'; el.classList.add('show'); return; }
+  const errEl = document.getElementById('t-err');
+  errEl.classList.remove('show');
+
+  // Collect selected categories
+  const categories = [...document.querySelectorAll('#t-categories .day-check.selected')].map(el => el.dataset.v);
+  if (categories.length === 0) {
+    errEl.textContent = 'Sélectionne au moins une catégorie d\'âge.';
+    errEl.classList.add('show');
+    return;
+  }
+
+  const matchSize = document.getElementById('t-matchsize').value;
+  // Derive teamSize from matchSize (for backward compat with bracket generation)
+  const teamSizeMap = { '5v5': 5, '7v7': 7, '11v11': 11, 'futsal': 5 };
+  const teamSize = teamSizeMap[matchSize] || 11;
+
+  const compFormat = document.getElementById('t-compformat').value;
+  const compFormatOther = document.getElementById('t-compformat-other').value.trim();
+
+  const venueName = document.getElementById('t-venue-name').value.trim();
+  const venueAddress = document.getElementById('t-venue-address').value.trim();
+
+  const dateStart = document.getElementById('t-date').value;
+  const dateEnd = document.getElementById('t-date-end').value || dateStart; // Default to same day
+  const timeStart = document.getElementById('t-time-start')?.value || '';
+  const timeEnd   = document.getElementById('t-time-end')?.value   || '';
+
+  // Block past dates
+  const today = new Date().toISOString().split('T')[0];
+  if (dateStart < today) {
+    errEl.textContent = 'La date de début ne peut pas être dans le passé.';
+    errEl.classList.add('show');
+    return;
+  }
+  if (dateEnd && dateEnd < dateStart) {
+    errEl.textContent = 'La date de fin doit être après la date de début.';
+    errEl.classList.add('show');
+    return;
+  }
+
   const t = {
     id: uid(), clubId: club.id,
     name: document.getElementById('t-name').value.trim(),
     edition: document.getElementById('t-ed').value.trim() || '1ère édition',
-    date: document.getElementById('t-date').value,
-    location: document.getElementById('t-loc').value.trim(),
-    format: fmt, teamSize: parseInt(document.getElementById('t-sz').value),
+    date: dateStart,
+    dateEnd: dateEnd || dateStart,
+    timeStart,
+    timeEnd,
+    // New venue fields
+    venueName, venueAddress,
+    // Keep legacy 'location' for backward compat (combined display)
+    location: venueName + (venueAddress ? ' — ' + venueAddress : ''),
+    // New categorization
+    categories,
+    matchSize,
+    gender: document.getElementById('t-gender').value,
+    surface: document.getElementById('t-surface').value,
+    competitionFormat: compFormat,
+    competitionFormatOther: compFormat === 'autres' ? compFormatOther : '',
+    // Legacy 'format' field kept = first selected category (for backward compat)
+    format: categories[0],
+    teamSize,
     maxTeams: parseInt(document.getElementById('t-max').value),
     entryFee: parseInt(document.getElementById('t-fee').value),
     description: document.getElementById('t-desc').value.trim(),
-    status: 'open', registrations: [], sponsorProposals: [], animations: [], matches: [],
+    // Contact info
+    contactName:         document.getElementById('t-contact-name').value.trim(),
+    contactPhone:        document.getElementById('t-contact-phone').value.trim(),
+    contactEmail:        document.getElementById('t-contact-email').value.trim(),
+    contactVisible:      document.getElementById('t-contact-visible')?.checked !== false,
+    contactShareEmail:   document.getElementById('t-contact-visible')?.checked !== false,
+    contactSharePhone:   document.getElementById('t-contact-visible')?.checked !== false,
+    // System
+    status: 'open',
+    registrations: [],
+    sponsorProposals: [],
+    animations: [],
+    matches: [],
     sponsorTiers: [
       { name: 'or', price: 800, perks: ['Logo bannière entrée', 'Logo trophée', 'Annonces micro × 8', '20 invitations'], slots: 2 },
       { name: 'argent', price: 350, perks: ['Logo affiches', 'Annonces × 4', '10 invitations'], slots: 4 },
       { name: 'bronze', price: 150, perks: ['Logo affiches', '5 invitations'], slots: 8 }
     ]
   };
-  state.tournaments.push(t); saveState(); toast('Tournoi créé !', 'success'); navigate(`#/tournaments/${t.id}`);
+  state.tournaments.push(t);
+  saveState();
+  toast('Tournoi créé !', 'success');
+  navigate(`#/tournaments/${t.id}`);
+}
+
+// Keep selFormat for legacy compat (no longer used)
+function selFormatLegacy() {}
+
+// ===== EDIT TOURNAMENT =====
+function renderEditTournament(tid) {
+  const t = getTournament(tid);
+  const a = getAccount();
+  if (!t) { navigate('#/tournaments'); return; }
+  if (!a || a.type !== 'club' || a.id !== t.clubId) {
+    toast('Accès réservé à l\'organisateur du tournoi', 'error');
+    navigate('#/tournaments/' + tid); return;
+  }
+  const today = new Date().toISOString().split('T')[0];
+  const cats = tournCategories(t);
+
+  document.getElementById('app').innerHTML = `
+    <div class="page-head">
+      <div class="page-eyebrow">Modifier le tournoi</div>
+      <h1 class="page-title"><em>${esc(t.name)}</em></h1>
+      <p class="page-sub">Mise à jour des informations du tournoi.</p>
+    </div>
+    <div class="container" style="max-width: 760px; padding-top: 2rem; padding-bottom: 3rem;">
+      <div class="auth-card" style="margin-top: 0;">
+        <div id="t-err" class="form-error"></div>
+        <form onsubmit="handleEditT(event, '${tid}')" autocomplete="off">
+
+          <h3 class="detail-section-title" style="font-size:1.1rem;margin-bottom:1rem;">Informations générales</h3>
+
+          <div class="form-group"><label class="form-label">Nom du tournoi</label>
+            <input class="input" id="t-name" required value="${esc(t.name)}"></div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Édition</label>
+              <input class="input" id="t-ed" value="${esc(t.edition || '1ère édition')}"></div>
+            <div class="form-group"><label class="form-label">Frais d'inscription (€)</label>
+              <input type="number" class="input" id="t-fee" required min="0" value="${t.entryFee}"></div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Date de début</label>
+              <input type="date" class="input" id="t-date" required value="${t.date}"
+                oninvalid="this.setCustomValidity('La date doit être dans le futur')"
+                oninput="this.setCustomValidity('');">
+            </div>
+            <div class="form-group"><label class="form-label">Date de fin <span style="font-weight:400;color:var(--ink-mute);text-transform:none;letter-spacing:0;">(optionnel)</span></label>
+              <input type="date" class="input" id="t-date-end" value="${t.dateEnd && t.dateEnd !== t.date ? t.dateEnd : ''}">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Heure de début</label>
+              <input type="time" class="input" id="t-time-start" value="${t.timeStart || '09:00'}">
+            </div>
+            <div class="form-group"><label class="form-label">Heure de fin <span style="font-weight:400;color:var(--ink-mute);text-transform:none;letter-spacing:0;">(optionnel)</span></label>
+              <input type="time" class="input" id="t-time-end" value="${t.timeEnd || ''}">
+            </div>
+          </div>
+
+          <h3 class="detail-section-title" style="font-size:1.1rem;margin:2rem 0 1rem;">Lieu</h3>
+
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Nom du lieu</label>
+              <input class="input" id="t-venue-name" required value="${esc(t.venueName || t.location || '')}"></div>
+            <div class="form-group"><label class="form-label">Surface</label>
+              <select class="select" id="t-surface" required>
+                ${(state.catalog.surfaces||[]).map(s => `<option value="${s.v}" ${t.surface === s.v ? 'selected' : ''}>${esc(s.l)}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+          <div class="form-group"><label class="form-label">Adresse complète</label>
+            <input class="input" id="t-venue-address" value="${esc(t.venueAddress || '')}"></div>
+
+          <h3 class="detail-section-title" style="font-size:1.1rem;margin:2rem 0 1rem;">Catégories et format</h3>
+
+          <div class="form-group">
+            <label class="form-label">Catégories d'âge</label>
+            <div class="day-checks" id="t-categories">
+              ${(state.catalog.formats||[]).map(f => `<div class="day-check ${cats.includes(f.v) ? 'selected' : ''}" data-v="${f.v}" onclick="this.classList.toggle('selected')">${esc(f.l)}</div>`).join('')}
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Type de match</label>
+              <select class="select" id="t-matchsize" required>
+                ${(state.catalog.matchSizes||[]).map(m => `<option value="${m.v}" ${t.matchSize === m.v ? 'selected' : ''}>${esc(m.l)}</option>`).join('')}
+              </select>
+            </div>
+            <div class="form-group"><label class="form-label">Genre</label>
+              <select class="select" id="t-gender" required>
+                ${(state.catalog.genders||[]).map(g => `<option value="${g.v}" ${t.gender === g.v ? 'selected' : ''}>${esc(g.l)}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group"><label class="form-label">Format de compétition</label>
+            <select class="select" id="t-compformat" required
+              onchange="document.getElementById('t-compformat-other-wrap').style.display = this.value === 'autres' ? 'block' : 'none';">
+              ${(state.catalog.competitionFormats||[]).map(c => `<option value="${c.v}" ${t.competitionFormat === c.v ? 'selected' : ''}>${esc(c.l)}</option>`).join('')}
+            </select>
+          </div>
+          <div class="form-group" id="t-compformat-other-wrap" style="display:${t.competitionFormat === 'autres' ? 'block' : 'none'};">
+            <label class="form-label">Précise le format</label>
+            <input class="input" id="t-compformat-other" value="${esc(t.competitionFormatOther || '')}" placeholder="Ex : Round Robin avec petite finale">
+          </div>
+
+          <div class="form-group"><label class="form-label">Nombre max d'équipes</label>
+            <input type="number" class="input" id="t-max" required min="2" max="64" value="${t.maxTeams}"></div>
+
+          <h3 class="detail-section-title" style="font-size:1.1rem;margin:2rem 0 1rem;">Contact pour les inscriptions</h3>
+
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Nom du contact</label>
+              <input class="input" id="t-contact-name" value="${esc(t.contactName || '')}"></div>
+            <div class="form-group"><label class="form-label">Téléphone</label>
+              <input class="input" id="t-contact-phone" value="${esc(t.contactPhone || '')}"></div>
+          </div>
+          <div class="form-group"><label class="form-label">Email de contact</label>
+            <input type="email" class="input" id="t-contact-email" value="${esc(t.contactEmail || '')}"></div>
+
+          <h3 class="detail-section-title" style="font-size:1.1rem;margin:2rem 0 1rem;">Présentation</h3>
+
+          <div class="form-group"><label class="form-label">Description du tournoi</label>
+            <textarea class="textarea" id="t-desc" required>${esc(t.description)}</textarea></div>
+
+          <div style="display:flex;gap:0.6rem;margin-top:2rem;">
+            <a href="#/tournaments/${tid}" class="btn btn-ghost">Annuler</a>
+            <button type="submit" class="btn btn-primary btn-full" style="flex:1;">Enregistrer les modifications <span class="btn-arrow"></span></button>
+          </div>
+        </form>
+      </div>
+    </div>`;
+}
+
+function handleEditT(e, tid) {
+  e.preventDefault();
+  const t = getTournament(tid);
+  if (!t) return;
+  const errEl = document.getElementById('t-err');
+  errEl.classList.remove('show');
+
+  const categories = [...document.querySelectorAll('#t-categories .day-check.selected')].map(el => el.dataset.v);
+  if (categories.length === 0) {
+    errEl.textContent = 'Sélectionne au moins une catégorie.';
+    errEl.classList.add('show'); return;
+  }
+
+  const dateStart = document.getElementById('t-date').value;
+  const dateEnd = document.getElementById('t-date-end').value || dateStart;
+  const timeStart = document.getElementById('t-time-start')?.value || '';
+  const timeEnd   = document.getElementById('t-time-end')?.value   || '';
+
+  if (dateEnd && dateEnd < dateStart) {
+    errEl.textContent = 'La date de fin doit être après la date de début.';
+    errEl.classList.add('show'); return;
+  }
+
+  const matchSize = document.getElementById('t-matchsize').value;
+  const teamSizeMap = { '5v5': 5, '7v7': 7, '11v11': 11, 'futsal': 5 };
+  const venueName = document.getElementById('t-venue-name').value.trim();
+  const venueAddress = document.getElementById('t-venue-address').value.trim();
+  const compFormat = document.getElementById('t-compformat').value;
+
+  // Update in place
+  Object.assign(t, {
+    name:              document.getElementById('t-name').value.trim(),
+    edition:           document.getElementById('t-ed').value.trim() || '1ère édition',
+    date:              dateStart,
+    dateEnd:           dateEnd,
+    timeStart,
+    timeEnd,
+    venueName,
+    venueAddress,
+    location:          venueName + (venueAddress ? ' — ' + venueAddress : ''),
+    categories,
+    format:            categories[0],
+    matchSize,
+    teamSize:          teamSizeMap[matchSize] || 11,
+    gender:            document.getElementById('t-gender').value,
+    surface:           document.getElementById('t-surface').value,
+    competitionFormat: compFormat,
+    competitionFormatOther: compFormat === 'autres' ? document.getElementById('t-compformat-other').value.trim() : '',
+    maxTeams:          parseInt(document.getElementById('t-max').value),
+    entryFee:          parseInt(document.getElementById('t-fee').value),
+    description:       document.getElementById('t-desc').value.trim(),
+    contactName:         document.getElementById('t-contact-name').value.trim(),
+    contactPhone:        document.getElementById('t-contact-phone').value.trim(),
+    contactEmail:        document.getElementById('t-contact-email').value.trim(),
+    contactShareEmail:   document.getElementById('t-share-email')?.checked !== false,
+    contactSharePhone:   document.getElementById('t-share-phone')?.checked !== false,
+    contactEmailEncoded: encodeContact(document.getElementById('t-contact-email').value.trim()),
+    contactPhoneEncoded: encodeContact(document.getElementById('t-contact-phone').value.trim()),
+  });
+
+  saveState();
+  toast('Tournoi mis à jour !', 'success');
+  navigate('#/tournaments/' + tid);
 }
 
 // TOURNAMENT DETAIL with tabs
 function renderTournamentDetail(id) {
+  // Increment view count once per render (not per session — MVP simplification)
+  const _tv = getTournament(id);
+  if (_tv) { _tv.viewCount = (_tv.viewCount||0) + 1; saveState(); }
   const t = getTournament(id);
   if (!t) { document.getElementById('app').innerHTML = '<div class="page-head"><h1 class="page-title">Introuvable</h1></div>'; return; }
   const club = getClub(t.clubId);
   const a = getAccount();
   const isOwner = a?.type === 'club' && a.id === t.clubId;
   const pendT = t.registrations.filter(r => r.status === 'pending').length;
+  // Active count = approved only
+  const activeTeams = t.registrations.filter(r => r.status === 'approved').length;
   const pendS = t.sponsorProposals.filter(sp => sp.status === 'pending').length;
 
   document.getElementById('app').innerHTML = `
     <section class="tourn-hero">
       <div class="tourn-hero-inner">
-        <div class="tourn-hero-club">Organisé par ${esc(club.name)} · ${esc(club.city)}</div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem;">
+          <div class="tourn-hero-club">
+          Organisé par ${esc(club.name)} · ${esc(club.city)}
+          ${renderBadge(clubBadge(t.clubId), 'margin-left:0.6rem;vertical-align:middle;')}
+          ${club.website ? `<a href="${esc(club.website)}" target="_blank" rel="noopener" style="margin-left:0.6rem;font-family:var(--font-mono);font-size:10px;color:rgba(245,239,228,0.6);border-bottom:1px solid rgba(245,239,228,0.3);letter-spacing:0.08em;">Site web →</a>` : ''}
+        </div>
+          ${isOwner ? `
+          <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+            <button class="btn btn-outline btn-sm" style="border-color:rgba(245,239,228,0.4);color:var(--paper);" onclick="navigate('#/tournaments/${t.id}/edit')">Modifier le tournoi</button>
+            ${t.viewCount > 0 ? `<span class="view-count" style="color:rgba(245,239,228,0.55);">👁 ${t.viewCount} consultation${t.viewCount > 1 ? 's' : ''}</span>` : ''}
+          </div>` : ''}
+        </div>
         <h1 class="tourn-hero-title">${esc(t.name)}<br><em>${esc(t.edition)}</em></h1>
         <div class="tourn-hero-meta">
-          <div class="tourn-meta-item"><span class="tourn-meta-label">Date</span><span class="tourn-meta-val">${fmtDay(t.date)} ${fmtDate(t.date)}</span></div>
-          <div class="tourn-meta-item"><span class="tourn-meta-label">Lieu</span><span class="tourn-meta-val">${esc(t.location)}</span></div>
-          <div class="tourn-meta-item"><span class="tourn-meta-label">Format</span><span class="tourn-meta-val">${formatLabel(t.format)}</span></div>
+          <div class="tourn-meta-item"><span class="tourn-meta-label">Date${t.dateEnd && t.dateEnd !== t.date ? 's' : ''}</span><span class="tourn-meta-val">${t.dateEnd && t.dateEnd !== t.date ? tournDateRange(t) : fmtDay(t.date) + ' ' + fmtDate(t.date)}</span></div>
+          ${tournTimeRange(t) ? `<div class="tourn-meta-item"><span class="tourn-meta-label">Horaires</span><span class="tourn-meta-val">${esc(tournTimeRange(t))}</span></div>` : ''}
+          <div class="tourn-meta-item"><span class="tourn-meta-label">Lieu</span><span class="tourn-meta-val">${esc(tournVenue(t).name || '—')}</span></div>
+          <div class="tourn-meta-item"><span class="tourn-meta-label">Catégorie${tournCategories(t).length > 1 ? 's' : ''}</span><span class="tourn-meta-val">${esc(tournCategoriesLabel(t))}</span></div>
+          ${t.matchSize ? `<div class="tourn-meta-item"><span class="tourn-meta-label">Format</span><span class="tourn-meta-val">${esc(matchSizeLabel(t.matchSize))}${t.gender && t.gender !== 'mixte' ? ' · ' + esc(genderLabel(t.gender)) : ''}</span></div>` : ''}
           <div class="tourn-meta-item"><span class="tourn-meta-label">Inscription</span><span class="tourn-meta-val">${fmtMoney(t.entryFee)}</span></div>
         </div>
       </div>
@@ -2914,9 +4317,9 @@ function renderTournamentDetail(id) {
         <div class="detail-tabs">
           <div class="detail-tab ${activeTab === 'overview' ? 'active' : ''}" onclick="activeTab='overview'; renderTournamentDetail('${t.id}')">Présentation</div>
           <div class="detail-tab ${activeTab === 'calendar' ? 'active' : ''}" onclick="activeTab='calendar'; renderTournamentDetail('${t.id}')">Calendrier${t.matches.length ? ' (' + t.matches.length + ')' : ''}</div>
-          <div class="detail-tab ${activeTab === 'teams' ? 'active' : ''}" onclick="activeTab='teams'; renderTournamentDetail('${t.id}')">Équipes (${t.registrations.length})${isOwner && pendT > 0 ? '<span class="tab-badge">' + pendT + '</span>' : ''}</div>
-          <div class="detail-tab ${activeTab === 'sponsors' ? 'active' : ''}" onclick="activeTab='sponsors'; renderTournamentDetail('${t.id}')">Sponsors (${t.sponsorProposals.length})${isOwner && pendS > 0 ? '<span class="tab-badge">' + pendS + '</span>' : ''}</div>
-          <div class="detail-tab ${activeTab === 'animations' ? 'active' : ''}" onclick="activeTab='animations'; renderTournamentDetail('${t.id}')">Animations (${t.animations.length})</div>
+          <div class="detail-tab ${activeTab === 'teams' ? 'active' : ''}" onclick="activeTab='teams'; renderTournamentDetail('${t.id}')">Équipes (${t.registrations.filter(r => r.status !== 'rejected' && r.status !== 'withdrawn').length})${isOwner && pendT > 0 ? '<span class="tab-badge">' + pendT + '</span>' : ''}</div>
+          ${(isOwner || t.sponsorProposals.filter(sp => sp.status === 'confirme').length > 0) ? `<div class="detail-tab ${activeTab === 'sponsors' ? 'active' : ''}" onclick="activeTab='sponsors'; renderTournamentDetail('${t.id}')">Sponsors (${t.sponsorProposals.filter(sp => sp.status === 'confirme').length})</div>` : ''}
+          ${(isOwner || t.animations.length > 0 || (t.customAnimations && t.customAnimations.length > 0)) ? `<div class="detail-tab ${activeTab === 'animations' ? 'active' : ''}" onclick="activeTab='animations'; renderTournamentDetail('${t.id}')">Animations (${t.animations.length + (t.customAnimations ? t.customAnimations.length : 0)})</div>` : ''}
         </div>
         <div class="detail-content">${renderTab(t, isOwner, a)}</div>
       </div>
@@ -2925,20 +4328,101 @@ function renderTournamentDetail(id) {
 }
 
 function renderTab(t, isOwner, a) {
-  if (activeTab === 'overview') return `
+  if (activeTab === 'overview') {
+    const conf = t.registrations.filter(r => r.status === 'approved').length;
+    const placesLeft = t.maxTeams - conf;
+    const isOpen = t.status === 'open' && placesLeft > 0;
+    return `
+    ${isOpen && !isOwner ? `
+      <div class="tourn-open-callout">
+        <div class="tourn-open-callout-text">
+          <strong style="font-style: normal; color: var(--ink);">Inscriptions ouvertes</strong> · ${placesLeft} place${placesLeft > 1 ? 's encore disponibles' : ' encore disponible'} sur ${t.maxTeams}. ${a?.type === 'team' ? "Postuler directement — l'organisateur répond sous 24h." : a?.type === 'sponsor' ? 'Ce tournoi est ouvert aux partenaires locaux — voir l\'onglet Sponsors.' : 'Créez un compte équipe gratuit pour postuler en un clic.'}
+        </div>
+      </div>` : ''}
     <div class="detail-section">
       <h3 class="detail-section-title">À propos du tournoi</h3>
       <p class="detail-text">${esc(t.description)}</p>
     </div>
     <div class="detail-section">
       <h3 class="detail-section-title">Informations pratiques</h3>
-      <div class="grid grid-2">
-        <div><p style="font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--ink-mute); margin-bottom: 0.3rem;">Catégorie</p>
-          <p style="font-family: var(--font-serif); font-size: 1.3rem;">${formatLabel(t.format)}</p></div>
-        <div><p style="font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--ink-mute); margin-bottom: 0.3rem;">Format</p>
-          <p style="font-family: var(--font-serif); font-size: 1.3rem;">${t.teamSize}v${t.teamSize}</p></div>
+      <div class="info-grid">
+        <div class="info-item">
+          <p class="info-label">Catégorie${tournCategories(t).length > 1 ? 's' : ''}</p>
+          <p class="info-val">${esc(tournCategoriesLabel(t))}</p>
+        </div>
+        <div class="info-item">
+          <p class="info-label">Type de match</p>
+          <p class="info-val">${esc(matchSizeLabel(t.matchSize) || (t.teamSize + 'v' + t.teamSize))}</p>
+        </div>
+        ${t.gender ? `<div class="info-item">
+          <p class="info-label">Genre</p>
+          <p class="info-val">${esc(genderLabel(t.gender))}</p>
+        </div>` : ''}
+        ${t.surface ? `<div class="info-item">
+          <p class="info-label">Surface</p>
+          <p class="info-val">${esc(surfaceLabel(t.surface))}</p>
+        </div>` : ''}
+        ${t.competitionFormat ? `<div class="info-item">
+          <p class="info-label">Format de compétition</p>
+          <p class="info-val">${esc(t.competitionFormat === 'autres' && t.competitionFormatOther ? t.competitionFormatOther : compFormatLabel(t.competitionFormat))}</p>
+        </div>` : ''}
+        <div class="info-item">
+          <p class="info-label">Nb max d'équipes</p>
+          <p class="info-val">${t.maxTeams}</p>
+        </div>
+        <div class="info-item">
+          <p class="info-label">Frais d'inscription</p>
+          <p class="info-val">${fmtMoney(t.entryFee)}</p>
+        </div>
+        ${t.timeStart ? `<div class="info-item">
+          <p class="info-label">Horaires</p>
+          <p class="info-val">${esc(tournTimeRange(t))}</p>
+        </div>` : ''}
       </div>
-    </div>`;
+    </div>
+
+    <div class="detail-section">
+      <h3 class="detail-section-title">Lieu</h3>
+      <div class="venue-box">
+        <p class="venue-name">${esc(tournVenue(t).name || 'Lieu à confirmer')}</p>
+        ${tournVenue(t).address ? `<p class="venue-address">${esc(tournVenue(t).address)}</p>
+          <a class="venue-map-link" target="_blank" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(tournVenue(t).address)}">Voir sur Google Maps →</a>` : ''}
+      </div>
+    </div>
+
+    ${renderContactBlock(t.contactName, t.contactPhone, t.contactEmail, t.contactVisible !== false, isOwner)}
+
+    ${(() => {
+      const confSp = t.sponsorProposals ? t.sponsorProposals.filter(sp => sp.status === 'confirme') : [];
+      if (confSp.length === 0) return '';
+      const tierIcon = tier => tier==='or'?'◆':tier==='_autre'?'★':tier==='argent'?'◇':'●';
+      const tierColor = tier => tier==='or'?'var(--bronze)':tier==='_autre'?'var(--accent)':'var(--ink-mute)';
+      return '<div class="detail-section">'
+        + '<h3 class="detail-section-title">Soutenu par</h3>'
+        + '<div class="sponsors-preview">'
+        + confSp.slice(0,8).map(sp =>
+            '<div class="sponsor-chip">'
+            + '<span class="sponsor-chip-icon" style="color:' + tierColor(sp.tier) + ';">' + tierIcon(sp.tier) + '</span>'
+            + '<span class="sponsor-chip-name">' + esc(sp.name) + '</span>'
+            + '</div>'
+          ).join('')
+        + (confSp.length > 8 ? '<div class="sponsor-chip"><span class="sponsor-chip-name" style="color:var(--ink-mute);">+' + (confSp.length-8) + ' autres</span></div>' : '')
+        + '</div></div>';
+    })()}
+
+    ${(() => {
+      const selAnims = (state.catalog.animations||[]).filter(an => t.animations && t.animations.includes(an.id));
+      const customA = t.customAnimations || [];
+      const allAnims = [...selAnims.map(a => a.name), ...customA.map(a => a.name)];
+      if (allAnims.length === 0) return '';
+      return '<div class="detail-section">'
+        + '<h3 class="detail-section-title">Au programme</h3>'
+        + '<div class="activities-preview">'
+        + allAnims.slice(0,8).map(name => '<span class="activity-chip">' + esc(name) + '</span>').join('')
+        + (allAnims.length > 8 ? '<span class="activity-chip" style="color:var(--ink-mute);">+' + (allAnims.length-8) + ' autres</span>' : '')
+        + '</div></div>';
+    })()}`;
+  }
   if (activeTab === 'calendar') return renderTabCalendar(t, isOwner);
   if (activeTab === 'teams') return renderTabTeams(t, isOwner, a);
   if (activeTab === 'sponsors') return renderTabSponsors(t, isOwner, a);
@@ -3010,9 +4494,11 @@ function matchRow(m, t, isOwner) {
 
 // TEAMS TAB
 function renderTabTeams(t, isOwner, a) {
-  const approved = t.registrations.filter(r => r.status === 'approved');
-  const pending = t.registrations.filter(r => r.status === 'pending');
-  const rejected = t.registrations.filter(r => r.status === 'rejected');
+  const approved  = t.registrations.filter(r => r.status === 'approved');
+  const pending   = t.registrations.filter(r => r.status === 'pending');
+  const rejected  = t.registrations.filter(r => r.status === 'rejected');
+  const withdrawn = t.registrations.filter(r => r.status === 'withdrawn');
+  const activeCount = approved.length;
   let html = '';
   if (isOwner && pending.length > 0) {
     html += `
@@ -3036,12 +4522,13 @@ function renderTabTeams(t, isOwner, a) {
   }
   html += `
     <div class="detail-section">
-      <h3 class="detail-section-title">Équipes confirmées (${approved.length}/${t.maxTeams})</h3>
-      ${approved.length === 0 ? `
+      <h3 class="detail-section-title">Équipes confirmées (${activeCount}/${t.maxTeams}) — ${t.maxTeams - activeCount} place${t.maxTeams - activeCount > 1 ? 's' : ''} disponible${t.maxTeams - activeCount > 1 ? 's' : ''}</h3>
+      ${activeCount === 0 ? `
         <div class="dash-empty">
           <div class="dash-empty-title">Pas encore d'équipe confirmée</div>
-          <p class="dash-empty-text">${a?.type === 'team' ? 'Sois la première à postuler.' : 'Les inscriptions vont arriver.'}</p>
+          <p class="dash-empty-text">${a?.type === 'team' ? 'Aucune équipe confirmée pour le moment.' : 'Les inscriptions vont arriver.'}</p>
           ${a?.type === 'team' && !t.registrations.some(r => r.teamId === a.id) ? `<button class="btn btn-orange btn-sm" onclick="applyTournamentModal('${t.id}')">Postuler</button>` : ''}
+          ${isOwner ? `<button class="btn btn-outline btn-sm" onclick="quickRegisterModal('${t.id}')">Inscrire manuellement</button>` : ''}
         </div>` : `
         <div class="list">
           ${approved.map((r, i) => `
@@ -3049,22 +4536,27 @@ function renderTabTeams(t, isOwner, a) {
               <div class="list-num">${String(i + 1).padStart(2, '0')}</div>
               <div class="list-info">
                 <div class="list-name">${esc(r.teamName)}</div>
-                <div class="list-sub">${esc(r.clubName)}${r.teamId ? ' · <a href="#/teams/' + r.teamId + '" style="color: var(--accent); border-bottom: 1px solid;">Profil</a>' : ''}</div>
+                <div class="list-sub">${esc(r.clubName)}${r.teamId ? ' · <a href="#/teams/' + r.teamId + '" style="color: var(--accent); border-bottom: 1px solid;">Profil</a>' : ''} · inscrite le ${fmtDate(r.registeredAt)}</div>
               </div>
               <span class="list-status approved">✓ Confirmée</span>
+              ${isOwner ? `<button class="btn btn-danger btn-sm" onclick="withdrawTeam('${t.id}', '${r.id}')" title="Retirer et libérer la place">Retirer</button>` : ''}
             </div>`).join('')}
-        </div>`}
+        </div>
+        ${isOwner ? `<div style="margin-top: 1rem;"><button class="btn btn-outline btn-sm" onclick="quickRegisterModal('${t.id}')">+ Inscrire manuellement</button></div>` : ''}`}
     </div>`;
-  if (isOwner && rejected.length > 0) {
+  if (isOwner && (rejected.length > 0 || withdrawn.length > 0)) {
     html += `
       <div class="detail-section">
-        <h3 class="detail-section-title" style="color: var(--ink-mute);">Refusées (${rejected.length})</h3>
+        <h3 class="detail-section-title" style="color: var(--ink-mute);">Historique (${rejected.length + withdrawn.length})</h3>
         <div class="list" style="opacity: 0.6;">
-          ${rejected.map(r => `
+          ${[...rejected, ...withdrawn].map(r => `
             <div class="list-row">
               <div class="list-num">×</div>
-              <div class="list-info"><div class="list-name">${esc(r.teamName)}</div><div class="list-sub">${esc(r.clubName)}</div></div>
-              <span class="list-status rejected">Refusée</span>
+              <div class="list-info">
+                <div class="list-name">${esc(r.teamName)}</div>
+                <div class="list-sub">${esc(r.clubName)} · ${r.status === 'withdrawn' ? 'Retirée' : 'Refusée'}</div>
+              </div>
+              <span class="list-status ${r.status === 'withdrawn' ? 'pending' : 'rejected'}">${r.status === 'withdrawn' ? 'Retirée' : 'Refusée'}</span>
             </div>`).join('')}
         </div>
       </div>`;
@@ -3072,95 +4564,153 @@ function renderTabTeams(t, isOwner, a) {
   return html;
 }
 
-// SPONSORS TAB
+// SPONSORS TAB — owner only
 function renderTabSponsors(t, isOwner, a) {
   const conf = t.sponsorProposals.filter(sp => sp.status === 'confirme');
-  const pend = t.sponsorProposals.filter(sp => sp.status === 'pending');
-  let html = '';
-  if (isOwner && pend.length > 0) {
-    html += `
+  if (!isOwner) {
+    // Vue publique — sponsors confirmés visibles par tous
+    if (conf.length === 0) {
+      return `<div class="dash-empty">
+        <div class="dash-empty-title">Aucun partenaire annoncé</div>
+        <p class="dash-empty-text">Les partenaires du tournoi seront annoncés prochainement.</p>
+      </div>`;
+    }
+    // Regroup by tier for a nicer display
+    const tierOrder = ['or', 'argent', 'bronze', '_autre'];
+    const tierLabels = { or: 'Partenaire principal', argent: 'Partenaire', bronze: 'Soutien', _autre: 'Partenariat' };
+    const tierColors = { or: 'var(--bronze)', argent: 'var(--ink-mute)', bronze: 'var(--accent-soft)', _autre: 'var(--accent)' };
+    const tierIcons = { or: '◆', argent: '◇', bronze: '●', _autre: '★' };
+    const grouped = tierOrder.map(tier => ({
+      tier,
+      label: tierLabels[tier],
+      sponsors: conf.filter(sp => sp.tier === tier)
+    })).filter(g => g.sponsors.length > 0);
+
+    return `
       <div class="detail-section">
-        <h3 class="detail-section-title">Propositions en attente (${pend.length})</h3>
-        <div class="list">
-          ${pend.map(sp => `
-            <div class="app-card">
-              <div>
-                <div class="app-card-title">${esc(sp.name)}</div>
-                <div class="app-card-meta">Palier <strong>${esc(sp.tier).toUpperCase()}</strong> · ${sp.amount}€${sp.sponsorId ? ' · <a href="#/sponsors/' + sp.sponsorId + '" style="color: var(--accent); border-bottom: 1px solid;">Voir profil</a>' : ''}</div>
-                ${sp.message ? `<div class="app-card-msg">"${esc(sp.message)}"</div>` : ''}
-              </div>
-              <div class="app-actions">
-                <button class="btn btn-success btn-sm" onclick="approveSponsor('${t.id}', '${sp.id}')">✓ Accepter</button>
-                <button class="btn btn-danger btn-sm" onclick="rejectSponsor('${t.id}', '${sp.id}')">× Refuser</button>
+        <h3 class="detail-section-title">Sponsors & partenaires du tournoi</h3>
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+          ${grouped.map(g => `
+            <div>
+              <div class="section-eyebrow" style="margin-bottom: 0.75rem;">${esc(g.label)}</div>
+              <div class="list">
+                ${g.sponsors.map(sp => `
+                  <div class="list-row">
+                    <div class="list-num" style="color: ${tierColors[sp.tier]};">${tierIcons[sp.tier]}</div>
+                    <div class="list-info">
+                      <div class="list-name" style="font-size: 1.2rem;">${esc(sp.name)}</div>
+                      ${sp.notes ? `<div class="list-sub">${esc(sp.notes)}</div>` : ''}
+                    </div>
+                  </div>`).join('')}
               </div>
             </div>`).join('')}
         </div>
       </div>`;
   }
-  html += `
+  return `
     <div class="detail-section">
-      <h3 class="detail-section-title">Sponsors confirmés (${conf.length})</h3>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--line); flex-wrap: wrap; gap: 0.5rem;">
+        <h3 class="detail-section-title" style="border: none; padding: 0; margin: 0;">Sponsors (${conf.length})</h3>
+        <button class="btn btn-orange btn-sm" onclick="addSponsorManualModal('${t.id}')">+ Ajouter un sponsor</button>
+      </div>
       ${conf.length === 0 ? `
         <div class="dash-empty">
-          <div class="dash-empty-title">Aucun sponsor confirmé</div>
-          <p class="dash-empty-text">${a?.type === 'sponsor' ? 'Sois le premier à proposer ton sponsoring.' : 'Démarche les commerces de ton quartier.'}</p>
-          ${a?.type === 'sponsor' && !t.sponsorProposals.some(sp => sp.sponsorId === a.id) ? `<button class="btn btn-orange btn-sm" onclick="proposeSponsorModal('${t.id}')">Proposer mon sponsoring</button>` : ''}
+          <div class="dash-empty-title">Aucun sponsor pour le moment</div>
+          <p class="dash-empty-text">Ajoute tes partenaires après les avoir démarchés.</p>
+          <button class="btn btn-primary btn-sm" onclick="addSponsorManualModal('${t.id}')">+ Premier sponsor</button>
         </div>` : `
         <div class="list">
-          ${conf.map(sp => `
-            <div class="list-row">
-              <div class="list-num" style="color: ${sp.tier === 'or' ? 'var(--bronze)' : sp.tier === 'argent' ? 'var(--ink-mute)' : 'var(--bronze)'};">${sp.tier === 'or' ? '◆' : sp.tier === 'argent' ? '◇' : '●'}</div>
-              <div class="list-info">
-                <div class="list-name">${esc(sp.name)}</div>
-                <div class="list-sub">Palier ${esc(sp.tier)} · ${sp.amount}€${sp.sponsorId ? ' · <a href="#/sponsors/' + sp.sponsorId + '" style="color: var(--accent); border-bottom: 1px solid;">Profil</a>' : ''}</div>
-              </div>
-            </div>`).join('')}
+          ${conf.map(sp => {
+            const col = sp.tier === 'or' ? 'var(--bronze)' : sp.tier === '_autre' ? 'var(--accent)' : 'var(--ink-mute)';
+            const ico = sp.tier === 'or' ? '◆' : sp.tier === '_autre' ? '★' : sp.tier === 'argent' ? '◇' : '●';
+            const tierDisplay = sp.tier === '_autre' ? (sp.tierLabel || 'Partenariat perso') : ('Palier ' + esc(sp.tier));
+            const perksLine = sp.perks && sp.perks.length ? sp.perks.join(' · ') : '';
+            return `
+              <div class="list-row">
+                <div class="list-num" style="color:${col};">${ico}</div>
+                <div class="list-info">
+                  <div class="list-name">${esc(sp.name)}</div>
+                  <div class="list-sub">${tierDisplay}${sp.amount > 0 ? ' · ' + sp.amount + ' €' : ''}${sp.contactName ? ' · ' + esc(sp.contactName) : ''}${sp.contact ? ' · ' + esc(sp.contact) : ''}${sp.notes ? ' · ' + esc(sp.notes) : ''}</div>
+                  ${perksLine ? `<div class="list-sub" style="margin-top:0.2rem;font-style:normal;color:var(--ink-soft);">${esc(perksLine)}</div>` : ''}
+                </div>
+                <span class="list-status confirme">Confirmé</span>
+                <button class="btn btn-danger btn-sm" onclick="removeSponsor('${t.id}', '${sp.id}')">×</button>
+              </div>`;
+          }).join('')}
         </div>`}
     </div>
     <div class="detail-section">
-      <h3 class="detail-section-title">Paliers proposés</h3>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--line); flex-wrap: wrap; gap: 0.5rem;">
+        <h3 class="detail-section-title" style="border: none; padding: 0; margin: 0;">Paliers de partenariat</h3>
+        <button class="btn btn-outline btn-sm" onclick="editTiersModal('${t.id}')">Configurer</button>
+      </div>
       <div class="sponsor-tiers">
-        ${t.sponsorTiers.map(tr => {
+        ${(t.sponsorTiers || []).map(tr => {
           const taken = conf.filter(c => c.tier === tr.name).length;
           return `
             <div class="sponsor-tier">
               <div class="sponsor-tier-head">
-                <span class="sponsor-tier-name">${esc(tr.name).toUpperCase()}</span>
-                <span class="sponsor-tier-price">${tr.price}€</span>
+                <span class="sponsor-tier-name">${esc(tr.label || tr.name.toUpperCase())}</span>
+                <span class="tier-slots" style="font-size:11px;">${taken}/${tr.slots} partenaire${tr.slots > 1 ? 's' : ''}</span>
               </div>
-              <ul class="sponsor-tier-perks">${tr.perks.map(p => `<li>${esc(p)}</li>`).join('')}</ul>
-              <div class="tier-foot">
-                <span class="tier-slots">${taken}/${tr.slots} places prises</span>
-                ${a?.type === 'sponsor' && taken < tr.slots && !t.sponsorProposals.some(sp => sp.sponsorId === a.id) ? `<button class="btn btn-orange btn-sm" onclick="proposeSponsorModal('${t.id}', '${tr.name}')">Proposer ${tr.price}€</button>` : ''}
-              </div>
+              <ul class="sponsor-tier-perks">${(tr.perks||[]).map(p => `<li>${esc(p)}</li>`).join('')}</ul>
             </div>`;
         }).join('')}
       </div>
     </div>`;
-  return html;
 }
 
-// ANIMATIONS TAB
+// ANIMATIONS TAB — extended catalog + custom animations
 function renderTabAnimations(t, isOwner) {
+  const customAnims = t.customAnimations || [];
+  const hasAny = t.animations.length > 0 || customAnims.length > 0;
+  if (!isOwner && !hasAny) {
+    return `<div class="dash-empty">
+      <div class="dash-empty-title">Aucune animation annoncée</div>
+      <p class="dash-empty-text">Les animations prévues seront annoncées prochainement.</p>
+    </div>`;
+  }
   return `
     <div class="detail-section">
-      <h3 class="detail-section-title">${isOwner ? 'Catalogue des animations' : 'Animations prévues'}</h3>
-      ${!isOwner && t.animations.length === 0 ? `<p class="detail-text">Aucune animation prévue.</p>` : `
-        <div class="anim-grid">
-          ${state.catalog.animations.map(an => {
-            const sel = t.animations.includes(an.id);
-            if (!isOwner && !sel) return '';
-            return `
-              <div class="anim-card ${sel ? 'selected' : ''}" ${isOwner ? `onclick="toggleAnim('${t.id}', '${an.id}')"` : ''}>
-                ${sel ? '<span class="anim-tag">✓ Choisie</span>' : ''}
-                <div class="anim-icon">${an.icon}</div>
-                <div class="anim-name">${esc(an.name)}</div>
-                <div class="anim-desc">${esc(an.desc)}</div>
-                <div class="anim-price">${fmtMoney(an.price)}</div>
-              </div>`;
-          }).join('')}
-        </div>`}
-    </div>`;
+      <h3 class="detail-section-title">${isOwner ? 'Catalogue des animations — clique pour sélectionner' : 'Animations prévues ce jour-là'}</h3>
+      ${!isOwner ? `<p class="detail-text" style="margin-bottom: 1.5rem;">Au programme de ce tournoi :</p>` : ''}
+      <div class="anim-grid">
+        ${state.catalog.animations.map(an => {
+          const sel = t.animations.includes(an.id);
+          if (!isOwner && !sel) return '';
+          return `
+            <div class="anim-card ${sel ? 'selected' : ''}" ${isOwner ? `onclick="toggleAnim('${t.id}', '${an.id}')"` : ''}>
+              ${sel ? '<span class="anim-tag">✓</span>' : ''}
+              <div class="anim-icon">${an.icon}</div>
+              <div class="anim-name">${esc(an.name)}</div>
+              <div class="anim-desc">${esc(an.desc)}</div>
+            </div>`;
+        }).join('')}
+        ${customAnims.map(an => `
+          <div class="anim-card selected">
+            <span class="anim-tag">✓ Au programme</span>
+            <div class="anim-icon">✦</div>
+            <div class="anim-name">${esc(an.name)}</div>
+            <div class="anim-desc">${esc(an.desc || '')}</div>
+            ${isOwner ? `<button class="btn btn-danger btn-sm" style="margin-top: 0.5rem; width: 100%;" onclick="removeCustomAnim('${t.id}', '${an.id}')">Retirer</button>` : ''}
+          </div>`).join('')}
+      </div>
+    </div>
+    ${isOwner ? `
+    <div class="detail-section">
+      <h3 class="detail-section-title">Ajouter une animation personnalisée</h3>
+      <div style="display: flex; gap: 0.65rem; flex-wrap: wrap; align-items: flex-end;">
+        <div class="form-group" style="flex: 2; min-width: 180px; margin: 0;">
+          <label class="form-label">Nom</label>
+          <input class="input" id="custom-anim-name" placeholder="Village associatif, Tombola...">
+        </div>
+        <div class="form-group" style="flex: 3; min-width: 200px; margin: 0;">
+          <label class="form-label">Description (optionnel)</label>
+          <input class="input" id="custom-anim-desc" placeholder="Brève description">
+        </div>
+        <button class="btn btn-primary" style="height: 44px; flex-shrink: 0;" onclick="addCustomAnim('${t.id}')">+ Ajouter</button>
+      </div>
+    </div>` : ''}`;
 }
 function toggleAnim(tid, aid) {
   const t = getTournament(tid);
@@ -3168,10 +4718,28 @@ function toggleAnim(tid, aid) {
   else { t.animations.push(aid); toast('Ajoutée', 'success'); }
   saveState(); renderTournamentDetail(tid);
 }
+function addCustomAnim(tid) {
+  const t = getTournament(tid);
+  const name = document.getElementById('custom-anim-name').value.trim();
+  if (!name) { toast('Saisis un nom', 'error'); return; }
+  if (!t.customAnimations) t.customAnimations = [];
+  t.customAnimations.push({ id: uid(), name, desc: document.getElementById('custom-anim-desc').value.trim() });
+  saveState(); toast('Animation ajoutée', 'success');
+  activeTab = 'animations'; renderTournamentDetail(tid);
+}
+function removeCustomAnim(tid, aid) {
+  const t = getTournament(tid);
+  if (!t.customAnimations) return;
+  t.customAnimations = t.customAnimations.filter(a => a.id !== aid);
+  saveState(); toast('Animation retirée');
+  activeTab = 'animations'; renderTournamentDetail(tid);
+}
+
 
 // ASIDE
 function renderAside(t, isOwner, a) {
-  const conf = t.registrations.filter(r => r.status !== 'rejected').length;
+  // Places: only 'approved' count against capacity; pending/withdrawn don't occupy a slot
+  const conf = t.registrations.filter(r => r.status === 'approved').length;
   const spTotal = t.sponsorProposals.filter(sp => sp.status === 'confirme').reduce((s, sp) => s + sp.amount, 0);
   const animTot = t.animations.reduce((s, id) => s + (getAnim(id)?.price || 0), 0);
   const teamsRev = t.registrations.filter(r => r.status === 'approved').length * t.entryFee;
@@ -3201,14 +4769,27 @@ function renderAside(t, isOwner, a) {
   } else if (a?.type === 'club') {
     html += `<button class="btn btn-outline btn-full" onclick="quickRegisterModal('${t.id}')">Inscrire manuellement</button>`;
   }
+  const shareUrl = window.location.href.split('#')[0] + '#/tournaments/' + t.id;
+  // WhatsApp message — plain text + ASCII line separators for max compatibility
+  const shareLines = [
+    '[Le Tournoi] ' + t.name + (t.edition ? ' — ' + t.edition : ''),
+    'Date : ' + tournDateRange(t),
+    'Lieu : ' + (tournVenue(t).name || '') + (tournVenue(t).address ? ', ' + tournVenue(t).address : ''),
+    'Categorie(s) : ' + tournCategoriesLabel(t) + (t.matchSize ? ' - ' + matchSizeLabel(t.matchSize) : ''),
+    t.entryFee > 0 ? 'Inscription : ' + fmtMoney(t.entryFee) : '',
+    '',
+    'Infos et inscriptions -> ' + shareUrl
+  ].filter(Boolean).join('%0A');
+  const shareMsg = shareLines;
   html += `
     <div class="aside-share">
-      <div class="aside-share-label">Partager</div>
+      <div class="aside-share-label">Partager ce tournoi</div>
       <div class="share-row">
-        <a href="https://wa.me/?text=${encodeURIComponent(t.name + ' — ' + fmtDate(t.date) + ' — ' + window.location.href)}" target="_blank" class="share-btn">${ICONS.wa}</a>
-        <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}" target="_blank" class="share-btn">${ICONS.fb}</a>
-        <button class="share-btn" onclick="navigator.clipboard.writeText(window.location.href); toast('Lien copié', 'success')">${ICONS.cp}</button>
+        <a href="https://wa.me/?text=${shareMsg}" target="_blank" class="share-btn" title="WhatsApp">${ICONS.wa}</a>
+        <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}" target="_blank" class="share-btn" title="Facebook">${ICONS.fb}</a>
+        <button class="share-btn" title="Copier le lien" onclick="copyShareLinkFn('${t.id}')">${ICONS.cp}</button>
       </div>
+      <p style="font-family:var(--font-serif);font-style:italic;font-size:11px;color:var(--ink-mute);margin-top:0.6rem;">Le message WhatsApp inclut toutes les infos.</p>
     </div>
   </div>`;
 
@@ -3298,6 +4879,422 @@ function rejectTeam(tid, rid) {
   const r = t.registrations.find(x => x.id === rid);
   r.status = 'rejected';
   saveState(); toast('Équipe refusée'); renderTournamentDetail(tid);
+}
+function withdrawTeam(tid, rid) {
+  const t = getTournament(tid);
+  const r = t.registrations.find(x => x.id === rid);
+  if (!r) return;
+  modal('Retirer cette équipe ?',
+    `<p>Retirer <strong>${esc(r.teamName)}</strong> du tournoi ?</p>
+     <p style="margin-top:0.65rem;font-family:var(--font-serif);font-style:italic;color:var(--ink-mute);">La place sera libérée immédiatement. L'équipe reste visible dans l'historique.</p>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Annuler</button>
+     <button class="btn btn-danger" onclick="confirmWithdraw('${tid}','${rid}')">Retirer et libérer la place</button>`);
+}
+function confirmWithdraw(tid, rid) {
+  const t = getTournament(tid);
+  const r = t.registrations.find(x => x.id === rid);
+  r.status = 'withdrawn';
+  r.withdrawnAt = new Date().toISOString();
+  saveState(); closeModal(); toast('Équipe retirée — place libérée', 'success');
+  renderTournamentDetail(tid);
+}
+function addSponsorManualModal(tid) {
+  const t = getTournament(tid);
+  const tierOpts = (t.sponsorTiers||[]).map(tr =>
+    `<option value="${tr.name}">${esc(tr.label||tr.name.toUpperCase())}</option>`
+  ).join('') + '<option value="_autre">— Autre palier (personnalisé) —</option>';
+
+  const PERK_LIST = [
+    { k: 'banniere',    l: 'Bannière (entrée / terrain)' },
+    { k: 'affiche',     l: 'Logo sur affiches' },
+    { k: 'annonces',    l: 'Annonces au micro' },
+    { k: 'invitations', l: 'Invitations' },
+    { k: 'stand',       l: 'Stand sur place' },
+    { k: 'trophee',     l: 'Logo sur trophée' },
+    { k: 'reseaux',     l: 'Mention réseaux sociaux' },
+    { k: 'site',        l: 'Mention site / flyers' },
+  ];
+
+  modal('Ajouter un sponsor',
+    `<div class="form-group"><label class="form-label">Nom du sponsor *</label>
+       <input class="input" id="sp-name" required placeholder="Nom de l'entreprise ou du partenaire">
+     </div>
+     <div class="form-group"><label class="form-label">Palier</label>
+       <select class="select" id="sp-tier" onchange="
+         const isAutre = this.value === '_autre';
+         document.getElementById('sp-autre-wrap').style.display = isAutre ? 'block' : 'none';
+       ">${tierOpts}</select>
+     </div>
+     <div id="sp-autre-wrap" style="display:none; background:var(--paper-soft); border:1px solid var(--line); padding:1rem; border-radius:2px; margin-bottom:0.75rem;">
+       <div class="form-group" style="margin-bottom:0.75rem;">
+         <label class="form-label">Nom de ce partenariat</label>
+         <input class="input" id="sp-autre-label" placeholder="Ex : Naming coupe, Partenaire technique...">
+       </div>
+       <div class="form-group" style="margin-bottom:0.75rem;">
+         <label class="form-label">Avantages inclus</label>
+         <div style="display:flex;flex-direction:column;gap:0.35rem;">
+           ${PERK_LIST.map(p => `
+             <label style="display:flex;align-items:center;gap:0.5rem;font-family:var(--font-serif);font-size:0.9rem;cursor:pointer;">
+               <input type="checkbox" id="sp-perk-${p.k}" style="accent-color:var(--accent);">${esc(p.l)}
+               ${['affiche','annonces','invitations'].includes(p.k) ? `<input type="number" id="sp-perk-${p.k}-qty" min="1" max="99" placeholder="nb" style="width:55px;padding:0.2rem 0.4rem;border:1px solid var(--line-strong);border-radius:2px;font-size:12px;">` : ''}
+             </label>`).join('')}
+         </div>
+       </div>
+       <div class="form-group" style="margin:0;">
+         <label class="form-label">Montant convenu (€)</label>
+         <input type="number" class="input" id="sp-autre-amount" min="0" value="0" placeholder="0 si offre en nature">
+       </div>
+     </div>
+     <div class="form-row">
+       <div class="form-group"><label class="form-label">Nom du contact</label>
+         <input class="input" id="sp-contact-name" placeholder="Prénom Nom">
+       </div>
+       <div class="form-group"><label class="form-label">Téléphone / Email</label>
+         <input class="input" id="sp-contact" placeholder="06 XX XX XX XX ou email">
+       </div>
+     </div>
+     <div class="form-group"><label class="form-label">Notes</label>
+       <input class="input" id="sp-notes" placeholder="Accord verbal, offre en nature, à confirmer...">
+     </div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Annuler</button>
+     <button class="btn btn-orange" onclick="confirmAddSponsor('${tid}')">Ajouter</button>`);
+}
+function confirmAddSponsor(tid) {
+  const name = document.getElementById('sp-name').value.trim();
+  if (!name) { toast('Saisis le nom du sponsor', 'error'); return; }
+  const t = getTournament(tid);
+  const tierVal = document.getElementById('sp-tier').value;
+  let tier = tierVal;
+  let autreLabel = '';
+  let autreAmount = 0;
+  let autrePerks = [];
+
+  if (tierVal === '_autre') {
+    autreLabel = (document.getElementById('sp-autre-label')?.value || '').trim() || 'Partenariat personnalisé';
+    autreAmount = parseInt(document.getElementById('sp-autre-amount')?.value || '0') || 0;
+    const PERK_KEYS = ['banniere','affiche','annonces','invitations','stand','trophee','reseaux','site'];
+    const PERK_LABELS = {
+      banniere: 'Bannière', affiche: 'Logo sur affiches',
+      annonces: 'Annonces au micro', invitations: 'Invitations',
+      stand: 'Stand sur place', trophee: 'Logo sur trophée',
+      reseaux: 'Mention réseaux sociaux', site: 'Mention site / flyers'
+    };
+    PERK_KEYS.forEach(k => {
+      const cb = document.getElementById('sp-perk-' + k);
+      if (cb && cb.checked) {
+        const qtyEl = document.getElementById('sp-perk-' + k + '-qty');
+        const qty = qtyEl ? ' × ' + (parseInt(qtyEl.value) || '') : '';
+        autrePerks.push(PERK_LABELS[k] + qty);
+      }
+    });
+    tier = '_autre';
+  }
+
+  t.sponsorProposals.push({
+    id: uid(), name, sponsorId: null,
+    tier,
+    tierLabel: tier === '_autre' ? autreLabel : '',
+    perks: tier === '_autre' ? autrePerks : [],
+    amount: tier === '_autre' ? autreAmount : 0,
+    status: 'confirme',
+    contactName: document.getElementById('sp-contact-name')?.value.trim() || '',
+    contact: document.getElementById('sp-contact')?.value.trim() || '',
+    notes: document.getElementById('sp-notes')?.value.trim() || '',
+    message: ''
+  });
+  saveState(); closeModal(); toast('Sponsor ajouté !', 'success');
+  activeTab = 'sponsors'; renderTournamentDetail(tid);
+}
+function removeSponsor(tid, spid) {
+  if (!confirm('Supprimer ce sponsor ?')) return;
+  const t = getTournament(tid);
+  t.sponsorProposals = t.sponsorProposals.filter(s => s.id !== spid);
+  saveState(); toast('Sponsor supprimé');
+  activeTab = 'sponsors'; renderTournamentDetail(tid);
+}
+const PERK_KEYS = [
+  { k: 'logo_banniere',  l: 'Logo sur bannière entrée' },
+  { k: 'logo_affiches',  l: 'Logo sur affiches' },
+  { k: 'annonces_micro', l: 'Annonces au micro' },
+  { k: 'invitations',    l: 'Invitations' },
+  { k: 'stand',          l: 'Stand sur place' },
+  { k: 'logo_trophee',   l: 'Logo sur trophée' },
+  { k: 'reseaux_sociaux',l: 'Mention réseaux sociaux' },
+  { k: 'site_web',       l: 'Mention site / flyers' },
+];
+function editTiersModal(tid) {
+  const t = getTournament(tid);
+  const tiersHtml = (t.sponsorTiers||[]).map((tr, i) => {
+    const curr = tr.perks || [];
+    return `
+      <div style="background:var(--paper-soft);border:1px solid var(--line);padding:1rem 1.1rem;margin-bottom:0.75rem;border-radius:2px;">
+        <div style="display:flex;gap:0.75rem;margin-bottom:0.85rem;align-items:center;">
+          <input class="input" id="tier-label-${i}" value="${esc(tr.label||tr.name.toUpperCase())}" placeholder="Nom du palier" style="flex:1;">
+          <input type="number" class="input" id="tier-slots-${i}" value="${tr.slots}" min="1" max="20" style="width:80px;" title="Nb de places">
+        </div>
+        <div style="display:flex;flex-direction:column;gap:0.4rem;">
+          ${PERK_KEYS.map(p => `
+            <label style="display:flex;align-items:center;gap:0.5rem;font-family:var(--font-serif);font-size:0.9rem;cursor:pointer;">
+              <input type="checkbox" id="tier-${i}-${p.k}" ${curr.some(c => c.includes(p.l.split(' ')[0])) ? 'checked' : ''} style="accent-color:var(--accent);">
+              ${esc(p.l)}
+            </label>`).join('')}
+          <div style="display:flex;align-items:center;gap:0.5rem;margin-top:0.4rem;">
+            <input type="checkbox" id="tier-${i}-autres" style="accent-color:var(--accent);">
+            <input class="input" id="tier-${i}-autres-txt" placeholder="Autre avantage..." style="flex:1;font-size:13px;">
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+  modal('Configurer les paliers',
+    `<p style="font-family:var(--font-serif);font-style:italic;color:var(--ink-mute);margin-bottom:1.25rem;">Coche les avantages inclus dans chaque palier.</p>
+     <div>${tiersHtml}</div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Annuler</button>
+     <button class="btn btn-outline btn-sm" onclick="addTierRow()">+ Palier</button>
+     <button class="btn btn-orange" onclick="saveTiers('${tid}')">Enregistrer</button>`);
+}
+function addTierRow() {
+  const list = document.getElementById('tiers-edit-list');
+  if (!list) return;
+  const i = list.querySelectorAll('[id^="tier-label-"]').length;
+  const PERK_KEYS2 = ['logo_banniere','logo_affiches','annonces_micro','invitations','stand','logo_trophee','reseaux_sociaux','site_web'];
+  const PERK_LABELS2 = { logo_banniere:'Logo sur bannière entrée', logo_affiches:'Logo sur affiches', annonces_micro:'Annonces au micro', invitations:'Invitations', stand:'Stand sur place', logo_trophee:'Logo sur trophée', reseaux_sociaux:'Mention réseaux sociaux', site_web:'Mention site / flyers' };
+  const div = document.createElement('div');
+  div.setAttribute('data-new-tier', '1');
+  div.style.cssText = 'background:var(--paper-soft);border:1px solid var(--line);padding:1rem 1.1rem;margin-bottom:0.75rem;border-radius:2px;';
+  div.innerHTML = '<div style="display:flex;gap:0.75rem;margin-bottom:0.85rem;align-items:center;">'
+    + '<input class="input" id="tier-label-' + i + '" placeholder="Nom du palier" style="flex:1;">'
+    + '<input type="number" class="input" id="tier-slots-' + i + '" value="2" min="1" max="20" style="width:80px;" title="Nb de places">'
+    + '</div>'
+    + '<div style="display:flex;flex-direction:column;gap:0.4rem;">'
+    + PERK_KEYS2.map(k => '<label style="display:flex;align-items:center;gap:0.5rem;font-family:var(--font-serif);font-size:0.9rem;cursor:pointer;">'
+      + '<input type="checkbox" id="tier-' + i + '-' + k + '" style="accent-color:var(--accent);">'
+      + PERK_LABELS2[k]
+      + '</label>').join('')
+    + '</div>';
+  list.appendChild(div);
+}
+function saveTiers(tid) {
+  const t = getTournament(tid);
+  // Update existing tiers
+  (t.sponsorTiers||[]).forEach((tr, i) => {
+    const lbl = document.getElementById('tier-label-' + i);
+    const slt = document.getElementById('tier-slots-' + i);
+    if (lbl) tr.label = lbl.value.trim();
+    if (slt) tr.slots = parseInt(slt.value)||1;
+    const perks = [];
+    PERK_KEYS.forEach(p => {
+      const cb = document.getElementById('tier-' + i + '-' + p.k);
+      if (cb && cb.checked) perks.push(p.l);
+    });
+    const acb = document.getElementById('tier-' + i + '-autres');
+    const atxt = document.getElementById('tier-' + i + '-autres-txt');
+    if (acb && acb.checked && atxt && atxt.value.trim()) perks.push(atxt.value.trim());
+    tr.perks = perks;
+  });
+  // Save new tiers added via addTierRow()
+  const newTierDivs = document.querySelectorAll('[data-new-tier="1"]');
+  const baseIdx = (t.sponsorTiers||[]).length;
+  newTierDivs.forEach((div, j) => {
+    const i = baseIdx + j;
+    const lbl = document.getElementById('tier-label-' + i);
+    const slt = document.getElementById('tier-slots-' + i);
+    if (!lbl || !lbl.value.trim()) return; // Skip empty
+    const PERK_MAP = { logo_banniere:'Logo sur bannière entrée', logo_affiches:'Logo sur affiches', annonces_micro:'Annonces au micro', invitations:'Invitations', stand:'Stand sur place', logo_trophee:'Logo sur trophée', reseaux_sociaux:'Mention réseaux sociaux', site_web:'Mention site / flyers' };
+    const perks = [];
+    Object.keys(PERK_MAP).forEach(k => {
+      const cb = document.getElementById('tier-' + i + '-' + k);
+      if (cb && cb.checked) perks.push(PERK_MAP[k]);
+    });
+    if (!t.sponsorTiers) t.sponsorTiers = [];
+    t.sponsorTiers.push({
+      name: 'tier-' + uid(),
+      label: lbl.value.trim(),
+      slots: parseInt(slt?.value)||2,
+      price: 0,
+      perks
+    });
+  });
+  saveState(); closeModal(); toast('Paliers mis à jour', 'success');
+  activeTab = 'sponsors'; renderTournamentDetail(tid);
+}
+function copyShareLinkFn(tid) {
+  const url = window.location.href.split('#')[0] + '#/tournaments/' + tid;
+  navigator.clipboard.writeText(url).then(() => toast('Lien copié !', 'success')).catch(() => prompt('Copie ce lien :', url));
+}
+
+// ===== ROT13 encode/decode for contact info anti-scraper =====
+function rot13(s) {
+  return (s || '').replace(/[A-Za-z]/g, c => {
+    const base = c <= 'Z' ? 65 : 97;
+    return String.fromCharCode(((c.charCodeAt(0) - base + 13) % 26) + base);
+  });
+}
+
+// revealContact (ancienne version) remplacée par revealContact anti-scraper ci-dessus
+
+// ===== Increment tournament view count =====
+function incrementViewCount(tid) {
+  const t = getTournament(tid);
+  if (!t) return;
+  t.viewCount = (t.viewCount || 0) + 1;
+  saveState();
+}
+
+// ===== Badge helpers =====
+const BADGES_CLUB = [
+  { min: 5, label: 'Organisateur Or',    icon: '◆', css: 'badge-gold' },
+  { min: 3, label: 'Organisateur Argent',icon: '◇', css: 'badge-silver' },
+  { min: 1, label: 'Organisateur',       icon: '●', css: 'badge-bronze' },
+];
+const BADGES_TEAM = [
+  { min: 5, label: 'Équipe habituée',    icon: '◆', css: 'badge-gold' },
+  { min: 3, label: 'Équipe régulière',   icon: '◇', css: 'badge-silver' },
+  { min: 1, label: 'Participante',       icon: '●', css: 'badge-bronze' },
+];
+function clubBadge(clubId) {
+  const count = state.tournaments.filter(t => t.clubId === clubId).length;
+  const b = BADGES_CLUB.find(x => count >= x.min);
+  return b ? { ...b, count } : null;
+}
+function teamBadge(teamId) {
+  let count = 0;
+  state.tournaments.forEach(t => t.registrations.forEach(r => { if (r.teamId === teamId && r.status === 'approved') count++; }));
+  const b = BADGES_TEAM.find(x => count >= x.min);
+  return b ? { ...b, count } : null;
+}
+function renderBadge(b, extraStyle) {
+  if (!b) return '';
+  return `<span class="badge-pill ${b.css}" style="${extraStyle||''}" title="${esc(b.label)} — ${b.count} tournoi${b.count > 1 ? 's' : ''}">${b.icon} ${esc(b.label)}</span>`;
+}
+
+// ===== Render secure contact block =====
+// ===== Fragmente une valeur en 3 parties pour stockage anti-scraper =====
+function splitContact(v) {
+  if (!v) return ['', '', ''];
+  // Pour email : sépare local @ domaine
+  const at = v.indexOf('@');
+  if (at > 0) {
+    return [rot13(v.slice(0, at)), rot13('@'), rot13(v.slice(at + 1))];
+  }
+  // Pour téléphone : découpe en 3 blocs
+  const clean = v.replace(/\s/g, '');
+  const l = Math.ceil(clean.length / 3);
+  return [rot13(clean.slice(0, l)), rot13(clean.slice(l, l * 2)), rot13(clean.slice(l * 2))];
+}
+
+// ===== Assemble les fragments en mémoire JS (jamais dans le DOM) =====
+function assembleContact(el) {
+  const p1 = rot13(el.getAttribute('data-p1') || '');
+  const p2 = rot13(el.getAttribute('data-p2') || '');
+  const p3 = rot13(el.getAttribute('data-p3') || '');
+  return p1 + p2 + p3;
+}
+
+function renderContactBlock(contactName, contactPhone, contactEmail, contactVisible, isOwner) {
+  if (!contactName && !contactPhone && !contactEmail) return '';
+  const a = getAccount();
+  const isLoggedIn = !!a;
+
+  if (!contactVisible && !isOwner) return '';
+
+  let h = '<div class="detail-section"><h3 class="detail-section-title">Contact pour les inscriptions</h3>';
+
+  if (!isLoggedIn && !isOwner) {
+    h += '<div class="contact-box contact-locked">'
+      + '<div class="contact-lock-msg">'
+      + '<span class="contact-lock-icon">🔒</span>'
+      + '<div>'
+      + '<p style="font-family:var(--font-serif);font-weight:400;font-size:1rem;margin-bottom:0.5rem;">Coordonnées disponibles pour les comptes connectés.</p>'
+      + '<p style="font-family:var(--font-sans);font-size:13px;color:var(--ink-mute);margin-bottom:0.85rem;">Créez un compte gratuit ou connectez-vous pour voir les informations de contact.</p>'
+      + '<div style="display:flex;gap:0.5rem;flex-wrap:wrap;">'
+      + '<a href="#/login" class="btn btn-primary btn-sm">Se connecter</a>'
+      + '<a href="#/signup" class="btn btn-outline btn-sm">Créer un compte</a>'
+      + '</div></div></div></div></div>';
+    return h;
+  }
+
+  h += '<div class="contact-box">';
+  if (contactName) {
+    h += '<p style="font-family:var(--font-serif);font-weight:400;font-size:1.1rem;margin-bottom:0.85rem;"><strong>' + esc(contactName) + '</strong></p>';
+  }
+  h += '<div class="contact-lines">';
+
+  if (contactPhone) {
+    const parts = splitContact(contactPhone);
+    // Stocké fragmenté en data-attributes ROT13 — jamais en clair dans le DOM
+    h += '<div class="contact-reveal-wrap">'
+      + '<button class="btn btn-outline btn-sm contact-reveal-btn"'
+      + ' data-p1="' + parts[0] + '" data-p2="' + parts[1] + '" data-p3="' + parts[2] + '"'
+      + ' data-k="phone"'
+      + ' onclick="revealContact(this)"'
+      + ' title="Afficher le numéro" data-ready="0">☎ Voir le numéro</button>'
+      + '</div>';
+  }
+
+  if (contactEmail) {
+    const parts = splitContact(contactEmail);
+    // Email fragmenté en 3 attributs ROT13 : local | @ | domaine
+    h += '<div class="contact-reveal-wrap">'
+      + '<button class="btn btn-outline btn-sm contact-reveal-btn"'
+      + ' data-p1="' + parts[0] + '" data-p2="' + parts[1] + '" data-p3="' + parts[2] + '"'
+      + ' data-k="email"'
+      + ' onclick="revealContact(this)"'
+      + ' title="Voir email" data-ready="0">✉ Voir email</button>'
+      + '</div>';
+  }
+
+  h += '</div></div></div>';
+  return h;
+}
+
+// Révélation anti-bot :
+// 1. Délai de 300ms (les bots cliquent instantanément)
+// 2. L'email est assemblé en mémoire JS uniquement
+// 3. Affiché via CSS data-attribute — jamais en clair dans innerHTML
+// 4. Le lien d'action (mailto/tel) est déclenché par JS, jamais écrit dans le DOM
+function revealContact(btn) {
+  if (btn.getAttribute('data-ready') === '1') {
+    // Déjà révélé — déclencher l'action directement
+    const v = btn.getAttribute('data-revealed');
+    const k = btn.getAttribute('data-k');
+    if (k === 'email') window.location.href = 'mailto:' + v;
+    else window.location.href = 'tel:' + v.replace(/\s/g, '');
+    return;
+  }
+  // Désactiver pendant le délai anti-bot
+  btn.disabled = true;
+  btn.textContent = '···';
+  // Délai 300ms minimum — trop court pour l'humain, bloquant pour les bots rapides
+  setTimeout(function() {
+    const v = assembleContact(btn);
+    const k = btn.getAttribute('data-k');
+    btn.disabled = false;
+    btn.setAttribute('data-ready', '1');
+    // Stocker assemblé (toujours non-indexable car pas de href)
+    btn.setAttribute('data-revealed', v);
+    // Afficher via CSS uniquement — le texte est dans un pseudo-élément,
+    // pas dans le contenu texte du nœud DOM
+    const wrap = btn.parentNode;
+    const reveal = document.createElement('span');
+    reveal.className = 'contact-css-reveal';
+    // Fragmentation CSS : les deux moitiés dans deux attributs séparés
+    // Un robot doit exécuter CSS + JS pour reconstituer — barrière haute
+    const half = Math.ceil(v.length / 2);
+    reveal.setAttribute('data-a', v.slice(0, half));
+    reveal.setAttribute('data-b', v.slice(half));
+    reveal.setAttribute('data-k', k);
+    reveal.setAttribute('title', k === 'email' ? 'Cliquer pour envoyer un email' : 'Cliquer pour appeler');
+    reveal.setAttribute('role', 'button');
+    reveal.setAttribute('tabindex', '0');
+    reveal.onclick = function() {
+      if (k === 'email') window.location.href = 'mailto:' + v;
+      else window.location.href = 'tel:' + v.replace(/\s/g, '');
+    };
+    reveal.onkeydown = function(e) {
+      if (e.key === 'Enter' || e.key === ' ') reveal.onclick();
+    };
+    wrap.replaceChild(reveal, btn);
+  }, 300);
 }
 
 function proposeSponsorModal(tid, tier) {
@@ -3504,6 +5501,7 @@ function renderTeamProfile(id) {
   const isOwner = a?.type === 'team' && a.id === team.id;
   const apps = [];
   state.tournaments.forEach(t => t.registrations.forEach(r => { if (r.teamId === team.id) apps.push({ t, r }); }));
+  const approvedApps = apps.filter(x => x.r.status === 'approved').length;
 
   document.getElementById('app').innerHTML = `
     <section class="profile-hero">
@@ -3512,7 +5510,11 @@ function renderTeamProfile(id) {
         <div class="profile-info">
           <div class="profile-eyebrow">Équipe · ${formatLabel(team.category)}</div>
           <h1 class="profile-name">${esc(team.name)}</h1>
-          <p class="profile-meta">${esc(team.club)} · ${esc(team.city)} · ${levelLabel(team.level)} · ${team.players.length} joueurs</p>
+          <p class="profile-meta">${esc(team.club)} · ${esc(team.city)} · ${levelLabel(team.level)} · ${team.players.length} joueur${team.players.length > 1 ? 's' : ''} · ${approvedApps} tournoi${approvedApps > 1 ? 's' : ''} joué${approvedApps > 1 ? 's' : ''}</p>
+          <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;margin-top:0.5rem;">
+            ${renderBadge(teamBadge(team.id))}
+            ${team.website ? `<a href="${esc(team.website)}" target="_blank" rel="noopener" class="btn btn-ghost btn-sm" style="font-size:11px;">Site web →</a>` : ''}
+          </div>
         </div>
         ${isOwner ? `<button class="btn btn-orange" onclick="editTeamProfileModal()">Modifier</button>` : ''}
       </div>
@@ -3544,6 +5546,58 @@ function renderTeamProfile(id) {
               ${state.catalog.days.map(d => `<div class="avail-day ${team.availability?.includes(d.k) ? 'on' : ''}">${d.l}</div>`).join('')}
             </div>
           </div>
+
+          ${(() => {
+            const prefs = team.preferences;
+            if (!prefs) return '';
+            const mobilityLabels = { locale:'Locale', departementale:'Départementale', regionale:'Régionale', nationale:'Nationale' };
+            const hasCats = prefs.categories && prefs.categories.length > 0;
+            const hasMatch = prefs.matchSizes && prefs.matchSizes.length > 0;
+            const hasSurf = prefs.surfaces && prefs.surfaces.length > 0;
+            const hasMob = prefs.mobility;
+            if (!hasCats && !hasMatch && !hasSurf && !hasMob) return '';
+            return `
+              <div class="detail-section">
+                <h3 class="detail-section-title">Préférences tournois</h3>
+                <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+                  ${hasMob ? `
+                    <div>
+                      <p class="info-label" style="margin-bottom:0.5rem;">Mobilité</p>
+                      <span class="avail-day on">${mobilityLabels[prefs.mobility] || prefs.mobility}</span>
+                    </div>` : ''}
+                  ${hasCats ? `
+                    <div>
+                      <p class="info-label" style="margin-bottom:0.5rem;">Catégories</p>
+                      <div class="avail-row">
+                        ${prefs.categories.map(v => {
+                          const f = state.catalog.formats?.find(x => x.v === v);
+                          return f ? `<span class="avail-day on">${esc(f.l)}</span>` : '';
+                        }).join('')}
+                      </div>
+                    </div>` : ''}
+                  ${hasMatch ? `
+                    <div>
+                      <p class="info-label" style="margin-bottom:0.5rem;">Type de match</p>
+                      <div class="avail-row">
+                        ${prefs.matchSizes.map(v => {
+                          const m = state.catalog.matchSizes?.find(x => x.v === v);
+                          return m ? `<span class="avail-day on">${esc(m.l)}</span>` : '';
+                        }).join('')}
+                      </div>
+                    </div>` : ''}
+                  ${hasSurf ? `
+                    <div>
+                      <p class="info-label" style="margin-bottom:0.5rem;">Surfaces</p>
+                      <div class="avail-row">
+                        ${prefs.surfaces.map(v => {
+                          const s = state.catalog.surfaces?.find(x => x.v === v);
+                          return s ? `<span class="avail-day on">${esc(s.l)}</span>` : '';
+                        }).join('')}
+                      </div>
+                    </div>` : ''}
+                </div>
+              </div>`;
+          })()}
           ${apps.length > 0 ? `
             <div class="detail-section">
               <h3 class="detail-section-title">Tournois ${isOwner ? 'rejoints' : ''}</h3>
@@ -3564,10 +5618,7 @@ function renderTeamProfile(id) {
           <div class="aside-card">
             <div class="aside-title">Coordonnées</div>
             <p class="aside-sub">Contact : ${esc(team.manager)}</p>
-            ${!a ? '<p style="font-family: var(--font-serif); font-style: italic; font-size: 0.85rem; color: var(--ink-mute);">Connecte-toi pour voir les coordonnées.</p>' : `
-              <div style="font-family: var(--font-mono); font-size: 12px; line-height: 1.7; color: var(--ink-soft);">
-                <strong>${esc(team.phone || '—')}</strong><br>${esc(team.email)}
-              </div>`}
+            ${renderContactBlock(team.manager, team.phone, team.email, team.shareEmail !== false, isOwner)}
             <div class="aside-share">
               <div class="aside-share-label">Partager</div>
               <div class="share-row">
@@ -3682,6 +5733,37 @@ function renderSponsorProfile(id) {
         </aside>
       </div>
     </div>`;
+}
+
+
+// Navigate to tournaments with team preferences pre-applied
+function navigateToTournamentsWithPrefs() {
+  const a = getAccount();
+  if (a?.type === 'team' && a.preferences) {
+    tournamentSearchCategory = a.preferences.categories?.[0] || '';
+    tournamentSearchLocation = a.city || '';
+    tournamentSearchQuery = '';
+    tournamentSearchStatus = 'open';
+  }
+  navigate('#/tournaments');
+}
+
+// User menu helpers
+function toggleUserMenu(e) {
+  if (e) e.stopPropagation();
+  const dd = document.getElementById('nav-user-dd');
+  if (!dd) return;
+  dd.classList.toggle('open');
+  // Close on outside click
+  if (dd.classList.contains('open')) {
+    setTimeout(() => {
+      document.addEventListener('click', closeUserMenu, { once: true });
+    }, 10);
+  }
+}
+function closeUserMenu() {
+  const dd = document.getElementById('nav-user-dd');
+  if (dd) dd.classList.remove('open');
 }
 
 // INIT
