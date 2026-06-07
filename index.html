@@ -5,7 +5,7 @@
 <!-- SÉCURITÉ : Content-Security-Policy. 'unsafe-inline' requis par les handlers onclick inline
      (ne casse donc PAS l'appli) ; bloque néanmoins tout script/style EXTERNE non listé.
      Domaines listés = uniquement ceux réellement chargés par la page. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://*.supabase.co; base-uri 'self'; form-action 'self'; frame-ancestors 'none';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://*.supabase.co https://cdn.jsdelivr.net; base-uri 'self'; form-action 'self';">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Le Tournoi — la plateforme des tournois de foot amateur</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -2554,8 +2554,8 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
 // ===========================================
 // Remplace les deux valeurs ci-dessous par celles de ton projet Supabase
 // Settings → API → Project URL et anon public key
-const SUPABASE_URL = 'https://YOUR_PROJECT_ID.supabase.co';
-const SUPABASE_ANON_KEY = 'YOUR_ANON_PUBLIC_KEY';
+const SUPABASE_URL = 'https://xkvfwpcvugoklqdezdux.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhrdmZ3cGN2dWdva2xxZGV6ZHV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwODEwNzMsImV4cCI6MjA5NTY1NzA3M30.BYQutLU8Se8BvLY4iGAPLXJtyt1rOTqITYSaB2qbbuM';
 
 // Le client Supabase est créé seulement si les valeurs ont été configurées
 let supabaseClient = null;
