@@ -6,14 +6,14 @@
 <title>Le Tournoi — la plateforme des tournois de foot amateur</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,300;1,9..144,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,500;0,600;0,700;0,800;1,500;1,600;1,700;1,800&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400;1,500;1,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 /* =====================================================
    LE TOURNOI — design sobre, éditorial, premium
    Palette : navy nuit / ivoire chaud / terracotta discrète
-   Typo : Fraunces (serif éditoriale) + Inter (texte) + JetBrains Mono (détails)
+   Typo : Poppins (titres) + DM Sans (corps) + JetBrains Mono (mono/détails)
    ===================================================== */
 
 :root {
@@ -44,8 +44,8 @@
   --line-strong: rgba(26, 31, 46, 0.20);
 
   /* Typo */
-  --font-serif: 'Fraunces', 'Times New Roman', serif;
-  --font-sans: 'Inter', -apple-system, system-ui, sans-serif;
+  --font-serif: 'Poppins', system-ui, sans-serif;
+  --font-sans: 'DM Sans', -apple-system, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
 
   /* Espacement */
@@ -211,10 +211,10 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
 }
 .page-title {
   font-family: var(--font-serif);
-  font-weight: 300;
+  font-weight: 700;
   font-size: clamp(2.5rem, 5.5vw, 4.5rem);
   line-height: 1.02;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.02em;
   max-width: 900px;
 }
 .page-title em {
@@ -270,10 +270,10 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
 }
 .hero-h1 {
   font-family: var(--font-serif);
-  font-weight: 300;
+  font-weight: 800;
   font-size: clamp(2.8rem, 7vw, 5.5rem);
   line-height: 1;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.02em;
   margin-bottom: 1.75rem;
   color: var(--ink);
 }
@@ -374,7 +374,7 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
 }
 .role-card-title {
   font-family: var(--font-serif);
-  font-weight: 300;
+  font-weight: 600;
   font-size: 1.7rem;
   letter-spacing: -0.02em;
   line-height: 1.15;
@@ -426,10 +426,10 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
 }
 .section-h2 {
   font-family: var(--font-serif);
-  font-weight: 300;
+  font-weight: 700;
   font-size: clamp(2rem, 4vw, 3rem);
   line-height: 1.05;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.02em;
   margin-bottom: 2.5rem;
   max-width: 800px;
 }
@@ -677,9 +677,9 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
 }
 .auth-title {
   font-family: var(--font-serif);
-  font-weight: 300;
+  font-weight: 700;
   font-size: 2.25rem;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.02em;
   line-height: 1.05;
   margin-bottom: 0.6rem;
 }
@@ -757,9 +757,9 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
    =========================================== */
 .dash-greeting {
   font-family: var(--font-serif);
-  font-weight: 300;
+  font-weight: 700;
   font-size: 2.4rem;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.02em;
   line-height: 1.05;
   margin-bottom: 0.5rem;
 }
@@ -1194,9 +1194,9 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
 }
 .profile-name {
   font-family: var(--font-serif);
-  font-weight: 300;
+  font-weight: 700;
   font-size: clamp(1.85rem, 4vw, 2.75rem);
-  letter-spacing: -0.025em;
+  letter-spacing: -0.02em;
   line-height: 1.05;
   margin-bottom: 0.5rem;
 }
@@ -1863,7 +1863,7 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
 }
 .pain-title {
   font-family: var(--font-serif);
-  font-weight: 400;
+  font-weight: 600;
   font-size: 1.25rem;
   letter-spacing: -0.02em;
   color: var(--ink);
@@ -1926,9 +1926,9 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
 .how-step-body { flex: 1; }
 .how-step-title {
   font-family: var(--font-serif);
-  font-weight: 400;
+  font-weight: 600;
   font-size: 1.15rem;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.02em;
   color: var(--ink);
   margin-bottom: 0.5rem;
 }
@@ -1950,9 +1950,9 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
 }
 .cta-title {
   font-family: var(--font-serif);
-  font-weight: 400;
+  font-weight: 700;
   font-size: clamp(1.8rem, 3.5vw, 2.6rem);
-  letter-spacing: -0.03em;
+  letter-spacing: -0.02em;
   line-height: 1.15;
   color: var(--paper);
   margin: 0.75rem 0 1rem;
@@ -2120,6 +2120,40 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
   height: 38px;
 }
 
+/* ===== Urgency badges — cartes tournoi page d'accueil ===== */
+.t-card-urgency {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.6rem;
+  border-radius: 2px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin: 0.4rem 0 0.3rem;
+}
+.urgency-critical {
+  background: #FCEBEB;
+  color: #A32D2D;
+  border: 1px solid #F09595;
+}
+.urgency-high {
+  background: #FAEEDA;
+  color: #633806;
+  border: 1px solid #FAC775;
+}
+.urgency-soon {
+  background: #E6F1FB;
+  color: #0C447C;
+  border: 1px solid #85B7EB;
+}
+.urgency-new {
+  background: #EAF3DE;
+  color: #27500A;
+  border: 1px solid #97C459;
+}
+
 /* ===== Tournament search bar ===== */
 .search-bar-wrap {
   background: var(--paper-soft);
@@ -2165,9 +2199,69 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
 }
 .filter-row {
   display: flex;
-  gap: 0.6rem;
   align-items: center;
+  gap: 0.5rem;
   flex-wrap: wrap;
+}
+.sort-group {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-left: auto;
+  flex-shrink: 0;
+  background: var(--paper-soft);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 0.2rem;
+}
+.sort-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  padding: 0 0.4rem;
+  white-space: nowrap;
+}
+.sort-btn {
+  background: none;
+  border: none;
+  padding: 0.3rem 0.7rem;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-soft);
+  cursor: pointer;
+  border-radius: 3px;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.sort-btn:hover { background: var(--line); color: var(--ink); }
+.sort-btn.active { background: var(--ink); color: var(--paper); }
+.advanced-search-panel {
+  border-top: 1px solid var(--line);
+  padding-top: 1rem;
+  margin-top: 0.25rem;
+  animation: fadeSlideDown 0.18s ease;
+}
+@keyframes fadeSlideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.advanced-search-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+.adv-field { display: flex; flex-direction: column; gap: 0.3rem; }
+.adv-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
 }
 .filter-select {
   padding: 0.55rem 0.85rem;
@@ -2966,7 +3060,8 @@ function renderNav() {
         </div>
       ` : `
         <a href="#/login" class="btn btn-ghost btn-sm">Connexion</a>
-        <a href="#/signup" class="btn btn-primary btn-sm">S'inscrire</a>
+        <a href="#/tournaments" class="btn btn-outline btn-sm">Trouver un tournoi</a>
+        <a href="#/signup" class="btn btn-orange btn-sm">S'inscrire</a>
       `}
     </div>`;
 }
@@ -3003,8 +3098,78 @@ function renderFooter() {
 }
 
 // HOME
+// ===== Calcul de la distance approximative entre deux villes (heuristique simple) =====
+function cityMatchScore(city1, city2) {
+  if (!city1 || !city2) return 0;
+  const c1 = city1.toLowerCase().trim();
+  const c2 = city2.toLowerCase().trim();
+  if (c1 === c2) return 3;
+  // Départements IDF
+  const deps = {
+    '75': ['paris'], '92': ['neuilly','levallois','boulogne','issy','courbevoie','nanterre','puteaux','colombes','asnières','clichy','gennevilliers','rueil','suresnes','montrouge','clamart'],
+    '93': ['saint-denis','bobigny','montreuil','aubervilliers','aulnay','pantin','noisy','bondy','drancy','épinay','villepinte'],
+    '94': ['créteil','vincennes','vitry','champigny','maisons-alfort','alfortville','ivry','choisy','thiais','rungis'],
+    '91': ['évry','corbeil','massy','palaiseau','longjumeau','viry','savigny'],
+    '95': ['cergy','pontoise','argenteuil','sarcelles','gonesse','garges'],
+    '77': ['melun','meaux','chelles','torcy','combs'],
+    '78': ['versailles','saint-germain','mantes','poissy','sartrouville']
+  };
+  for (const [dep, cities] of Object.entries(deps)) {
+    const in1 = cities.some(c => c1.includes(c) || c.includes(c1.split('-')[0]));
+    const in2 = cities.some(c => c2.includes(c) || c.includes(c2.split('-')[0]));
+    if (in1 && in2) return 2; // même département
+  }
+  return 1; // même région IDF par défaut
+}
+
+// ===== Score de priorité d'un tournoi pour l'affichage home =====
+function tournPriorityScore(t, userCity) {
+  if (t.status !== 'open') return -1;
+  const approved = t.registrations.filter(r => r.status === 'approved').length;
+  const total = t.maxTeams || 1;
+  const placesLeft = total - approved;
+  const fillRate = approved / total; // 0→vide, 1→complet
+  let score = 0;
+  // Critère 1 : places disponibles mais pas vide (plus intéressant si ~50-80% rempli)
+  if (placesLeft > 0) score += 30;
+  if (fillRate >= 0.5 && fillRate < 1) score += 20; // presque complet = urgence
+  if (fillRate >= 0.8) score += 15; // très peu de places = forte urgence
+  // Critère 2 : date proche (favoriser les 30 prochains jours)
+  const today = new Date(); today.setHours(0,0,0,0);
+  const tDate = new Date(t.date);
+  const daysUntil = Math.floor((tDate - today) / 86400000);
+  if (daysUntil >= 0 && daysUntil <= 7)  score += 25;  // cette semaine
+  else if (daysUntil > 7 && daysUntil <= 30) score += 15; // ce mois
+  else if (daysUntil > 30 && daysUntil <= 60) score += 5; // dans 2 mois
+  else if (daysUntil < 0) score -= 50; // passé
+  // Critère 3 : géolocalisation (optionnelle)
+  if (userCity && t.location) {
+    score += cityMatchScore(userCity, t.location) * 10;
+  }
+  return score;
+}
+
+// ===== Étiquette contextuelle pour une carte =====
+function tournUrgencyLabel(t) {
+  const approved = t.registrations.filter(r => r.status === 'approved').length;
+  const total = t.maxTeams || 1;
+  const placesLeft = total - approved;
+  const fillRate = approved / total;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const daysUntil = Math.floor((new Date(t.date) - today) / 86400000);
+  if (placesLeft <= 2 && placesLeft > 0) return { label: placesLeft + ' place' + (placesLeft > 1 ? 's' : '') + ' restante' + (placesLeft > 1 ? 's' : ''), cls: 'urgency-critical' };
+  if (fillRate >= 0.75) return { label: 'Presque complet', cls: 'urgency-high' };
+  if (daysUntil >= 0 && daysUntil <= 7) return { label: 'Cette semaine', cls: 'urgency-soon' };
+  if (daysUntil > 7 && daysUntil <= 14) return { label: 'Dans ' + daysUntil + ' jours', cls: 'urgency-soon' };
+  if (placesLeft > 0 && fillRate < 0.3) return { label: 'Nouvellement ouvert', cls: 'urgency-new' };
+  return null;
+}
+
 function renderHome() {
   const openTournaments = state.tournaments.filter(t => t.status === 'open');
+  // Géoloc : lire la ville du compte connecté si disponible, sinon null
+  const a = getAccount();
+  const userCity = a?.city || null;
   document.getElementById('app').innerHTML = `
 
     <!-- HERO -->
@@ -3013,11 +3178,11 @@ function renderHome() {
       <div class="hero-grid">
         <div class="hero-content fade-in">
           <div class="hero-eyebrow">Foot amateur · Île-de-France</div>
-          <h1 class="hero-h1">Le tournoi.<br><em>De l'annonce</em><br>au <span class="underline">résultat.</span></h1>
-          <p class="hero-sub">De la publication du tournoi jusqu'au bilan financier — une plateforme pensée pour les clubs de foot amateur en Île-de-France.</p>
+          <h1 class="hero-h1">Trouvez votre<br><em>prochain</em><br><span class="underline">tournoi.</span></h1>
+          <p class="hero-sub">Trouvez un tournoi près de chez vous, ou publiez le vôtre — une plateforme pensée pour le foot amateur en Île-de-France.</p>
           <div class="hero-actions">
-            <a href="#/signup" class="btn btn-primary btn-lg" onclick="signupType='club'">Créer un compte organisateur <span class="btn-arrow"></span></a>
-            <a href="#/tournaments" class="btn btn-outline btn-lg">Parcourir les tournois</a>
+            <a href="#/tournaments" class="btn btn-primary btn-lg">Trouver un tournoi <span class="btn-arrow"></span></a>
+            <a href="#/signup" class="btn btn-outline btn-lg" onclick="signupType='club'">Organiser un tournoi</a>
           </div>
         </div>
         <div class="hero-numbers fade-in delay-2">
@@ -3029,10 +3194,31 @@ function renderHome() {
       </div>
     </section>
 
+    <!-- TOURNOIS OUVERTS — tri intelligent -->
+    <section class="section container">
+      <div class="section-eyebrow">Inscriptions ouvertes maintenant</div>
+      <h2 class="section-h2">Des tournois <em>qui cherchent des équipes.</em></h2>
+      ${userCity ? '<p style="font-family:var(--font-sans);font-size:13px;color:var(--ink-mute);margin-bottom:1.5rem;">Résultats priorisés selon votre secteur — <a href=\"#/tournaments\" style=\"color:var(--accent);\">voir tous les tournois</a></p>' : ''}
+      <div class="grid grid-3">${
+        [...state.tournaments]
+          .map(t => ({ t, score: tournPriorityScore(t, userCity) }))
+          .filter(({ score }) => score >= 0)
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 3)
+          .map(({ t }) => tournCardHome(t))
+          .join('')
+      }</div>
+      <div style="text-align: center; margin-top: 2.5rem;">
+        <a href="#/tournaments" class="btn btn-primary btn-lg">Voir tous les tournois →</a>
+      </div>
+    </section>
+
+
+
     <!-- BÉNÉFICES -->
     <section class="section-pain container">
-      <div class="section-eyebrow">Ce que la plateforme apporte</div>
-      <h2 class="section-h2">Un tournoi bien organisé,<br><em>ça se prépare.</em></h2>
+      <div class="section-eyebrow">Ce que Le Tournoi apporte</div>
+      <h2 class="section-h2">Jouer, organiser,<br><em>sans friction.</em></h2>
       <div class="pain-grid">
         <div class="pain-card">
           <div class="pain-card-icon">
@@ -3067,38 +3253,20 @@ function renderHome() {
     <!-- ROLES — trois profils -->
     <section class="roles-section">
       <div style="max-width: 1400px; margin: 0 auto 2.5rem;">
-        <div class="section-eyebrow">Une plateforme, trois usages</div>
-        <h2 class="section-h2">Chaque acteur dispose <em>de son espace.</em></h2>
+        <div class="section-eyebrow">Deux usages principaux · un espace chacun</div>
+        <h2 class="section-h2">Trouver un tournoi<em> ou en organiser un.</em></h2>
       </div>
       <div class="roles-grid">
 
         <!-- ORGANISATEUR -->
+        <!-- ÉQUIPE — en premier -->
         <div class="role-card fade-in">
-          <div class="role-card-icon">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
-            </svg>
-          </div>
-          <div class="role-card-eye">Organisateurs</div>
-          <h3 class="role-card-title">Espace <em>Organisateur</em></h3>
-          <p class="role-card-desc">Clubs, associations sportives, mairies — pour publier et gérer un tournoi de bout en bout, des inscriptions au bilan financier.</p>
-          <ul class="role-card-bullets">
-            <li>Fiche tournoi partageable par lien</li>
-            <li>Validation des équipes et suivi des places</li>
-            <li>Gestion des sponsors et des animations</li>
-            <li>Tableau de bord financier après l'événement</li>
-          </ul>
-          <a href="#/signup" class="btn btn-orange btn-full" onclick="signupType='club'">Ouvrir un espace organisateur <span class="btn-arrow"></span></a>
-        </div>
-
-        <!-- ÉQUIPE -->
-        <div class="role-card fade-in delay-1">
           <div class="role-card-icon">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
             </svg>
           </div>
-          <div class="role-card-eye">Équipes participantes</div>
+          <div class="role-card-eye">Équipes — trouver un tournoi</div>
           <h3 class="role-card-title">Espace <em>Équipe</em></h3>
           <p class="role-card-desc">Pour les équipes — jeunes et seniors — qui souhaitent trouver des tournois correspondant à leur niveau, leur catégorie et leur zone géographique.</p>
           <ul class="role-card-bullets">
@@ -3108,6 +3276,25 @@ function renderHome() {
             <li>Suivi des matchs et scores le jour J</li>
           </ul>
           <a href="#/signup" class="btn btn-orange btn-full" onclick="signupType='team'">Ouvrir un espace équipe <span class="btn-arrow"></span></a>
+        </div>
+
+        <!-- ORGANISATEUR — en second -->
+        <div class="role-card fade-in delay-1">
+          <div class="role-card-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+          </div>
+          <div class="role-card-eye">Organisateurs — monter un tournoi</div>
+          <h3 class="role-card-title">Espace <em>Organisateur</em></h3>
+          <p class="role-card-desc">Clubs, associations sportives, mairies — pour publier et gérer un tournoi de bout en bout, des inscriptions au bilan financier.</p>
+          <ul class="role-card-bullets">
+            <li>Fiche tournoi partageable par lien</li>
+            <li>Validation des équipes et suivi des places</li>
+            <li>Gestion des sponsors et des animations</li>
+            <li>Tableau de bord financier après l'événement</li>
+          </ul>
+          <a href="#/signup" class="btn btn-orange btn-full" onclick="signupType='club'">Ouvrir un espace organisateur <span class="btn-arrow"></span></a>
         </div>
 
         <!-- SPONSOR -->
@@ -3134,7 +3321,7 @@ function renderHome() {
     <!-- COMMENT ÇA MARCHE — séquence en 3 étapes -->
     <section class="section-how container">
       <div class="section-eyebrow">Fonctionnement</div>
-      <h2 class="section-h2">Trois étapes,<br><em>un événement réussi.</em></h2>
+      <h2 class="section-h2">Deux parcours,<br><em>une même plateforme.</em></h2>
       <div class="how-grid">
         <div class="how-step">
           <div class="how-step-icon">
@@ -3172,30 +3359,48 @@ function renderHome() {
       </div>
     </section>
 
-    <!-- TOURNOIS OUVERTS -->
-    <section class="section container">
-      <div class="section-eyebrow">Tournois en cours d'inscription</div>
-      <h2 class="section-h2">Des tournois <em>ouverts aux équipes.</em></h2>
-      <div class="grid grid-3">${state.tournaments.filter(t => t.status === 'open').slice(0, 3).map(tournCard).join('')}</div>
-      <div style="text-align: center; margin-top: 2.5rem;">
-        <a href="#/tournaments" class="btn btn-outline btn-lg">Voir tous les tournois disponibles →</a>
-      </div>
-    </section>
-
     <!-- CTA FINAL -->
     <section class="section-cta">
       <div class="container">
         <div class="cta-inner">
-          <div class="section-eyebrow" style="color: var(--accent-soft);">Démarrer</div>
-          <h2 class="cta-title">Organisez votre prochain tournoi<br><em>avec Le Tournoi.</em></h2>
-          <p class="cta-sub">Inscription gratuite. Un interlocuteur dédié vous accompagne sur la prise en main pour votre premier tournoi.</p>
+          <div class="section-eyebrow" style="color: var(--accent-soft);">Rejoindre Le Tournoi</div>
+          <h2 class="cta-title">Trouvez votre prochain match<br><em>ou montez votre tournoi.</em></h2>
+          <p class="cta-sub">Inscription gratuite. Accès immédiat aux tournois ouverts en Île-de-France.</p>
           <div class="cta-actions">
-            <a href="#/signup" class="btn btn-primary btn-lg" onclick="signupType='club'">Créer un compte organisateur <span class="btn-arrow"></span></a>
-            <a href="#/tournaments" class="btn btn-ghost btn-lg" style="color: var(--paper); border-color: rgba(245,239,228,0.35);">Voir les tournois disponibles</a>
+            <a href="#/tournaments" class="btn btn-primary btn-lg">Trouver un tournoi <span class="btn-arrow"></span></a>
+            <a href="#/signup" class="btn btn-ghost btn-lg" style="color: var(--paper); border-color: rgba(245,239,228,0.35);" onclick="signupType='club'">Organiser un tournoi</a>
           </div>
         </div>
       </div>
     </section>`;
+}
+
+// Carte enrichie pour la page d'accueil (avec badge urgence/contexte)
+function tournCardHome(t) {
+  const urgency = tournUrgencyLabel(t);
+  const club = getClub(t.clubId);
+  const approved = t.registrations.filter(r => r.status === 'approved').length;
+  const placesLeft = (t.maxTeams || 0) - approved;
+  return `
+    <div class="t-card" onclick="navigate('#/tournaments/${t.id}')">
+      <div class="t-card-img ${club?.logoClass || ''}">
+        <span class="t-card-mark">${esc(club?.mark || '')}</span>
+        <div class="t-card-num">${approved}</div>
+      </div>
+      <div class="t-card-body">
+        <div class="t-card-club">
+          ${esc(club?.name || '')} · ${esc(club?.city || '')}
+          ${renderBadge(clubBadge(t.clubId), 'margin-left:0.4rem;font-size:9px;')}
+        </div>
+        <h3 class="t-card-title">${esc(t.name)}</h3>
+        <p class="t-card-meta">${esc(t.edition)} · ${esc(tournCategoriesLabel(t))} · ${esc(tournDateRange(t))}</p>
+        ${urgency ? `<div class="t-card-urgency ${urgency.cls}">${urgency.label}</div>` : ''}
+        <div class="t-card-foot">
+          <span class="t-card-status ${t.status}">${t.status === 'open' ? 'Ouvert' : t.status === 'draft' ? 'Brouillon' : 'En cours'}</span>
+          <span class="t-card-progress">${placesLeft > 0 ? placesLeft + ' place' + (placesLeft > 1 ? 's' : '') : 'Complet'}</span>
+        </div>
+      </div>
+    </div>`;
 }
 
 function tournCard(t) {
@@ -3252,6 +3457,7 @@ function renderSignup() {
         ${renderSignupForm(signupType)}
         ${signupMode === 'real' ? renderConsentBox() : ''}
         <div class="auth-footer-link">Déjà un compte ? <a href="#/login">Se connecter</a></div>
+        <div class="auth-footer-link" style="margin-top:0.75rem;padding-top:0.75rem;border-top:1px solid var(--line);"><a href="#/tournaments" style="font-weight:500;">Parcourir les tournois sans inscription →</a></div>
       </div>
     </div>`;
 }
@@ -3682,6 +3888,7 @@ function renderLogin() {
         </div>
         <div class="auth-footer-link">Mot de passe oublié ? <a href="#/recover">Récupérer l'accès</a></div>
         <div class="auth-footer-link">Pas encore de compte ? <a href="#/signup">S'inscrire</a></div>
+        <div class="auth-footer-link" style="margin-top:0.75rem;padding-top:0.75rem;border-top:1px solid var(--line);"><a href="#/tournaments" style="font-weight:500;">Parcourir les tournois sans compte →</a></div>
       </div>
     </div>`;
 }
@@ -4103,42 +4310,58 @@ function saveSponsorProfile() {
 
 // TOURNAMENTS LIST
 // State for tournament search filters
-let tournamentSearchQuery = '';
+let tournamentSearchQuery    = '';
 let tournamentSearchLocation = '';
 let tournamentSearchCategory = '';
-let tournamentSearchStatus = '';
+let tournamentSearchStatus   = '';
+let tournamentSearchLevel    = '';
+let tournamentSearchSurface  = '';
+let tournamentSearchFormat   = '';
+let tournamentSearchMaxFee   = '';
+let tournamentSortBy         = 'date';
+let tournamentAdvancedOpen   = false;
 
 function renderTournaments() {
   const a = getAccount();
   const filtered = filterTournaments(tournamentSearchQuery, tournamentSearchLocation, tournamentSearchCategory, tournamentSearchStatus);
   const totalCount = state.tournaments.length;
+  const hasActiveFilters = !!(tournamentSearchQuery || tournamentSearchLocation || tournamentSearchCategory || tournamentSearchStatus || tournamentSearchLevel || tournamentSearchSurface || tournamentSearchFormat || tournamentSearchMaxFee);
 
   document.getElementById('app').innerHTML = `
     <div class="page-head">
       <div class="page-eyebrow">Tournois foot amateur · Île-de-France</div>
-      <h1 class="page-title">${totalCount} tournoi${totalCount > 1 ? 's' : ''}<br><em>à rejoindre</em> ou à créer.</h1>
-      <p class="page-sub">Recherchez par nom, ville, catégorie ou statut. L'inscription se fait directement depuis la fiche du tournoi.</p>
+      <h1 class="page-title">${totalCount} tournoi${totalCount > 1 ? 's' : ''}<br><em>ouverts</em> aux équipes.</h1>
+      <p class="page-sub">Trouvez un tournoi correspondant à votre catégorie et votre ville. Postulez directement depuis la fiche.</p>
       <div class="page-head-actions"><a href="#/tournaments/new" class="btn btn-orange">+ Publier un tournoi</a></div>
     </div>
     <div class="container" style="padding-top: 2rem; padding-bottom: 3rem;">
 
       <div class="search-bar-wrap">
+
+        <!-- BARRE PRINCIPALE -->
         <div class="search-row">
-          <div class="search-field-wrap">
+          <div class="search-field-wrap" style="flex:3;">
             <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
             <input class="search-field" id="s-name" type="text"
-              placeholder="Rechercher par nom de tournoi..."
+              placeholder="Nom du tournoi, édition..."
               value="${esc(tournamentSearchQuery)}"
-              oninput="tournamentSearchQuery = this.value; renderTournaments();">
+              oninput="tournamentSearchQuery = this.value; renderTournaments();"
+              onkeydown="if(event.key==='Enter') renderTournaments();">
           </div>
-          <div class="search-field-wrap">
+          <div class="search-field-wrap" style="flex:2;">
             <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"/><circle cx="12" cy="10" r="3"/></svg>
             <input class="search-field" id="s-loc" type="text"
-              placeholder="Ville ou localité..."
+              placeholder="Ville, département..."
               value="${esc(tournamentSearchLocation)}"
-              oninput="tournamentSearchLocation = this.value; renderTournaments();">
+              oninput="tournamentSearchLocation = this.value; renderTournaments();"
+              onkeydown="if(event.key==='Enter') renderTournaments();">
           </div>
+          <button class="btn btn-orange btn-sm" onclick="renderTournaments()" style="flex-shrink:0;">
+            Trouver un tournoi
+          </button>
         </div>
+
+        <!-- LIGNE FILTRES RAPIDES + TRI -->
         <div class="filter-row">
           <select class="filter-select" id="s-cat" onchange="tournamentSearchCategory = this.value; renderTournaments();">
             <option value="">Toutes catégories</option>
@@ -4149,12 +4372,60 @@ function renderTournaments() {
             <option value="open" ${tournamentSearchStatus === 'open' ? 'selected' : ''}>Inscriptions ouvertes</option>
             <option value="draft" ${tournamentSearchStatus === 'draft' ? 'selected' : ''}>En préparation</option>
           </select>
-          ${(tournamentSearchQuery || tournamentSearchLocation || tournamentSearchCategory || tournamentSearchStatus) ? `
-            <button class="btn btn-ghost btn-sm" onclick="tournamentSearchQuery=''; tournamentSearchLocation=''; tournamentSearchCategory=''; tournamentSearchStatus=''; renderTournaments();">
-              Effacer les filtres
-            </button>` : ''}
+
+          <!-- BOUTON RECHERCHE AVANCÉE -->
+          <button class="btn btn-ghost btn-sm" onclick="tournamentAdvancedOpen=!tournamentAdvancedOpen; renderTournaments();" style="white-space:nowrap;">
+            ${tournamentAdvancedOpen ? '▲ Moins de filtres' : '▼ Recherche avancée'}
+          </button>
+
+          <!-- TRI -->
+          <div class="sort-group">
+            <span class="sort-label">Trier par</span>
+            <button class="sort-btn ${tournamentSortBy==='date' ? 'active' : ''}" onclick="tournamentSortBy='date'; renderTournaments();">Date</button>
+            <button class="sort-btn ${tournamentSortBy==='location' ? 'active' : ''}" onclick="tournamentSortBy='location'; renderTournaments();">Lieu</button>
+            <button class="sort-btn ${tournamentSortBy==='fee' ? 'active' : ''}" onclick="tournamentSortBy='fee'; renderTournaments();">Frais</button>
+          </div>
+
+          ${hasActiveFilters ? `<button class="btn btn-ghost btn-sm" onclick="clearAllTournamentFilters()">✕ Effacer tout</button>` : ''}
           <span class="search-count">${filtered.length} résultat${filtered.length !== 1 ? 's' : ''}</span>
         </div>
+
+        <!-- RECHERCHE AVANCÉE (dépliable) -->
+        ${tournamentAdvancedOpen ? `
+        <div class="advanced-search-panel">
+          <div class="advanced-search-grid">
+            <div class="adv-field">
+              <label class="adv-label">Niveau</label>
+              <select class="filter-select" onchange="tournamentSearchLevel = this.value; renderTournaments();">
+                <option value="">Tous niveaux</option>
+                ${(state.catalog.levels||[]).map(l => `<option value="${l.v}" ${tournamentSearchLevel === l.v ? 'selected' : ''}>${esc(l.l)}</option>`).join('')}
+              </select>
+            </div>
+            <div class="adv-field">
+              <label class="adv-label">Type de terrain</label>
+              <select class="filter-select" onchange="tournamentSearchSurface = this.value; renderTournaments();">
+                <option value="">Tous terrains</option>
+                ${(state.catalog.surfaces||[]).map(s => `<option value="${s.v}" ${tournamentSearchSurface === s.v ? 'selected' : ''}>${esc(s.l)}</option>`).join('')}
+              </select>
+            </div>
+            <div class="adv-field">
+              <label class="adv-label">Format de jeu</label>
+              <select class="filter-select" onchange="tournamentSearchFormat = this.value; renderTournaments();">
+                <option value="">Tous formats</option>
+                ${(state.catalog.matchSizes||[]).map(m => `<option value="${m.v}" ${tournamentSearchFormat === m.v ? 'selected' : ''}>${esc(m.l)}</option>`).join('')}
+              </select>
+            </div>
+            <div class="adv-field">
+              <label class="adv-label">Frais max (€)</label>
+              <input type="number" class="filter-select" min="0" step="10"
+                placeholder="Ex : 100"
+                value="${tournamentSearchMaxFee}"
+                oninput="tournamentSearchMaxFee = this.value; renderTournaments();"
+                style="width:120px;">
+            </div>
+          </div>
+        </div>` : ''}
+
       </div>
 
       ${filtered.length === 0 ? `
@@ -4167,17 +4438,51 @@ function renderTournaments() {
     </div>`;
 }
 
+function clearAllTournamentFilters() {
+  tournamentSearchQuery = ''; tournamentSearchLocation = '';
+  tournamentSearchCategory = ''; tournamentSearchStatus = '';
+  tournamentSearchLevel = ''; tournamentSearchSurface = '';
+  tournamentSearchFormat = ''; tournamentSearchMaxFee = '';
+  tournamentSortBy = 'date'; tournamentAdvancedOpen = false;
+  renderTournaments();
+}
+
 function filterTournaments(query, location, category, status) {
-  return state.tournaments.filter(t => {
+  let results = state.tournaments.filter(t => {
     const club = getClub(t.clubId);
     const nameMatch = !query || t.name.toLowerCase().includes(query.toLowerCase()) || (t.edition||'').toLowerCase().includes(query.toLowerCase());
     const venue = tournVenue(t);
-    const locationMatch = !location || (venue.name||'').toLowerCase().includes(location.toLowerCase()) || (venue.address||'').toLowerCase().includes(location.toLowerCase()) || (club?.city||'').toLowerCase().includes(location.toLowerCase()) || (t.location||'').toLowerCase().includes(location.toLowerCase());
+    const locationMatch = !location ||
+      (venue.name||'').toLowerCase().includes(location.toLowerCase()) ||
+      (venue.address||'').toLowerCase().includes(location.toLowerCase()) ||
+      (club?.city||'').toLowerCase().includes(location.toLowerCase()) ||
+      (t.location||'').toLowerCase().includes(location.toLowerCase());
     const cats = tournCategories(t);
     const categoryMatch = !category || cats.includes(category);
     const statusMatch = !status || t.status === status;
-    return nameMatch && locationMatch && categoryMatch && statusMatch;
+    // Filtres avancés
+    const levelMatch = !tournamentSearchLevel || (t.level === tournamentSearchLevel);
+    const surfaceMatch = !tournamentSearchSurface || t.surface === tournamentSearchSurface;
+    const formatMatch = !tournamentSearchFormat || t.matchSize === tournamentSearchFormat;
+    const feeMatch = !tournamentSearchMaxFee || (t.entryFee || 0) <= parseFloat(tournamentSearchMaxFee);
+    return nameMatch && locationMatch && categoryMatch && statusMatch && levelMatch && surfaceMatch && formatMatch && feeMatch;
   });
+
+  // Tri
+  results = [...results].sort((a, b) => {
+    if (tournamentSortBy === 'date') {
+      return (a.date || '').localeCompare(b.date || '');
+    } else if (tournamentSortBy === 'location') {
+      const ca = getClub(a.clubId)?.city || a.location || '';
+      const cb = getClub(b.clubId)?.city || b.location || '';
+      return ca.localeCompare(cb);
+    } else if (tournamentSortBy === 'fee') {
+      return (a.entryFee || 0) - (b.entryFee || 0);
+    }
+    return 0;
+  });
+
+  return results;
 }
 
 // CREATE TOURNAMENT
@@ -4635,7 +4940,7 @@ function renderTournamentDetail(id) {
         <h1 class="tourn-hero-title">${esc(t.name)}<br><em>${esc(t.edition)}</em></h1>
         <div class="tourn-hero-meta">
           <div class="tourn-meta-item"><span class="tourn-meta-label">Date${t.dateEnd && t.dateEnd !== t.date ? 's' : ''}</span><span class="tourn-meta-val">${t.dateEnd && t.dateEnd !== t.date ? tournDateRange(t) : fmtDay(t.date) + ' ' + fmtDate(t.date)}</span></div>
-          ${tournTimeRange(t) ? `<div class="tourn-meta-item"><span class="tourn-meta-label">Horaires</span><span class="tourn-meta-val">${esc(tournTimeRange(t))}</span></div>` : ''}
+          ${tournTimeRange(t) ? `<div class="tourn-meta-item tourn-meta-item--highlight"><span class="tourn-meta-label">⏱ Horaires</span><span class="tourn-meta-val" style="font-weight:600;">${esc(tournTimeRange(t))}</span></div>` : '<div class="tourn-meta-item" style="opacity:0.45;"><span class="tourn-meta-label">⏱ Horaires</span><span class="tourn-meta-val">À confirmer</span></div>'}
           <div class="tourn-meta-item"><span class="tourn-meta-label">Lieu</span><span class="tourn-meta-val">${esc(tournVenue(t).name || '—')}</span></div>
           <div class="tourn-meta-item"><span class="tourn-meta-label">Catégorie${tournCategories(t).length > 1 ? 's' : ''}</span><span class="tourn-meta-val">${esc(tournCategoriesLabel(t))}</span></div>
           ${t.matchSize ? `<div class="tourn-meta-item"><span class="tourn-meta-label">Format</span><span class="tourn-meta-val">${esc(matchSizeLabel(t.matchSize))}${t.gender && t.gender !== 'mixte' ? ' · ' + esc(genderLabel(t.gender)) : ''}</span></div>` : ''}
