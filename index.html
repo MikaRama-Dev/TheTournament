@@ -2,6 +2,10 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
+<!-- SÉCURITÉ : Content-Security-Policy. 'unsafe-inline' requis par les handlers onclick inline
+     (ne casse donc PAS l'appli) ; bloque néanmoins tout script/style EXTERNE non listé.
+     Domaines listés = uniquement ceux réellement chargés par la page. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://*.supabase.co; base-uri 'self'; form-action 'self'; frame-ancestors 'none';">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Le Tournoi — la plateforme des tournois de foot amateur</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -2887,6 +2891,15 @@ function getClub(id) { return state.clubs.find(c => c.id === id); }
 function getTeam(id) { return state.teams.find(t => t.id === id); }
 function getSponsor(id) { return state.sponsors.find(s => s.id === id); }
 function esc(s) { if (s == null) return ''; return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+// SÉCURITÉ : n'autorise que les URL http(s). Neutralise javascript:, data:, vbscript:, etc.
+// Empêche le XSS par schéma d'URL dans un href contrôlé par l'utilisateur (champ « site web »).
+function safeUrl(u) {
+  if (!u) return '';
+  const s = String(u).trim();
+  if (/^https?:\/\//i.test(s)) return s;                 // déjà http(s)
+  if (/^[a-z0-9.-]+\.[a-z]{2,}(\/|$|\?|#)/i.test(s)) return 'https://' + s; // domaine nu → préfixe https
+  return '';                                             // tout le reste (javascript:, data:…) rejeté
+}
 function fmtDate(iso) {
   const d = new Date(iso);
   const m = ['jan','fév','mar','avr','mai','juin','juil','août','sept','oct','nov','déc'];
@@ -2963,8 +2976,11 @@ const RECOVERY_WORDS = [
   'saison','ligue','district','regionale','amateur','passion'
 ];
 function genRecoveryCode() {
-  const pick = () => RECOVERY_WORDS[Math.floor(Math.random() * RECOVERY_WORDS.length)];
-  return pick() + '-' + pick() + '-' + pick() + '-' + pick();
+  // SÉCURITÉ : générateur cryptographique (Math.random n'est pas imprévisible)
+  const buf = new Uint32Array(4);
+  ((window.crypto || window.msCrypto)).getRandomValues(buf);
+  const pick = i => RECOVERY_WORDS[buf[i] % RECOVERY_WORDS.length];
+  return pick(0) + '-' + pick(1) + '-' + pick(2) + '-' + pick(3);
 }
 
 function signupAccount(type, d) {
@@ -4929,7 +4945,7 @@ function renderTournamentDetail(id) {
           <div class="tourn-hero-club">
           Organisé par ${esc(club.name)} · ${esc(club.city)}
           ${renderBadge(clubBadge(t.clubId), 'margin-left:0.6rem;vertical-align:middle;')}
-          ${club.website ? `<a href="${esc(club.website)}" target="_blank" rel="noopener" style="margin-left:0.6rem;font-family:var(--font-mono);font-size:10px;color:rgba(245,239,228,0.6);border-bottom:1px solid rgba(245,239,228,0.3);letter-spacing:0.08em;">Site web →</a>` : ''}
+          ${safeUrl(club.website) ? `<a href="${esc(safeUrl(club.website))}" target="_blank" rel="noopener noreferrer" style="margin-left:0.6rem;font-family:var(--font-mono);font-size:10px;color:rgba(245,239,228,0.6);border-bottom:1px solid rgba(245,239,228,0.3);letter-spacing:0.08em;">Site web →</a>` : ''}
         </div>
           ${isOwner ? `
           <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
@@ -5423,8 +5439,8 @@ function renderAside(t, isOwner, a) {
     <div class="aside-share">
       <div class="aside-share-label">Partager ce tournoi</div>
       <div class="share-row">
-        <a href="https://wa.me/?text=${shareMsg}" target="_blank" class="share-btn" title="WhatsApp">${ICONS.wa}</a>
-        <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}" target="_blank" class="share-btn" title="Facebook">${ICONS.fb}</a>
+        <a href="https://wa.me/?text=${shareMsg}" target="_blank" rel="noopener noreferrer" class="share-btn" title="WhatsApp">${ICONS.wa}</a>
+        <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}" target="_blank" rel="noopener noreferrer" class="share-btn" title="Facebook">${ICONS.fb}</a>
         <button class="share-btn" title="Copier le lien" onclick="copyShareLinkFn('${t.id}')">${ICONS.cp}</button>
       </div>
       <p style="font-family:var(--font-serif);font-style:italic;font-size:11px;color:var(--ink-mute);margin-top:0.6rem;">Le message WhatsApp inclut toutes les infos.</p>
@@ -5539,7 +5555,7 @@ function confirmWithdraw(tid, rid) {
 function addSponsorManualModal(tid) {
   const t = getTournament(tid);
   const tierOpts = (t.sponsorTiers||[]).map(tr =>
-    `<option value="${tr.name}">${esc(tr.label||tr.name.toUpperCase())}</option>`
+    `<option value="${esc(tr.name)}">${esc(tr.label||tr.name.toUpperCase())}</option>`
   ).join('') + '<option value="_autre">— Autre palier (personnalisé) —</option>';
 
   const PERK_LIST = [
@@ -6189,7 +6205,7 @@ function proposeSponsorModal(tid, tier) {
      <div style="margin-top: 1rem;">
        <label class="form-label">Palier</label>
        <select class="select" id="prop-tier" style="margin-bottom: 0.8rem;">
-         ${t.sponsorTiers.map(tr => `<option value="${tr.name}" ${tier === tr.name ? 'selected' : ''}>${tr.name.toUpperCase()} · ${tr.price}€</option>`).join('')}
+         ${t.sponsorTiers.map(tr => `<option value="${esc(tr.name)}" ${tier === tr.name ? 'selected' : ''}>${esc(tr.name.toUpperCase())} · ${tr.price}€</option>`).join('')}
        </select>
        <label class="form-label">Montant proposé (€)</label>
        <input type="number" class="input" id="prop-amt" min="50" value="${defaultPrice}" style="margin-bottom: 0.8rem;">
@@ -6395,7 +6411,7 @@ function renderTeamProfile(id) {
           <p class="profile-meta">${esc(team.club)} · ${esc(team.city)} · ${levelLabel(team.level)} · ${team.players.length} joueur${team.players.length > 1 ? 's' : ''} · ${approvedApps} tournoi${approvedApps > 1 ? 's' : ''} joué${approvedApps > 1 ? 's' : ''}</p>
           <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;margin-top:0.5rem;">
             ${renderBadge(teamBadge(team.id))}
-            ${team.website ? `<a href="${esc(team.website)}" target="_blank" rel="noopener" class="btn btn-ghost btn-sm" style="font-size:11px;">Site web →</a>` : ''}
+            ${safeUrl(team.website) ? `<a href="${esc(safeUrl(team.website))}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm" style="font-size:11px;">Site web →</a>` : ''}
           </div>
         </div>
         ${isOwner ? `<button class="btn btn-orange" onclick="editTeamProfileModal()">Modifier</button>` : ''}
