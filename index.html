@@ -7,7 +7,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,500;0,600;0,700;0,800;1,500;1,600;1,700;1,800&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400;1,500;1,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<script src="config.js" onerror="console.info('[Le Tournoi] config.js absent — mode démo ou GitHub Pages')"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -2713,96 +2712,113 @@ function initSupabase() {
 
 document.addEventListener('DOMContentLoaded', initSupabase);
 // Helper : envoyer une inscription réelle vers Supabase
+
+// Helper : envoyer une inscription réelle vers Supabase
 async function submitRealSignup(type, data, consents) {
   if (!supabaseClient) {
-    return { error: 'La connexion à la base de données est indisponible. Vérifiez les clés Supabase dans le fichier.' };
+    return {
+      error: 'La connexion à la base de données est indisponible. Vérifiez les clés Supabase dans le fichier.'
+    };
   }
-  const table = type === 'club' ? 'clubs' : type === 'team' ? 'teams' : 'sponsors';
 
-  // ── Whitelist stricte : seules les colonnes qui existent dans Supabase ──
+  const table = type === 'club'
+    ? 'clubs'
+    : type === 'team'
+    ? 'teams'
+    : 'sponsors';
+
+  // Whitelist stricte : seules les colonnes qui existent dans Supabase
   let payload = {};
+
   if (type === 'club') {
     payload = {
-      name:      data.name      || null,
-      email:     data.email     || null,
-      city:      data.city      || null,
+      name: data.name || null,
+      email: data.email || null,
+      city: data.city || null,
       president: data.president || null,
-      phone:     data.phone     || null,
-      status:    'pending'
+      phone: data.phone || null,
+      status: 'pending'
     };
   } else if (type === 'team') {
     payload = {
-      name:     data.name     || null,
-      email:    data.email    || null,
-      city:     data.city     || null,
-      club:     data.club     || null,
+      name: data.name || null,
+      email: data.email || null,
+      city: data.city || null,
+      club: data.club || null,
       category: data.category || null,
-      level:    data.level    || null,
-      manager:  data.manager  || null,
-      phone:    data.phone    || null,
-      status:   'pending'
+      level: data.level || null,
+      manager: data.manager || null,
+      phone: data.phone || null,
+      status: 'pending'
     };
   } else {
     payload = {
-      name:    data.name    || null,
-      email:   data.email   || null,
-      city:    data.city    || null,
-      sector:  data.sector  || null,
+      name: data.name || null,
+      email: data.email || null,
+      city: data.city || null,
+      sector: data.sector || null,
       contact: data.contact || null,
-      phone:   data.phone   || null,
-      status:  'pending'
+      phone: data.phone || null,
+      status: 'pending'
     };
   }
 
-  // Supprimer les clés null pour éviter les erreurs de contrainte
-  Object.keys(payload).forEach(k => { if (payload[k] === null) delete payload[k]; });
+  // Supprimer les clés null pour éviter les erreurs de colonnes non renseignées
+  Object.keys(payload).forEach((key) => {
+    if (payload[key] === null) {
+      delete payload[key];
+    }
+  });
 
- 
   console.log('[Le Tournoi] INSERT →', table, '| payload:', JSON.stringify(payload));
 
-// Trace du consentement
-const consentRow = {
-  email: data.email,
-  account_type: type,
-  consent_data_collection: consents.dataCollection === true,
-  consent_marketing: consents.marketing === true
-};
+  // Trace du consentement RGPD
+  const consentRow = {
+    email: data.email,
+    account_type: type,
+    consent_data_collection: consents.dataCollection === true,
+    consent_marketing: consents.marketing === true
+  };
 
-try {
-  const { error: err1 } = await supabaseClient
-    .from(table)
-    .insert([payload]);
-
-  console.log('[Le Tournoi] INSERT result → error:', err1);
-
-  if (err1) {
-    console.error('[Le Tournoi] Supabase error:', err1);
-
-    if (err1.code === '23505') {
-      return { error: 'Cette adresse email est déjà enregistrée.' };
-    }
-
-    return { error: 'Inscription impossible : ' + err1.message };
-  }
-
-  // Consentement RGPD (non bloquant)
   try {
-    const { error: consentError } = await supabaseClient
-      .from('consents')
-      .insert([consentRow]);
+    // IMPORTANT :
+    // Ne pas ajouter .select() ici.
+    // L'inscription publique doit insérer sans relire la ligne,
+    // sinon il faut aussi une policy SELECT sur la table.
+    const { error: err1 } = await supabaseClient
+      .from(table)
+      .insert([payload]);
 
-    if (consentError) {
-      console.warn('[Le Tournoi] Consentement non enregistré:', consentError);
+    console.log('[Le Tournoi] INSERT result → error:', err1);
+
+    if (err1) {
+      console.error('[Le Tournoi] Supabase error:', err1);
+
+      if (err1.code === '23505') {
+        return { error: 'Cette adresse email est déjà enregistrée.' };
+      }
+
+      return { error: 'Inscription impossible : ' + err1.message };
     }
-  } catch (ce) {
-    console.warn('[Le Tournoi] Erreur consentement non bloquante:', ce);
+
+    // Consentement RGPD : non bloquant
+    try {
+      const { error: consentError } = await supabaseClient
+        .from('consents')
+        .insert([consentRow]);
+
+      if (consentError) {
+        console.warn('[Le Tournoi] Consentement non enregistré:', consentError);
+      }
+    } catch (ce) {
+      console.warn('[Le Tournoi] Erreur consentement non bloquante:', ce);
+    }
+
+    return { account: payload };
+  } catch (e) {
+    return { error: 'Erreur réseau : ' + e.message };
   }
-
-  return { account: payload };
-} catch (e) {
-  return { error: 'Erreur réseau : ' + e.message };
 }
-
 // ===========================================
 // LOCAL STATE (mode démo — inchangé)
 // ===========================================
