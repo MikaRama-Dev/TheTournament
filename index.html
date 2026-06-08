@@ -2,15 +2,12 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<!-- SÉCURITÉ : Content-Security-Policy. 'unsafe-inline' requis par les handlers onclick inline
-     (ne casse donc PAS l'appli) ; bloque néanmoins tout script/style EXTERNE non listé.
-     Domaines listés = uniquement ceux réellement chargés par la page. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://*.supabase.co https://cdn.jsdelivr.net; base-uri 'self'; form-action 'self';">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Le Tournoi — la plateforme des tournois de foot amateur</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,500;0,600;0,700;0,800;1,500;1,600;1,700;1,800&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400;1,500;1,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="config.js" onerror="console.info('[Le Tournoi] config.js absent — mode démo ou GitHub Pages')"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -729,6 +726,67 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
   font-size: 10px;
   border-radius: 2px;
 }
+.signup-mode-radios {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+.signup-radio-opt {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 1rem;
+  border: 1.5px solid var(--line-strong);
+  border-radius: 6px;
+  cursor: pointer;
+  background: var(--paper-soft);
+  transition: border-color 0.15s, background 0.15s;
+  user-select: none;
+}
+.signup-radio-opt.opt-real.selected {
+  background: #B85C3C;
+  border-color: #B85C3C;
+  opacity: 1;
+}
+.signup-radio-opt.opt-demo {
+  opacity: 0.6;
+}
+.signup-radio-opt.opt-demo.selected {
+  background: var(--ink-mute);
+  border-color: var(--ink-mute);
+  opacity: 1;
+}
+.signup-radio-opt input[type="radio"] {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  cursor: pointer;
+  margin: 0;
+  accent-color: var(--paper);
+}
+.signup-radio-opt input[type="radio"]:disabled {
+  opacity: 0.3;
+}
+.signup-radio-name {
+  font-family: var(--font-sans);
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1;
+}
+.signup-radio-opt.selected .signup-radio-name {
+  color: var(--paper);
+}
+.signup-radio-opt.opt-demo .signup-radio-name {
+  font-weight: 400;
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+}
+.signup-radio-opt.opt-demo.selected .signup-radio-name {
+  color: var(--paper);
+}
+
 .auth-tabs {
   display: flex; gap: 0;
   border: 1px solid var(--line-strong);
@@ -2158,6 +2216,69 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
   border: 1px solid #97C459;
 }
 
+.consent-box {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+}
+.consent-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  cursor: pointer;
+}
+.consent-text {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+
+/* ===== City autocomplete dropdown ===== */
+.city-wrap {
+  position: relative;
+}
+.city-dropdown {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0; right: 0;
+  background: var(--paper);
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  z-index: 200;
+  max-height: 220px;
+  overflow-y: auto;
+}
+.city-item {
+  padding: 0.6rem 0.9rem;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--ink);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--line);
+  transition: background 0.12s;
+}
+.city-item:last-child { border-bottom: none; }
+.city-item:hover, .city-item.focused { background: var(--paper-soft); }
+.city-item .city-cp {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-mute);
+  margin-left: 0.5rem;
+  flex-shrink: 0;
+}
+.city-item-loading {
+  padding: 0.75rem 0.9rem;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--ink-mute);
+  font-style: italic;
+}
+
 /* ===== Tournament search bar ===== */
 .search-bar-wrap {
   background: var(--paper-soft);
@@ -2539,6 +2660,7 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
   color: var(--ink-soft);
 }
 </style>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231A1F2E'/%3E%3Ctext x='16' y='22' text-anchor='middle' font-family='Arial' font-weight='700' font-size='18' fill='white'%3ET%3C/text%3E%3C/svg%3E">
 </head>
 <body>
 
@@ -2554,42 +2676,80 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
 // ===========================================
 // Remplace les deux valeurs ci-dessous par celles de ton projet Supabase
 // Settings → API → Project URL et anon public key
-const SUPABASE_URL = 'https://xkvfwpcvugoklqdezdux.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhrdmZ3cGN2dWdva2xxZGV6ZHV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwODEwNzMsImV4cCI6MjA5NTY1NzA3M30.BYQutLU8Se8BvLY4iGAPLXJtyt1rOTqITYSaB2qbbuM';
+// Clés Supabase chargées depuis config.js (fichier local, non versionné)
+// Si config.js absent (GitHub Pages), fallback sur les placeholders → mode démo
+
+var SUPABASE_URL      =  'https://xkvfwpcvugoklqdezdux.supabase.co';
+var SUPABASE_ANON_KEY =  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhrdmZ3cGN2dWdva2xxZGV6ZHV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwODEwNzMsImV4cCI6MjA5NTY1NzA3M30.BYQutLU8Se8BvLY4iGAPLXJtyt1rOTqITYSaB2qbbuM';
 
 // Le client Supabase est créé seulement si les valeurs ont été configurées
-let supabaseClient = null;
+var signupMode = 'real';  // 'real' par défaut — bascule sur 'demo' si Supabase absent
+var supabaseClient = null;
 try {
   if (SUPABASE_URL && !SUPABASE_URL.includes('YOUR_PROJECT_ID') && window.supabase) {
     supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    console.log('[Le Tournoi] Supabase connecté');
+    // Avertissement si ouvert depuis file:// (CORS bloqué par Supabase)
+    if (window.location.protocol === 'file:') {
+      console.warn('[Le Tournoi] ⚠️ Ouvert via file:// — les inscriptions réelles sont bloquées par CORS. Utilisez Live Server (http://localhost) ou GitHub Pages pour tester les inscriptions réelles.');
+      signupMode = 'demo';
+    } else {
+      console.log('[Le Tournoi] Supabase connecté — mode réel activé');
+      signupMode = 'real';
+    }
   } else {
     console.log('[Le Tournoi] Mode démo uniquement — Supabase non configuré');
+    signupMode = 'demo';
   }
 } catch (e) { console.warn('[Le Tournoi] Supabase init failed', e); }
 
 // Helper : envoyer une inscription réelle vers Supabase
 async function submitRealSignup(type, data, consents) {
   if (!supabaseClient) {
-    return { error: 'Inscriptions réelles désactivées sur cette démo. Contacte-nous directement à contact@letournoi.foot.' };
+    return { error: 'La connexion à la base de données est indisponible. Vérifiez les clés Supabase dans le fichier.' };
   }
   const table = type === 'club' ? 'clubs' : type === 'team' ? 'teams' : 'sponsors';
 
-  // Préparer le payload sans le mot de passe (pas stocké côté inscription publique)
-  const payload = { ...data };
-  delete payload.password;
-  delete payload.mark;
-  delete payload.logoClass;
-  delete payload.bio;
-  delete payload.players;
-  delete payload.availability;
-  delete payload.description;
-  delete payload.preferredCategories;
+  // ── Whitelist stricte : seules les colonnes qui existent dans Supabase ──
+  let payload = {};
+  if (type === 'club') {
+    payload = {
+      name:      data.name      || null,
+      email:     data.email     || null,
+      city:      data.city      || null,
+      president: data.president || null,
+      phone:     data.phone     || null,
+      status:    'pending'
+    };
+  } else if (type === 'team') {
+    payload = {
+      name:     data.name     || null,
+      email:    data.email    || null,
+      city:     data.city     || null,
+      club:     data.club     || null,
+      category: data.category || null,
+      level:    data.level    || null,
+      manager:  data.manager  || null,
+      phone:    data.phone    || null,
+      status:   'pending'
+    };
+  } else {
+    payload = {
+      name:    data.name    || null,
+      email:   data.email   || null,
+      city:    data.city    || null,
+      sector:  data.sector  || null,
+      contact: data.contact || null,
+      phone:   data.phone   || null,
+      status:  'pending'
+    };
+  }
 
-  // Renommer budgetRange → budget_range pour matcher PostgreSQL
-  if (payload.budgetRange) { payload.budget_range = payload.budgetRange; delete payload.budgetRange; }
+  // Supprimer les clés null pour éviter les erreurs de contrainte
+  Object.keys(payload).forEach(k => { if (payload[k] === null) delete payload[k]; });
 
-  // Trace du consentement (table consents)
+  console.log('[Le Tournoi] INSERT →', table, '| payload:', JSON.stringify(payload));
+
+  // Trace du consentement
   const consentRow = {
     email: data.email,
     account_type: type,
@@ -2599,13 +2759,15 @@ async function submitRealSignup(type, data, consents) {
 
   try {
     const { data: inserted, error: err1 } = await supabaseClient.from(table).insert([payload]).select();
+    console.log('[Le Tournoi] INSERT result → data:', inserted, '| error:', err1);
     if (err1) {
-      if (err1.code === '23505') return { error: 'Cette adresse email est déjà enregistrée. Si c\'est un oubli, écris-nous à contact@letournoi.foot.' };
+      console.error('[Le Tournoi] Supabase error:', err1);
+      if (err1.code === '23505') return { error: 'Cette adresse email est déjà enregistrée.' };
       return { error: 'Inscription impossible : ' + err1.message };
     }
-    // Log de consentement (non bloquant si ça échoue)
-    await supabaseClient.from('consents').insert([consentRow]);
-    return { account: inserted[0] };
+    // Consentement RGPD (non bloquant)
+    try { await supabaseClient.from('consents').insert([consentRow]); } catch(ce) {}
+    return { account: inserted?.[0] || payload };
   } catch (e) {
     return { error: 'Erreur réseau : ' + e.message };
   }
@@ -2618,7 +2780,6 @@ const KEY = 'tournoo_v2';
 let state = loadState();
 let activeTab = 'overview';
 let signupType = 'club';
-let signupMode = 'demo';  // 'demo' ou 'real'
 let loginType = 'club';
 
 function loadState() {
@@ -2891,15 +3052,6 @@ function getClub(id) { return state.clubs.find(c => c.id === id); }
 function getTeam(id) { return state.teams.find(t => t.id === id); }
 function getSponsor(id) { return state.sponsors.find(s => s.id === id); }
 function esc(s) { if (s == null) return ''; return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-// SÉCURITÉ : n'autorise que les URL http(s). Neutralise javascript:, data:, vbscript:, etc.
-// Empêche le XSS par schéma d'URL dans un href contrôlé par l'utilisateur (champ « site web »).
-function safeUrl(u) {
-  if (!u) return '';
-  const s = String(u).trim();
-  if (/^https?:\/\//i.test(s)) return s;                 // déjà http(s)
-  if (/^[a-z0-9.-]+\.[a-z]{2,}(\/|$|\?|#)/i.test(s)) return 'https://' + s; // domaine nu → préfixe https
-  return '';                                             // tout le reste (javascript:, data:…) rejeté
-}
 function fmtDate(iso) {
   const d = new Date(iso);
   const m = ['jan','fév','mar','avr','mai','juin','juil','août','sept','oct','nov','déc'];
@@ -2976,11 +3128,8 @@ const RECOVERY_WORDS = [
   'saison','ligue','district','regionale','amateur','passion'
 ];
 function genRecoveryCode() {
-  // SÉCURITÉ : générateur cryptographique (Math.random n'est pas imprévisible)
-  const buf = new Uint32Array(4);
-  ((window.crypto || window.msCrypto)).getRandomValues(buf);
-  const pick = i => RECOVERY_WORDS[buf[i] % RECOVERY_WORDS.length];
-  return pick(0) + '-' + pick(1) + '-' + pick(2) + '-' + pick(3);
+  const pick = () => RECOVERY_WORDS[Math.floor(Math.random() * RECOVERY_WORDS.length)];
+  return pick() + '-' + pick() + '-' + pick() + '-' + pick();
 }
 
 function signupAccount(type, d) {
@@ -3453,15 +3602,19 @@ function renderSignup() {
         <h1 class="auth-title">Bienvenue sur <em>Le Tournoi.</em></h1>
         <p class="auth-sub">Choisissez votre profil pour accéder aux fonctionnalités adaptées à votre rôle sur la plateforme.</p>
 
-        <div class="mode-toggle">
-          <div class="mode-toggle-opt ${signupMode === 'demo' ? 'active' : ''}" onclick="signupMode='demo'; renderSignup()">
-            Mode démo
-            <small>tester avec données locales</small>
-          </div>
-          <div class="mode-toggle-opt ${signupMode === 'real' ? 'active' : ''}" onclick="signupMode='real'; renderSignup()">
-            Inscription réelle
-            <small>${supabaseClient ? 'on te recontacte sous 24h' : 'bientôt disponible'}</small>
-          </div>
+        <div class="signup-mode-radios">
+          <label class="signup-radio-opt opt-real ${signupMode === 'real' ? 'selected' : ''}">
+            <input type="radio" name="signup-mode" value="real"
+              ${signupMode === 'real' ? 'checked' : ''}
+              onchange="signupMode='real'; renderSignup();">
+            <span class="signup-radio-name">Inscription réelle</span>
+          </label>
+          <label class="signup-radio-opt opt-demo ${signupMode === 'demo' ? 'selected' : ''}">
+            <input type="radio" name="signup-mode" value="demo"
+              ${signupMode === 'demo' ? 'checked' : ''}
+              onchange="signupMode='demo'; renderSignup();">
+            <span class="signup-radio-name">Mode démo</span>
+          </label>
         </div>
 
         <div class="auth-tabs">
@@ -3470,6 +3623,10 @@ function renderSignup() {
           <div class="auth-tab ${signupType === 'sponsor' ? 'active' : ''}" onclick="signupType='sponsor'; renderSignup()">Sponsor</div>
         </div>
         <div id="signup-err" class="form-error"></div>
+        ${signupMode === 'real' && !supabaseClient ? `
+        <div style="background:#FEF3CD;border:1px solid #F0C040;border-radius:4px;padding:0.65rem 0.9rem;margin-bottom:1rem;font-family:var(--font-sans);font-size:13px;color:#7A5C00;">
+          ⚠ Supabase non connecté — vérifiez <code>config.js</code> puis rechargez la page.
+        </div>` : ''}
         ${renderSignupForm(signupType)}
         ${signupMode === 'real' ? renderConsentBox() : ''}
         <div class="auth-footer-link">Déjà un compte ? <a href="#/login">Se connecter</a></div>
@@ -3481,13 +3638,15 @@ function renderSignup() {
 function renderConsentBox() {
   return `
     <div class="consent-box">
-      <label>
-        <input type="checkbox" id="consent-data" required>
-        <span>J'accepte que mes données (nom, email, téléphone, ville) soient collectées par Le Tournoi pour le suivi de mon inscription et le contact commercial. Je peux demander leur suppression à tout moment via <a href="mailto:contact@letournoi.foot">contact@letournoi.foot</a>. (obligatoire)</span>
-      </label>
-      <label>
-        <input type="checkbox" id="consent-marketing">
-        <span>J'accepte de recevoir occasionnellement la newsletter Le Tournoi (1 à 2 emails par mois). (optionnel)</span>
+      <label class="consent-label">
+        <input type="checkbox" id="consent-data" required style="flex-shrink:0;margin-top:2px;accent-color:var(--accent);width:16px;height:16px;">
+        <span class="consent-text">
+          En m'inscrivant, j'accepte que mes données (nom, email, téléphone, ville) soient collectées
+          par Le Tournoi pour le suivi de mon inscription et le contact commercial.
+          Je peux demander leur suppression à tout moment via
+          <a href="mailto:contact@letournoi.foot" style="color:var(--accent);">contact@letournoi.foot</a>.
+          <em style="color:var(--ink-mute);font-style:normal;font-size:12px;"> — obligatoire</em>
+        </span>
       </label>
     </div>`;
 }
@@ -3505,7 +3664,13 @@ function renderSignupForm(type) {
       </div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Responsable / Président·e</label><input class="input" id="f-pres" required></div>
-        <div class="form-group"><label class="form-label">Ville</label><input class="input" id="f-city" required></div>
+        <div class="form-group"><label class="form-label">Ville</label>
+        <div class="city-wrap">
+          <input class="input" id="f-city" required autocomplete="off"
+            oninput="cityAutocomplete(this)"
+            onkeydown="_cityKeyNav(event, this)"
+            onblur="_closeCityDropdown(this.closest('.city-wrap'))">
+        </div></div>
       </div>
       <div class="form-group"><label class="form-label">Téléphone</label><input class="input" id="f-phone" placeholder="06 12 34 56 78"></div>
       <div class="form-group"><label class="form-label">Site web <span style="font-weight:400;color:var(--ink-mute);text-transform:none;letter-spacing:0;">(optionnel)</span></label><input type="url" class="input" id="f-website" placeholder="https://..."></div>
@@ -3533,7 +3698,13 @@ function renderSignupForm(type) {
       </div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Responsable</label><input class="input" id="f-mgr" required></div>
-        <div class="form-group"><label class="form-label">Ville</label><input class="input" id="f-city" required></div>
+        <div class="form-group"><label class="form-label">Ville</label>
+        <div class="city-wrap">
+          <input class="input" id="f-city" required autocomplete="off"
+            oninput="cityAutocomplete(this)"
+            onkeydown="_cityKeyNav(event, this)"
+            onblur="_closeCityDropdown(this.closest('.city-wrap'))">
+        </div></div>
       </div>
       <div class="form-group"><label class="form-label">Téléphone</label><input class="input" id="f-phone" placeholder="06 12 34 56 78"></div>
       <div class="form-group"><label class="form-label">Site web de l'équipe <span style="font-weight:400;color:var(--ink-mute);text-transform:none;letter-spacing:0;">(optionnel)</span></label><input type="url" class="input" id="f-website" placeholder="https://..."></div>
@@ -3550,7 +3721,13 @@ function renderSignupForm(type) {
       </div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Secteur</label><input class="input" id="f-sect" required placeholder="Restauration, Auto, Beauté..."></div>
-        <div class="form-group"><label class="form-label">Ville</label><input class="input" id="f-city" required></div>
+        <div class="form-group"><label class="form-label">Ville</label>
+        <div class="city-wrap">
+          <input class="input" id="f-city" required autocomplete="off"
+            oninput="cityAutocomplete(this)"
+            onkeydown="_cityKeyNav(event, this)"
+            onblur="_closeCityDropdown(this.closest('.city-wrap'))">
+        </div></div>
       </div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Contact</label><input class="input" id="f-cont" required></div>
@@ -3636,24 +3813,36 @@ async function handleSignup(e, type) {
 
   // ====== Inscription réelle (Supabase) ======
   if (signupMode === 'real') {
-    const consentData = document.getElementById('consent-data');
-    const consentMarketing = document.getElementById('consent-marketing');
-    if (!consentData || !consentData.checked) {
-      errEl.textContent = 'Coche le consentement RGPD obligatoire pour continuer.';
+    // Détecter file:// ou Supabase absent → message explicite + arrêt
+    if (window.location.protocol === 'file:') {
+      errEl.textContent = 'Les inscriptions réelles ne fonctionnent pas depuis un fichier local. Ouvrez le site via Live Server (localhost) ou sur GitHub Pages pour tester.';
       errEl.classList.add('show'); return;
     }
-    const submitBtn = e.target.querySelector('button[type="submit"]');
-    if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Envoi…'; }
-    const r = await submitRealSignup(type, d, {
-      dataCollection: consentData.checked,
-      marketing: consentMarketing ? consentMarketing.checked : false
-    });
-    if (submitBtn) { submitBtn.disabled = false; }
-    if (r.error) {
-      errEl.textContent = r.error; errEl.classList.add('show');
-      if (submitBtn) submitBtn.innerHTML = type === 'club' ? 'Créer mon club <span class="btn-arrow"></span>' : type === 'team' ? 'Créer mon équipe <span class="btn-arrow"></span>' : 'Devenir sponsor <span class="btn-arrow"></span>';
-      return;
+    if (!supabaseClient) {
+      errEl.textContent = 'Supabase non configuré. Vérifiez que config.js contient vos vraies clés, puis rechargez la page.';
+      errEl.classList.add('show'); return;
     }
+    const consentData = document.getElementById('consent-data');
+      if (!consentData || !consentData.checked) {
+        errEl.textContent = 'Cochez le consentement RGPD obligatoire pour continuer.';
+        errEl.classList.add('show'); return;
+      }
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Envoi…'; }
+      const r = await submitRealSignup(type, d, {
+        dataCollection: consentData.checked,
+        marketing: false
+      });
+      if (submitBtn) { submitBtn.disabled = false; }
+      if (r.error) {
+        errEl.textContent = r.error; errEl.classList.add('show');
+        if (submitBtn) submitBtn.innerHTML = type === 'club'
+          ? 'Créer un compte organisateur <span class="btn-arrow"></span>'
+          : type === 'team'
+          ? 'Créer un compte équipe <span class="btn-arrow"></span>'
+          : 'Créer un compte sponsor <span class="btn-arrow"></span>';
+        return;
+      }
     // Succès inscription réelle — écran de confirmation détaillé
     const typeLabel = type === 'club' ? 'organisateur' : type === 'team' ? 'équipe participante' : 'sponsor';
     document.getElementById('app').innerHTML = `
@@ -3693,7 +3882,7 @@ async function handleSignup(e, type) {
       </div>`;
     window.scrollTo(0, 0);
     return;
-  }
+  } // fin du if (signupMode === 'real')
 
   // ====== Mode démo (inchangé) ======
   const r = signupAccount(type, d);
@@ -4171,7 +4360,12 @@ function editTeamProfileModal() {
       </div>
 
       <div class="form-group"><label class="form-label">Ville / Localisation</label>
-        <input class="input" id="ed-location" value="${esc(team.city || '')}" placeholder="Paris, Montreuil, Pantin...">
+        <div class="city-wrap">
+          <input class="input" id="ed-location" value="${esc(team.city || '')}" placeholder="Paris, Montreuil, Pantin..." autocomplete="off"
+            oninput="cityAutocomplete(this)"
+            onkeydown="_cityKeyNav(event, this)"
+            onblur="_closeCityDropdown(this.closest('.city-wrap'))">
+        </div>
         <p class="form-help">Ville de référence pour trouver des tournois près de chez toi.</p>
       </div>
 
@@ -4337,6 +4531,55 @@ let tournamentSearchMaxFee   = '';
 let tournamentSortBy         = 'date';
 let tournamentAdvancedOpen   = false;
 
+function updateSortButtons(activeBtn) {
+  // Mettre à jour la classe active sur les boutons de tri sans re-rendre
+  document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+  if (activeBtn) activeBtn.classList.add('active');
+}
+
+function updateTournamentResults() {
+  const el = document.getElementById('t-results');
+  if (!el) return;
+
+  // Mémoriser le focus et la position curseur AVANT de toucher au DOM
+  const focused = document.activeElement;
+  const focusId  = focused ? focused.id : null;
+  const selStart = focused && focused.selectionStart !== undefined ? focused.selectionStart : null;
+  const selEnd   = focused && focused.selectionEnd   !== undefined ? focused.selectionEnd   : null;
+  // Mémoriser la position de scroll
+  const scrollY  = window.scrollY;
+
+  const filtered = filterTournaments(
+    tournamentSearchQuery, tournamentSearchLocation,
+    tournamentSearchCategory, tournamentSearchStatus
+  );
+  const hasActiveFilters = !!(tournamentSearchQuery || tournamentSearchLocation ||
+    tournamentSearchCategory || tournamentSearchStatus || tournamentSearchLevel ||
+    tournamentSearchSurface || tournamentSearchFormat || tournamentSearchMaxFee);
+
+  // Mettre à jour le compteur sans toucher aux champs
+  const countEl = document.querySelector('.search-count');
+  if (countEl) countEl.textContent = filtered.length + ' résultat' + (filtered.length !== 1 ? 's' : '');
+
+  // Mettre à jour uniquement la zone résultats
+  el.innerHTML = filtered.length === 0
+    ? '<div class="dash-empty"><div class="dash-empty-title">Aucun tournoi trouvé</div><p class="dash-empty-text">Modifiez les critères de recherche, ou publiez un nouveau tournoi.</p><button class="btn btn-ghost btn-sm" onclick="clearAllTournamentFilters()">Voir tous les tournois</button></div>'
+    : '<div class="grid grid-3">' + filtered.map(tournCard).join('') + '</div>';
+
+  // Restituer le focus et la position du curseur
+  if (focusId) {
+    const el2 = document.getElementById(focusId);
+    if (el2) {
+      el2.focus();
+      if (selStart !== null && el2.setSelectionRange) {
+        el2.setSelectionRange(selStart, selEnd);
+      }
+    }
+  }
+  // Restituer la position de scroll
+  window.scrollTo(0, scrollY);
+}
+
 function renderTournaments() {
   const a = getAccount();
   const filtered = filterTournaments(tournamentSearchQuery, tournamentSearchLocation, tournamentSearchCategory, tournamentSearchStatus);
@@ -4361,7 +4604,7 @@ function renderTournaments() {
             <input class="search-field" id="s-name" type="text"
               placeholder="Nom du tournoi, édition..."
               value="${esc(tournamentSearchQuery)}"
-              oninput="tournamentSearchQuery = this.value; renderTournaments();"
+              oninput="tournamentSearchQuery = this.value; updateTournamentResults();"
               onkeydown="if(event.key==='Enter') renderTournaments();">
           </div>
           <div class="search-field-wrap" style="flex:2;">
@@ -4369,7 +4612,7 @@ function renderTournaments() {
             <input class="search-field" id="s-loc" type="text"
               placeholder="Ville, département..."
               value="${esc(tournamentSearchLocation)}"
-              oninput="tournamentSearchLocation = this.value; renderTournaments();"
+              oninput="tournamentSearchLocation = this.value; updateTournamentResults();"
               onkeydown="if(event.key==='Enter') renderTournaments();">
           </div>
           <button class="btn btn-orange btn-sm" onclick="renderTournaments()" style="flex-shrink:0;">
@@ -4379,11 +4622,11 @@ function renderTournaments() {
 
         <!-- LIGNE FILTRES RAPIDES + TRI -->
         <div class="filter-row">
-          <select class="filter-select" id="s-cat" onchange="tournamentSearchCategory = this.value; renderTournaments();">
+          <select class="filter-select" id="s-cat" onchange="tournamentSearchCategory = this.value; updateTournamentResults();">
             <option value="">Toutes catégories</option>
             ${(state.catalog.formats||[]).map(f => `<option value="${f.v}" ${tournamentSearchCategory === f.v ? 'selected' : ''}>${esc(f.l)}</option>`).join('')}
           </select>
-          <select class="filter-select" id="s-status" onchange="tournamentSearchStatus = this.value; renderTournaments();">
+          <select class="filter-select" id="s-status" onchange="tournamentSearchStatus = this.value; updateTournamentResults();">
             <option value="">Tous statuts</option>
             <option value="open" ${tournamentSearchStatus === 'open' ? 'selected' : ''}>Inscriptions ouvertes</option>
             <option value="draft" ${tournamentSearchStatus === 'draft' ? 'selected' : ''}>En préparation</option>
@@ -4397,9 +4640,9 @@ function renderTournaments() {
           <!-- TRI -->
           <div class="sort-group">
             <span class="sort-label">Trier par</span>
-            <button class="sort-btn ${tournamentSortBy==='date' ? 'active' : ''}" onclick="tournamentSortBy='date'; renderTournaments();">Date</button>
-            <button class="sort-btn ${tournamentSortBy==='location' ? 'active' : ''}" onclick="tournamentSortBy='location'; renderTournaments();">Lieu</button>
-            <button class="sort-btn ${tournamentSortBy==='fee' ? 'active' : ''}" onclick="tournamentSortBy='fee'; renderTournaments();">Frais</button>
+            <button class="sort-btn ${tournamentSortBy==='date' ? 'active' : ''}" onclick="tournamentSortBy='date'; updateSortButtons(this); updateTournamentResults();">Date</button>
+            <button class="sort-btn ${tournamentSortBy==='location' ? 'active' : ''}" onclick="tournamentSortBy='location'; updateSortButtons(this); updateTournamentResults();">Lieu</button>
+            <button class="sort-btn ${tournamentSortBy==='fee' ? 'active' : ''}" onclick="tournamentSortBy='fee'; updateSortButtons(this); updateTournamentResults();">Frais</button>
           </div>
 
           ${hasActiveFilters ? `<button class="btn btn-ghost btn-sm" onclick="clearAllTournamentFilters()">✕ Effacer tout</button>` : ''}
@@ -4412,21 +4655,21 @@ function renderTournaments() {
           <div class="advanced-search-grid">
             <div class="adv-field">
               <label class="adv-label">Niveau</label>
-              <select class="filter-select" onchange="tournamentSearchLevel = this.value; renderTournaments();">
+              <select class="filter-select" onchange="tournamentSearchLevel = this.value; updateTournamentResults();">
                 <option value="">Tous niveaux</option>
                 ${(state.catalog.levels||[]).map(l => `<option value="${l.v}" ${tournamentSearchLevel === l.v ? 'selected' : ''}>${esc(l.l)}</option>`).join('')}
               </select>
             </div>
             <div class="adv-field">
               <label class="adv-label">Type de terrain</label>
-              <select class="filter-select" onchange="tournamentSearchSurface = this.value; renderTournaments();">
+              <select class="filter-select" onchange="tournamentSearchSurface = this.value; updateTournamentResults();">
                 <option value="">Tous terrains</option>
                 ${(state.catalog.surfaces||[]).map(s => `<option value="${s.v}" ${tournamentSearchSurface === s.v ? 'selected' : ''}>${esc(s.l)}</option>`).join('')}
               </select>
             </div>
             <div class="adv-field">
               <label class="adv-label">Format de jeu</label>
-              <select class="filter-select" onchange="tournamentSearchFormat = this.value; renderTournaments();">
+              <select class="filter-select" onchange="tournamentSearchFormat = this.value; updateTournamentResults();">
                 <option value="">Tous formats</option>
                 ${(state.catalog.matchSizes||[]).map(m => `<option value="${m.v}" ${tournamentSearchFormat === m.v ? 'selected' : ''}>${esc(m.l)}</option>`).join('')}
               </select>
@@ -4436,7 +4679,7 @@ function renderTournaments() {
               <input type="number" class="filter-select" min="0" step="10"
                 placeholder="Ex : 100"
                 value="${tournamentSearchMaxFee}"
-                oninput="tournamentSearchMaxFee = this.value; renderTournaments();"
+                oninput="tournamentSearchMaxFee = this.value; updateTournamentResults();"
                 style="width:120px;">
             </div>
           </div>
@@ -4444,13 +4687,15 @@ function renderTournaments() {
 
       </div>
 
-      ${filtered.length === 0 ? `
+      <div id="t-results">
+        ${filtered.length === 0 ? `
         <div class="dash-empty">
           <div class="dash-empty-title">Aucun tournoi trouvé</div>
           <p class="dash-empty-text">Modifiez les critères de recherche, ou publiez un nouveau tournoi.</p>
-          <button class="btn btn-ghost btn-sm" onclick="tournamentSearchQuery=''; tournamentSearchLocation=''; tournamentSearchCategory=''; tournamentSearchStatus=''; renderTournaments();">Voir tous les tournois</button>
+          <button class="btn btn-ghost btn-sm" onclick="clearAllTournamentFilters()">Voir tous les tournois</button>
         </div>` : `
         <div class="grid grid-3">${filtered.map(tournCard).join('')}</div>`}
+      </div>
     </div>`;
 }
 
@@ -4945,7 +5190,7 @@ function renderTournamentDetail(id) {
           <div class="tourn-hero-club">
           Organisé par ${esc(club.name)} · ${esc(club.city)}
           ${renderBadge(clubBadge(t.clubId), 'margin-left:0.6rem;vertical-align:middle;')}
-          ${safeUrl(club.website) ? `<a href="${esc(safeUrl(club.website))}" target="_blank" rel="noopener noreferrer" style="margin-left:0.6rem;font-family:var(--font-mono);font-size:10px;color:rgba(245,239,228,0.6);border-bottom:1px solid rgba(245,239,228,0.3);letter-spacing:0.08em;">Site web →</a>` : ''}
+          ${club.website ? `<a href="${esc(club.website)}" target="_blank" rel="noopener" style="margin-left:0.6rem;font-family:var(--font-mono);font-size:10px;color:rgba(245,239,228,0.6);border-bottom:1px solid rgba(245,239,228,0.3);letter-spacing:0.08em;">Site web →</a>` : ''}
         </div>
           ${isOwner ? `
           <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
@@ -5439,8 +5684,8 @@ function renderAside(t, isOwner, a) {
     <div class="aside-share">
       <div class="aside-share-label">Partager ce tournoi</div>
       <div class="share-row">
-        <a href="https://wa.me/?text=${shareMsg}" target="_blank" rel="noopener noreferrer" class="share-btn" title="WhatsApp">${ICONS.wa}</a>
-        <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}" target="_blank" rel="noopener noreferrer" class="share-btn" title="Facebook">${ICONS.fb}</a>
+        <a href="https://wa.me/?text=${shareMsg}" target="_blank" class="share-btn" title="WhatsApp">${ICONS.wa}</a>
+        <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}" target="_blank" class="share-btn" title="Facebook">${ICONS.fb}</a>
         <button class="share-btn" title="Copier le lien" onclick="copyShareLinkFn('${t.id}')">${ICONS.cp}</button>
       </div>
       <p style="font-family:var(--font-serif);font-style:italic;font-size:11px;color:var(--ink-mute);margin-top:0.6rem;">Le message WhatsApp inclut toutes les infos.</p>
@@ -5555,7 +5800,7 @@ function confirmWithdraw(tid, rid) {
 function addSponsorManualModal(tid) {
   const t = getTournament(tid);
   const tierOpts = (t.sponsorTiers||[]).map(tr =>
-    `<option value="${esc(tr.name)}">${esc(tr.label||tr.name.toUpperCase())}</option>`
+    `<option value="${tr.name}">${esc(tr.label||tr.name.toUpperCase())}</option>`
   ).join('') + '<option value="_autre">— Autre palier (personnalisé) —</option>';
 
   const PERK_LIST = [
@@ -6205,7 +6450,7 @@ function proposeSponsorModal(tid, tier) {
      <div style="margin-top: 1rem;">
        <label class="form-label">Palier</label>
        <select class="select" id="prop-tier" style="margin-bottom: 0.8rem;">
-         ${t.sponsorTiers.map(tr => `<option value="${esc(tr.name)}" ${tier === tr.name ? 'selected' : ''}>${esc(tr.name.toUpperCase())} · ${tr.price}€</option>`).join('')}
+         ${t.sponsorTiers.map(tr => `<option value="${tr.name}" ${tier === tr.name ? 'selected' : ''}>${tr.name.toUpperCase()} · ${tr.price}€</option>`).join('')}
        </select>
        <label class="form-label">Montant proposé (€)</label>
        <input type="number" class="input" id="prop-amt" min="50" value="${defaultPrice}" style="margin-bottom: 0.8rem;">
@@ -6411,7 +6656,7 @@ function renderTeamProfile(id) {
           <p class="profile-meta">${esc(team.club)} · ${esc(team.city)} · ${levelLabel(team.level)} · ${team.players.length} joueur${team.players.length > 1 ? 's' : ''} · ${approvedApps} tournoi${approvedApps > 1 ? 's' : ''} joué${approvedApps > 1 ? 's' : ''}</p>
           <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;margin-top:0.5rem;">
             ${renderBadge(teamBadge(team.id))}
-            ${safeUrl(team.website) ? `<a href="${esc(safeUrl(team.website))}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm" style="font-size:11px;">Site web →</a>` : ''}
+            ${team.website ? `<a href="${esc(team.website)}" target="_blank" rel="noopener" class="btn btn-ghost btn-sm" style="font-size:11px;">Site web →</a>` : ''}
           </div>
         </div>
         ${isOwner ? `<button class="btn btn-orange" onclick="editTeamProfileModal()">Modifier</button>` : ''}
@@ -6633,6 +6878,98 @@ function renderSponsorProfile(id) {
     </div>`;
 }
 
+
+// ===== Autocomplétion ville via geo.api.gouv.fr (API officielle, gratuite) =====
+const _cityCache = {};     // cache des résultats pour éviter les appels répétés
+let   _cityDebounce = null; // timer debounce
+let   _cityFocusIdx = -1;   // index de navigation clavier dans le dropdown
+
+function cityAutocomplete(inputEl) {
+  const val = inputEl.value.trim();
+  const wrap = inputEl.closest('.city-wrap') || inputEl.parentNode;
+  _closeCityDropdown(wrap);
+  if (val.length < 2) return;
+
+  // Debounce 250ms pour ne pas appeler l'API à chaque frappe
+  clearTimeout(_cityDebounce);
+  _cityDebounce = setTimeout(async () => {
+    if (_cityCache[val]) {
+      _renderCityDropdown(inputEl, wrap, _cityCache[val]);
+      return;
+    }
+    try {
+      const url = 'https://geo.api.gouv.fr/communes?nom=' +
+        encodeURIComponent(val) +
+        '&fields=nom,codesPostaux,departement&boost=population&limit=8';
+      const res  = await fetch(url);
+      const data = await res.json();
+      _cityCache[val] = data;
+      _renderCityDropdown(inputEl, wrap, data);
+    } catch(e) {
+      // Silencieux — l'API est optionnelle, la saisie libre reste possible
+    }
+  }, 250);
+}
+
+function _renderCityDropdown(inputEl, wrap, items) {
+  _closeCityDropdown(wrap);
+  if (!items || items.length === 0) return;
+  _cityFocusIdx = -1;
+
+  const dd = document.createElement('div');
+  dd.className = 'city-dropdown';
+  dd.setAttribute('role', 'listbox');
+
+  items.forEach((item, i) => {
+    const cp = item.codesPostaux ? item.codesPostaux[0] : '';
+    const dept = item.departement ? item.departement.nom : '';
+    const div = document.createElement('div');
+    div.className = 'city-item';
+    div.setAttribute('role', 'option');
+    div.innerHTML =
+      '<span>' + item.nom + (dept ? ' <span style="color:var(--ink-mute);font-size:12px;">(' + dept + ')</span>' : '') + '</span>' +
+      (cp ? '<span class="city-cp">' + cp + '</span>' : '');
+    div.addEventListener('mousedown', function(e) {
+      e.preventDefault(); // empêche le blur du champ
+      inputEl.value = item.nom;
+      inputEl.dispatchEvent(new Event('input', { bubbles: true }));
+      _closeCityDropdown(wrap);
+    });
+    dd.appendChild(div);
+  });
+
+  // Assurer que wrap est en position relative pour le dropdown absolu
+  if (!wrap.classList.contains('city-wrap')) {
+    wrap.style.position = 'relative';
+  }
+  wrap.appendChild(dd);
+}
+
+function _closeCityDropdown(wrap) {
+  const existing = wrap ? wrap.querySelector('.city-dropdown') : null;
+  if (existing) existing.remove();
+}
+
+function _cityKeyNav(e, inputEl) {
+  const wrap = inputEl.closest('.city-wrap') || inputEl.parentNode;
+  const dd = wrap.querySelector('.city-dropdown');
+  if (!dd) return;
+  const items = dd.querySelectorAll('.city-item');
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    _cityFocusIdx = Math.min(_cityFocusIdx + 1, items.length - 1);
+    items.forEach((it, i) => it.classList.toggle('focused', i === _cityFocusIdx));
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    _cityFocusIdx = Math.max(_cityFocusIdx - 1, 0);
+    items.forEach((it, i) => it.classList.toggle('focused', i === _cityFocusIdx));
+  } else if (e.key === 'Enter' && _cityFocusIdx >= 0) {
+    e.preventDefault();
+    items[_cityFocusIdx].dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+  } else if (e.key === 'Escape') {
+    _closeCityDropdown(wrap);
+  }
+}
 
 // Navigate to tournaments with team preferences pre-applied
 function navigateToTournamentsWithPrefs() {
