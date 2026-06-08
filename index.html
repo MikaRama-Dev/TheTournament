@@ -2683,31 +2683,35 @@ var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 
 // Le client Supabase est créé seulement si les valeurs ont été configurées
 var signupMode = 'real';  // 'real' par défaut — bascule sur 'demo' si Supabase absent
-var supabaseClient = null;
-try {
-  if (SUPABASE_URL && !SUPABASE_URL.includes('YOUR_PROJECT_ID') && window.supabase) {
-    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      global: {
-        headers: {
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
-        }
-      }
-    });
-    // Avertissement si ouvert depuis file:// (CORS bloqué par Supabase)
-    if (window.location.protocol === 'file:') {
-      console.warn('[Le Tournoi] ⚠️ Ouvert via file:// — les inscriptions réelles sont bloquées par CORS. Utilisez Live Server (http://localhost) ou GitHub Pages pour tester les inscriptions réelles.');
-      signupMode = 'demo';
-    } else {
-      console.log('[Le Tournoi] Supabase connecté — mode réel activé');
-      signupMode = 'real';
-    }
-  } else {
-    console.log('[Le Tournoi] Mode démo uniquement — Supabase non configuré');
-    signupMode = 'demo';
-  }
-} catch (e) { console.warn('[Le Tournoi] Supabase init failed', e); }
 
+// APRÈS — attend que le DOM soit prêt
+var supabaseClient = null;
+
+function initSupabase() {
+  try {
+    if (typeof window.supabase === 'undefined') {
+      console.warn('[Le Tournoi] SDK Supabase non chargé — retry dans 200ms');
+      setTimeout(initSupabase, 200);
+      return;
+    }
+    if (SUPABASE_URL && !SUPABASE_URL.includes('YOUR_PROJECT_ID')) {
+      supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      if (window.location.protocol === 'file:') {
+        signupMode = 'demo';
+        console.warn('[Le Tournoi] file:// détecté — mode démo');
+      } else {
+        signupMode = 'real';
+        console.log('[Le Tournoi] Supabase connecté — mode réel activé');
+      }
+    } else {
+      signupMode = 'demo';
+    }
+  } catch(e) {
+    console.warn('[Le Tournoi] Supabase init failed', e);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', initSupabase);
 // Helper : envoyer une inscription réelle vers Supabase
 async function submitRealSignup(type, data, consents) {
   if (!supabaseClient) {
