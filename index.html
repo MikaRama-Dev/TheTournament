@@ -2757,30 +2757,50 @@ async function submitRealSignup(type, data, consents) {
   // Supprimer les clés null pour éviter les erreurs de contrainte
   Object.keys(payload).forEach(k => { if (payload[k] === null) delete payload[k]; });
 
+ 
   console.log('[Le Tournoi] INSERT →', table, '| payload:', JSON.stringify(payload));
 
-  // Trace du consentement
-  const consentRow = {
-    email: data.email,
-    account_type: type,
-    consent_data_collection: consents.dataCollection === true,
-    consent_marketing: consents.marketing === true
-  };
+// Trace du consentement
+const consentRow = {
+  email: data.email,
+  account_type: type,
+  consent_data_collection: consents.dataCollection === true,
+  consent_marketing: consents.marketing === true
+};
 
-  try {
-    const { data: inserted, error: err1 } = await supabaseClient.from(table).insert([payload]).select();
-    console.log('[Le Tournoi] INSERT result → data:', inserted, '| error:', err1);
-    if (err1) {
-      console.error('[Le Tournoi] Supabase error:', err1);
-      if (err1.code === '23505') return { error: 'Cette adresse email est déjà enregistrée.' };
-      return { error: 'Inscription impossible : ' + err1.message };
+try {
+  const { error: err1 } = await supabaseClient
+    .from(table)
+    .insert([payload]);
+
+  console.log('[Le Tournoi] INSERT result → error:', err1);
+
+  if (err1) {
+    console.error('[Le Tournoi] Supabase error:', err1);
+
+    if (err1.code === '23505') {
+      return { error: 'Cette adresse email est déjà enregistrée.' };
     }
-    // Consentement RGPD (non bloquant)
-    try { await supabaseClient.from('consents').insert([consentRow]); } catch(ce) {}
-    return { account: inserted?.[0] || payload };
-  } catch (e) {
-    return { error: 'Erreur réseau : ' + e.message };
+
+    return { error: 'Inscription impossible : ' + err1.message };
   }
+
+  // Consentement RGPD (non bloquant)
+  try {
+    const { error: consentError } = await supabaseClient
+      .from('consents')
+      .insert([consentRow]);
+
+    if (consentError) {
+      console.warn('[Le Tournoi] Consentement non enregistré:', consentError);
+    }
+  } catch (ce) {
+    console.warn('[Le Tournoi] Erreur consentement non bloquante:', ce);
+  }
+
+  return { account: payload };
+} catch (e) {
+  return { error: 'Erreur réseau : ' + e.message };
 }
 
 // ===========================================
