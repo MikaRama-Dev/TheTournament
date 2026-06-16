@@ -3,6 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- RSSI : Content-Security-Policy — restreint les sources autorisées -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co https://geo.api.gouv.fr; frame-ancestors 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <title>Le Tournoi — la plateforme des tournois de foot amateur</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1671,12 +1675,42 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
   padding: 4rem var(--container) 2rem;
   margin-top: auto;
 }
+.footer-legal-links { display: inline-flex; gap: 1rem; flex-wrap: wrap; }
+.footer-legal-link { color: var(--ink-mute); text-decoration: none; font-size: 13px; transition: color 0.15s; }
+.footer-legal-link:hover { color: var(--accent); }
+.legal-page { max-width: 760px; margin: 0 auto; padding: 1rem 0 3rem; }
+.legal-page h1 { font-family: var(--font-serif); font-weight: 700; font-size: clamp(1.8rem, 3.5vw, 2.6rem); letter-spacing: -0.02em; color: var(--ink); margin-bottom: 0.5rem; }
+.legal-page .legal-updated { font-family: var(--font-sans); font-size: 13px; color: var(--ink-mute); margin-bottom: 2rem; }
+.legal-page h2 { font-family: var(--font-serif); font-weight: 600; font-size: 1.3rem; letter-spacing: -0.02em; color: var(--accent); margin: 2rem 0 0.75rem; }
+.legal-page p, .legal-page li { font-family: var(--font-sans); font-size: 15px; line-height: 1.65; color: var(--ink-soft); }
+.legal-page p { margin-bottom: 0.85rem; }
+.legal-page ul { margin: 0 0 0.85rem 1.25rem; }
+.legal-page li { margin-bottom: 0.4rem; }
+.legal-page a { color: var(--accent); }
+.legal-page strong { color: var(--ink); font-weight: 600; }
+.legal-note { background: var(--paper-soft); border-left: 3px solid var(--accent); border-radius: 4px; padding: 0.85rem 1.1rem; margin: 1rem 0; font-size: 14px; }
+
 .footer-inner {
   max-width: 1280px; margin: 0 auto;
   display: grid; grid-template-columns: 1.5fr 2fr;
   gap: 3.5rem;
 }
-@media (max-width: 720px) { .footer-inner { grid-template-columns: 1fr; } }
+@media (max-width: 720px) { .footer-legal-links { display: inline-flex; gap: 1rem; flex-wrap: wrap; }
+.footer-legal-link { color: var(--ink-mute); text-decoration: none; font-size: 13px; transition: color 0.15s; }
+.footer-legal-link:hover { color: var(--accent); }
+.legal-page { max-width: 760px; margin: 0 auto; padding: 1rem 0 3rem; }
+.legal-page h1 { font-family: var(--font-serif); font-weight: 700; font-size: clamp(1.8rem, 3.5vw, 2.6rem); letter-spacing: -0.02em; color: var(--ink); margin-bottom: 0.5rem; }
+.legal-page .legal-updated { font-family: var(--font-sans); font-size: 13px; color: var(--ink-mute); margin-bottom: 2rem; }
+.legal-page h2 { font-family: var(--font-serif); font-weight: 600; font-size: 1.3rem; letter-spacing: -0.02em; color: var(--accent); margin: 2rem 0 0.75rem; }
+.legal-page p, .legal-page li { font-family: var(--font-sans); font-size: 15px; line-height: 1.65; color: var(--ink-soft); }
+.legal-page p { margin-bottom: 0.85rem; }
+.legal-page ul { margin: 0 0 0.85rem 1.25rem; }
+.legal-page li { margin-bottom: 0.4rem; }
+.legal-page a { color: var(--accent); }
+.legal-page strong { color: var(--ink); font-weight: 600; }
+.legal-note { background: var(--paper-soft); border-left: 3px solid var(--accent); border-radius: 4px; padding: 0.85rem 1.1rem; margin: 1rem 0; font-size: 14px; }
+
+.footer-inner { grid-template-columns: 1fr; } }
 .footer-brand .brand-mark { background: var(--paper); color: var(--ink); }
 .footer-brand .brand-name { color: var(--paper); }
 .footer-tag {
@@ -2820,6 +2854,201 @@ async function submitRealSignup(type, data, consents) {
   }
 }
 // ===========================================
+// PERSISTANCE TOURNOIS — Supabase (jalon J1)
+// ===========================================
+// En mode réel, les tournois sont enregistrés dans Supabase et partagés
+// entre tous les visiteurs. En mode démo, tout reste en localStorage.
+
+// Convertit un tournoi local (camelCase) vers une ligne Supabase (snake_case)
+function tournamentToRow(t, ownerEmail) {
+  return {
+    id: t.id,
+    owner_email: ownerEmail || t.ownerEmail || '',
+    club_id: t.clubId || null,
+    name: t.name || '',
+    edition: t.edition || '',
+    date: t.date || null,
+    date_end: t.dateEnd || null,
+    time_start: t.timeStart || null,
+    time_end: t.timeEnd || null,
+    location: t.location || '',
+    format: t.format || '',
+    team_size: t.teamSize || null,
+    max_teams: t.maxTeams || null,
+    entry_fee: t.entryFee || 0,
+    surface: t.surface || '',
+    level: t.level || '',
+    description: t.description || '',
+    status: t.status || 'open',
+    // SÉCURITÉ (RSSI) : registrations et sponsor_proposals contiennent des données de contact (PII).
+    // Ils ne doivent JAMAIS aller dans `tournaments`, qui est en lecture publique.
+    // Voir syncRegistration() / syncSponsorProposal() pour leur écriture dédiée.
+    sponsor_tiers: t.sponsorTiers || [],
+    animations: t.animations || [],
+    matches: t.matches || []
+  };
+}
+
+// Convertit une ligne Supabase vers un tournoi local
+function rowToTournament(row) {
+  return {
+    id: row.id,
+    ownerEmail: row.owner_email,
+    clubId: row.club_id,
+    name: row.name,
+    edition: row.edition,
+    date: row.date,
+    dateEnd: row.date_end,
+    timeStart: row.time_start,
+    timeEnd: row.time_end,
+    location: row.location,
+    venueName: (row.location || '').split(' — ')[0] || '',
+    venueAddress: (row.location || '').split(' — ')[1] || '',
+    format: row.format,
+    categories: row.format ? [row.format] : [],
+    teamSize: row.team_size,
+    matchSize: String(row.team_size || ''),
+    maxTeams: row.max_teams,
+    entryFee: row.entry_fee,
+    surface: row.surface,
+    level: row.level,
+    description: row.description,
+    status: row.status,
+    registrations: row.registrations || [],
+    sponsorTiers: row.sponsor_tiers || [],
+    animations: row.animations || [],
+    matches: row.matches || [],
+    registrations: [],      // rempli ensuite par loadRegistrationsFromSupabase()
+    sponsorProposals: [],   // rempli ensuite par loadSponsorProposalsFromSupabase()
+    _remote: true
+  };
+}
+
+// Enregistre (upsert) un tournoi dans Supabase — appelé après chaque modification
+async function syncTournament(t) {
+  if (!supabaseClient || signupMode !== 'real') return; // mode démo : rien à faire
+  try {
+    const a = getAccount();
+    const ownerEmail = (a && a.email) ? a.email : (t.ownerEmail || '');
+    const row = tournamentToRow(t, ownerEmail);
+    t.ownerEmail = ownerEmail;
+    const { error } = await supabaseClient.from('tournaments').upsert(row);
+    if (error) console.error('[Le Tournoi] syncTournament:', error);
+    else console.log('[Le Tournoi] Tournoi synchronisé:', t.id);
+  } catch (e) { console.error('[Le Tournoi] syncTournament exception:', e); }
+}
+
+// Enregistre une candidature d'équipe (table dédiée, hors JSONB public) — RSSI
+async function syncRegistration(tournamentId, registration) {
+  if (!supabaseClient || signupMode !== 'real') return;
+  try {
+    const row = {
+      id: registration.id,
+      tournament_id: tournamentId,
+      team_id: registration.teamId || null,
+      team_name: registration.teamName || '',
+      club_name: registration.clubName || '',
+      status: registration.status || 'pending',
+      message: registration.message || '',
+      registered_at: registration.registeredAt || new Date().toISOString()
+    };
+    // Pas de .select() : table INSERT-only pour anon (cf. recommandations DBA).
+    const { error } = await supabaseClient.from('registrations').insert([row]);
+    if (error) console.error('[Le Tournoi] syncRegistration:', error);
+  } catch (e) { console.error('[Le Tournoi] syncRegistration exception:', e); }
+}
+
+// Enregistre une proposition de sponsoring (table dédiée, hors JSONB public) — RSSI
+async function syncSponsorProposal(tournamentId, proposal) {
+  if (!supabaseClient || signupMode !== 'real') return;
+  try {
+    const row = {
+      id: proposal.id,
+      tournament_id: tournamentId,
+      sponsor_id: proposal.sponsorId || null,
+      name: proposal.name || '',
+      tier: proposal.tier || '',
+      tier_label: proposal.tierLabel || '',
+      amount: proposal.amount || 0,
+      status: proposal.status || 'pending',
+      contact_name: proposal.contactName || '',
+      contact: proposal.contact || '',
+      notes: proposal.notes || '',
+      message: proposal.message || ''
+    };
+    const { error } = await supabaseClient.from('sponsor_proposals').insert([row]);
+    if (error) console.error('[Le Tournoi] syncSponsorProposal:', error);
+  } catch (e) { console.error('[Le Tournoi] syncSponsorProposal exception:', e); }
+}
+
+// Supprime un tournoi de Supabase
+async function deleteTournamentRemote(id) {
+  if (!supabaseClient || signupMode !== 'real') return;
+  try {
+    const { error } = await supabaseClient.from('tournaments').delete().eq('id', id);
+    if (error) console.error('[Le Tournoi] deleteTournament:', error);
+  } catch (e) { console.error('[Le Tournoi] deleteTournament exception:', e); }
+}
+
+// Charge tous les tournois depuis Supabase au démarrage (mode réel)
+async function loadTournamentsFromSupabase() {
+  if (!supabaseClient || signupMode !== 'real') return;
+  try {
+    // SÉCURITÉ (RSSI/DBA) : owner_email n'est plus lisible publiquement (PII organisateur).
+    // Cette liste doit rester synchronisée avec le GRANT SELECT côté Supabase.
+    const { data, error } = await supabaseClient
+      .from('tournaments')
+      .select('id, club_id, name, edition, date, date_end, time_start, time_end, location, format, team_size, max_teams, entry_fee, surface, level, description, status, sponsor_tiers, animations, created_at')
+      .order('date', { ascending: true });
+    if (error) { console.error('[Le Tournoi] loadTournaments:', error); return; }
+    if (data && data.length > 0) {
+      const remote = data.map(rowToTournament);
+      // Fusion : les tournois distants remplacent/complètent les tournois de démo
+      const remoteIds = new Set(remote.map(t => t.id));
+      const localOnly = state.tournaments.filter(t => !remoteIds.has(t.id) && !t._remote);
+      state.tournaments = [...remote, ...localOnly];
+      console.log('[Le Tournoi] ' + remote.length + ' tournoi(s) chargé(s) depuis Supabase');
+      render();
+    }
+  } catch (e) { console.error('[Le Tournoi] loadTournaments exception:', e); }
+}
+
+// Charge les candidatures depuis leur table dédiée (RSSI) — vide si INSERT-only pour anon
+async function loadRegistrationsFromSupabase() {
+  if (!supabaseClient || signupMode !== 'real') return;
+  try {
+    const { data, error } = await supabaseClient.from('registrations').select('*');
+    if (error) { console.error('[Le Tournoi] loadRegistrations:', error); return; }
+    (data || []).forEach(row => {
+      const t = state.tournaments.find(t => t.id === row.tournament_id);
+      if (t) t.registrations.push({
+        id: row.id, teamId: row.team_id, teamName: row.team_name, clubName: row.club_name,
+        status: row.status, message: row.message, registeredAt: row.registered_at
+      });
+    });
+    if (data && data.length) render();
+  } catch (e) { console.error('[Le Tournoi] loadRegistrations exception:', e); }
+}
+
+// Charge les propositions de sponsoring depuis leur table dédiée (RSSI)
+async function loadSponsorProposalsFromSupabase() {
+  if (!supabaseClient || signupMode !== 'real') return;
+  try {
+    const { data, error } = await supabaseClient.from('sponsor_proposals').select('*');
+    if (error) { console.error('[Le Tournoi] loadSponsorProposals:', error); return; }
+    (data || []).forEach(row => {
+      const t = state.tournaments.find(t => t.id === row.tournament_id);
+      if (t) t.sponsorProposals.push({
+        id: row.id, sponsorId: row.sponsor_id, name: row.name, tier: row.tier,
+        tierLabel: row.tier_label, amount: row.amount, status: row.status,
+        contactName: row.contact_name, contact: row.contact, notes: row.notes, message: row.message
+      });
+    });
+    if (data && data.length) render();
+  } catch (e) { console.error('[Le Tournoi] loadSponsorProposals exception:', e); }
+}
+
+// ===========================================
 // LOCAL STATE (mode démo — inchangé)
 // ===========================================
 const KEY = 'tournoo_v2';
@@ -3098,6 +3327,15 @@ function getClub(id) { return state.clubs.find(c => c.id === id); }
 function getTeam(id) { return state.teams.find(t => t.id === id); }
 function getSponsor(id) { return state.sponsors.find(s => s.id === id); }
 function esc(s) { if (s == null) return ''; return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+// RSSI : valide une URL externe — bloque javascript:, data:, vbscript:
+function safeUrl(u) {
+  if (!u) return '';
+  const s = String(u).trim();
+  if (/^https?:\/\//i.test(s)) return esc(s);          // http(s) explicite : OK
+  if (/^(javascript|data|vbscript|file):/i.test(s)) return ''; // schémas dangereux : rejeté
+  if (/^[\w.-]+\.[a-z]{2,}/i.test(s)) return esc('https://' + s); // domaine sans schéma : préfixe https
+  return '';
+}
 function fmtDate(iso) {
   const d = new Date(iso);
   const m = ['jan','fév','mar','avr','mai','juin','juil','août','sept','oct','nov','déc'];
@@ -3174,7 +3412,12 @@ const RECOVERY_WORDS = [
   'saison','ligue','district','regionale','amateur','passion'
 ];
 function genRecoveryCode() {
-  const pick = () => RECOVERY_WORDS[Math.floor(Math.random() * RECOVERY_WORDS.length)];
+  // RSSI : génération cryptographiquement sûre (au lieu de Math.random)
+  const pick = () => {
+    const arr = new Uint32Array(1);
+    crypto.getRandomValues(arr);
+    return RECOVERY_WORDS[arr[0] % RECOVERY_WORDS.length];
+  };
   return pick() + '-' + pick() + '-' + pick() + '-' + pick();
 }
 
@@ -3212,6 +3455,8 @@ function render() {
   if (r === '/dashboard') return requireAuth(renderDashboard);
   if (r === '/tournaments') return renderTournaments();
   if (r === '/recover') return renderRecover();
+  if (r === '/legal') return renderLegal();
+  if (r === '/privacy') return renderPrivacy();
   if (r === '/tournaments/new') return requireAuth(renderCreateTournament, ['club']);
   if (r.match(/^\/tournaments\/[^\/]+\/edit$/)) return requireAuth(() => renderEditTournament(r.split('/')[2]), ['club']);
   if (r.startsWith('/tournaments/')) return renderTournamentDetail(r.split('/')[2]);
@@ -3276,6 +3521,118 @@ function renderNav() {
       `}
     </div>`;
 }
+function renderLegal() {
+  document.getElementById('app').innerHTML = `
+    <div class="legal-page">
+      <h1>Mentions légales</h1>
+      <p class="legal-updated">Dernière mise à jour : juin 2026</p>
+
+      <div class="legal-note">
+        Le Tournoi est actuellement un projet en phase de lancement, édité par une personne physique.
+        Les informations ci-dessous seront complétées dès la création d'une structure juridique.
+      </div>
+
+      <h2>1. Éditeur du site</h2>
+      <p>Le site <strong>Le Tournoi</strong> est édité par <strong>[Prénom NOM]</strong>, personne physique, agissant dans le cadre d'un projet personnel.</p>
+      <ul>
+        <li>Contact : <a href="mailto:contact@letournoi.foot">contact@letournoi.foot</a></li>
+        <li>Adresse : <strong>[à compléter — adresse de contact]</strong></li>
+      </ul>
+
+      <h2>2. Directeur de la publication</h2>
+      <p><strong>[Prénom NOM]</strong>, en qualité d'éditeur du site.</p>
+
+      <h2>3. Hébergement</h2>
+      <p>Le site est hébergé par :</p>
+      <ul>
+        <li><strong>GitHub Pages</strong> — GitHub Inc., 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, États-Unis.</li>
+      </ul>
+      <p>Les données des inscriptions sont stockées par :</p>
+      <ul>
+        <li><strong>Supabase</strong> — infrastructure située dans l'Union européenne (région Paris, eu-west-3).</li>
+      </ul>
+
+      <h2>4. Propriété intellectuelle</h2>
+      <p>L'ensemble des contenus présents sur le site (textes, mise en page, identité visuelle) est la propriété de l'éditeur, sauf mention contraire. Toute reproduction sans autorisation est interdite.</p>
+      <p>Les informations relatives aux tournois sont publiées par les organisateurs eux-mêmes, qui en restent responsables.</p>
+
+      <h2>5. Responsabilité</h2>
+      <p>Le Tournoi met en relation des équipes, des organisateurs et des sponsors. L'éditeur n'est pas responsable du contenu des annonces publiées par les utilisateurs, ni du déroulement des tournois organisés via la plateforme. Les utilisateurs sont seuls responsables des informations qu'ils publient.</p>
+
+      <h2>6. Liens externes</h2>
+      <p>Le site peut contenir des liens vers des sites tiers. L'éditeur n'exerce aucun contrôle sur ces sites et décline toute responsabilité quant à leur contenu.</p>
+
+      <h2>7. Droit applicable</h2>
+      <p>Les présentes mentions légales sont soumises au droit français. En cas de litige, et à défaut de résolution amiable, les tribunaux français sont compétents.</p>
+
+      <p style="margin-top:2rem;"><a href="#/privacy">Voir aussi : Politique de confidentialité →</a></p>
+      <p><a href="#/">← Retour à l'accueil</a></p>
+    </div>`;
+  window.scrollTo(0, 0);
+}
+
+function renderPrivacy() {
+  document.getElementById('app').innerHTML = `
+    <div class="legal-page">
+      <h1>Politique de confidentialité</h1>
+      <p class="legal-updated">Dernière mise à jour : juin 2026</p>
+
+      <div class="legal-note">
+        Cette politique explique quelles données nous collectons, pourquoi, et comment vous gardez le contrôle.
+        Le Tournoi applique le Règlement général sur la protection des données (RGPD).
+      </div>
+
+      <h2>1. Responsable du traitement</h2>
+      <p>Les données collectées sur Le Tournoi sont traitées par <strong>[Prénom NOM]</strong>, éditeur du site, joignable à <a href="mailto:contact@letournoi.foot">contact@letournoi.foot</a>.</p>
+
+      <h2>2. Données collectées</h2>
+      <p>Lors de votre inscription, nous collectons uniquement les données que vous saisissez volontairement :</p>
+      <ul>
+        <li><strong>Organisateur</strong> : nom du club, email, ville, nom du responsable, téléphone.</li>
+        <li><strong>Équipe</strong> : nom de l'équipe, email, ville, catégorie, niveau, nom du responsable, téléphone.</li>
+        <li><strong>Sponsor</strong> : nom, email, ville, secteur, nom du contact, téléphone.</li>
+      </ul>
+      <p>Nous ne collectons aucune donnée sensible (origine, opinions, santé...) et n'utilisons pas de cookies de suivi publicitaire.</p>
+
+      <h2>3. Finalités</h2>
+      <p>Vos données sont utilisées exclusivement pour :</p>
+      <ul>
+        <li>gérer votre inscription et votre compte ;</li>
+        <li>vous mettre en relation avec les autres utilisateurs (équipes, organisateurs, sponsors) ;</li>
+        <li>vous contacter au sujet de votre inscription ou d'un tournoi.</li>
+      </ul>
+      <p>Nous ne revendons ni ne cédons vos données à des tiers.</p>
+
+      <h2>4. Base légale</h2>
+      <p>Le traitement repose sur votre <strong>consentement</strong>, recueilli au moment de l'inscription via une case à cocher obligatoire. Vous pouvez retirer ce consentement à tout moment.</p>
+
+      <h2>5. Durée de conservation</h2>
+      <p>Vos données sont conservées tant que votre compte est actif. Elles sont supprimées sur simple demande de votre part, ou après une période d'inactivité prolongée.</p>
+
+      <h2>6. Hébergement des données</h2>
+      <p>Vos données sont stockées chez <strong>Supabase</strong>, sur une infrastructure située dans l'Union européenne (région Paris). Aucune donnée n'est transférée hors de l'UE.</p>
+
+      <h2>7. Vos droits</h2>
+      <p>Conformément au RGPD, vous disposez des droits suivants :</p>
+      <ul>
+        <li><strong>Accès</strong> : connaître les données que nous détenons sur vous ;</li>
+        <li><strong>Rectification</strong> : corriger des données inexactes ;</li>
+        <li><strong>Effacement</strong> : demander la suppression de vos données ;</li>
+        <li><strong>Opposition</strong> : vous opposer à un traitement ;</li>
+        <li><strong>Portabilité</strong> : récupérer vos données dans un format lisible.</li>
+      </ul>
+      <p>Pour exercer ces droits, écrivez à <a href="mailto:contact@letournoi.foot">contact@letournoi.foot</a>. Nous répondons sous 30 jours.</p>
+      <p>Vous pouvez également introduire une réclamation auprès de la <strong>CNIL</strong> (<a href="https://www.cnil.fr" target="_blank" rel="noopener noreferrer">www.cnil.fr</a>).</p>
+
+      <h2>8. Sécurité</h2>
+      <p>Nous mettons en oeuvre des mesures techniques pour protéger vos données : accès restreint à la base, communication chiffrée (HTTPS), et protection des coordonnées de contact contre la collecte automatisée.</p>
+
+      <p style="margin-top:2rem;"><a href="#/legal">Voir aussi : Mentions légales →</a></p>
+      <p><a href="#/">← Retour à l'accueil</a></p>
+    </div>`;
+  window.scrollTo(0, 0);
+}
+
 function renderFooter() {
   document.getElementById('footer').innerHTML = `
     <div class="footer-inner">
@@ -3305,7 +3662,14 @@ function renderFooter() {
         </div>
       </div>
     </div>
-    <div class="footer-bottom"><span>© Le Tournoi · 2026 · Île-de-France</span><span>letournoi.foot · contact@letournoi.foot</span></div>`;
+    <div class="footer-bottom">
+      <span>© Le Tournoi · 2026 · Île-de-France</span>
+      <span class="footer-legal-links">
+        <a href="#/legal" class="footer-legal-link">Mentions légales</a>
+        <a href="#/privacy" class="footer-legal-link">Confidentialité</a>
+        <a href="mailto:contact@letournoi.foot" class="footer-legal-link">contact@letournoi.foot</a>
+      </span>
+    </div>`;
 }
 
 // HOME
@@ -3688,7 +4052,8 @@ function renderConsentBox() {
         <input type="checkbox" id="consent-data" required style="flex-shrink:0;margin-top:2px;accent-color:var(--accent);width:16px;height:16px;">
         <span class="consent-text">
           En m'inscrivant, j'accepte que mes données (nom, email, téléphone, ville) soient collectées
-          par Le Tournoi pour le suivi de mon inscription et le contact commercial.
+          par Le Tournoi pour le suivi de mon inscription et le contact commercial, conformément à la
+          <a href="#/privacy" style="color:var(--accent);">politique de confidentialité</a>.
           Je peux demander leur suppression à tout moment via
           <a href="mailto:contact@letournoi.foot" style="color:var(--accent);">contact@letournoi.foot</a>.
           <em style="color:var(--ink-mute);font-style:normal;font-size:12px;"> — obligatoire</em>
@@ -5014,6 +5379,7 @@ function handleCreateT(e) {
   };
   state.tournaments.push(t);
   saveState();
+  syncTournament(t);  // J1 : persistance Supabase en mode réel
   toast('Tournoi créé !', 'success');
   navigate(`#/tournaments/${t.id}`);
 }
@@ -5210,6 +5576,7 @@ function handleEditT(e, tid) {
   });
 
   saveState();
+  syncTournament(t);  // J1 : persistance Supabase
   toast('Tournoi mis à jour !', 'success');
   navigate('#/tournaments/' + tid);
 }
@@ -5236,7 +5603,7 @@ function renderTournamentDetail(id) {
           <div class="tourn-hero-club">
           Organisé par ${esc(club.name)} · ${esc(club.city)}
           ${renderBadge(clubBadge(t.clubId), 'margin-left:0.6rem;vertical-align:middle;')}
-          ${club.website ? `<a href="${esc(club.website)}" target="_blank" rel="noopener" style="margin-left:0.6rem;font-family:var(--font-mono);font-size:10px;color:rgba(245,239,228,0.6);border-bottom:1px solid rgba(245,239,228,0.3);letter-spacing:0.08em;">Site web →</a>` : ''}
+          ${safeUrl(club.website) ? `<a href="${safeUrl(club.website)}" target="_blank" rel="noopener noreferrer" style="margin-left:0.6rem;font-family:var(--font-mono);font-size:10px;color:rgba(245,239,228,0.6);border-bottom:1px solid rgba(245,239,228,0.3);letter-spacing:0.08em;">Site web →</a>` : ''}
         </div>
           ${isOwner ? `
           <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
@@ -5330,7 +5697,7 @@ function renderTab(t, isOwner, a) {
       <div class="venue-box">
         <p class="venue-name">${esc(tournVenue(t).name || 'Lieu à confirmer')}</p>
         ${tournVenue(t).address ? `<p class="venue-address">${esc(tournVenue(t).address)}</p>
-          <a class="venue-map-link" target="_blank" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(tournVenue(t).address)}">Voir sur Google Maps →</a>` : ''}
+          <a class="venue-map-link" target="_blank" rel="noopener noreferrer" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(tournVenue(t).address)}">Voir sur Google Maps →</a>` : ''}
       </div>
     </div>
 
@@ -5730,8 +6097,8 @@ function renderAside(t, isOwner, a) {
     <div class="aside-share">
       <div class="aside-share-label">Partager ce tournoi</div>
       <div class="share-row">
-        <a href="https://wa.me/?text=${shareMsg}" target="_blank" class="share-btn" title="WhatsApp">${ICONS.wa}</a>
-        <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}" target="_blank" class="share-btn" title="Facebook">${ICONS.fb}</a>
+        <a href="https://wa.me/?text=${shareMsg}" target="_blank" rel="noopener noreferrer" class="share-btn" title="WhatsApp">${ICONS.wa}</a>
+        <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}" target="_blank" rel="noopener noreferrer" class="share-btn" title="Facebook">${ICONS.fb}</a>
         <button class="share-btn" title="Copier le lien" onclick="copyShareLinkFn('${t.id}')">${ICONS.cp}</button>
       </div>
       <p style="font-family:var(--font-serif);font-style:italic;font-size:11px;color:var(--ink-mute);margin-top:0.6rem;">Le message WhatsApp inclut toutes les infos.</p>
@@ -5793,7 +6160,9 @@ function confirmApply(tid) {
     status: 'pending', registeredAt: new Date().toISOString(),
     message: document.getElementById('apply-msg').value.trim()
   });
-  saveState(); closeModal(); toast('Candidature envoyée !', 'success'); renderTournamentDetail(tid);
+  saveState(); syncTournament(t);
+  syncRegistration(t.id, t.registrations[t.registrations.length - 1]); // RSSI : table dédiée
+  closeModal(); toast('Candidature envoyée !', 'success'); renderTournamentDetail(tid);
 }
 function quickRegisterModal(tid) {
   modal('Inscrire une équipe',
@@ -5811,19 +6180,21 @@ function confirmQuickReg(tid) {
   const club = document.getElementById('qr-club').value.trim();
   if (!name || !club) { toast('Remplis les deux champs', 'error'); return; }
   t.registrations.push({ id: uid(), teamName: name, clubName: club, teamId: null, status: 'approved', registeredAt: new Date().toISOString(), message: '' });
-  saveState(); closeModal(); toast('Équipe inscrite', 'success'); renderTournamentDetail(tid);
+  saveState(); syncTournament(t);
+  syncRegistration(t.id, t.registrations[t.registrations.length - 1]); // RSSI : table dédiée
+  closeModal(); toast('Équipe inscrite', 'success'); renderTournamentDetail(tid);
 }
 function approveTeam(tid, rid) {
   const t = getTournament(tid);
   const r = t.registrations.find(x => x.id === rid);
   r.status = 'approved';
-  saveState(); toast('Équipe acceptée !', 'success'); renderTournamentDetail(tid);
+  saveState(); syncTournament(t); toast('Équipe acceptée !', 'success'); renderTournamentDetail(tid);
 }
 function rejectTeam(tid, rid) {
   const t = getTournament(tid);
   const r = t.registrations.find(x => x.id === rid);
   r.status = 'rejected';
-  saveState(); toast('Équipe refusée'); renderTournamentDetail(tid);
+  saveState(); syncTournament(t); toast('Équipe refusée'); renderTournamentDetail(tid);
 }
 function withdrawTeam(tid, rid) {
   const t = getTournament(tid);
@@ -5840,7 +6211,7 @@ function confirmWithdraw(tid, rid) {
   const r = t.registrations.find(x => x.id === rid);
   r.status = 'withdrawn';
   r.withdrawnAt = new Date().toISOString();
-  saveState(); closeModal(); toast('Équipe retirée — place libérée', 'success');
+  saveState(); syncTournament(t); closeModal(); toast('Équipe retirée — place libérée', 'success');
   renderTournamentDetail(tid);
 }
 function addSponsorManualModal(tid) {
@@ -5947,14 +6318,16 @@ function confirmAddSponsor(tid) {
     notes: document.getElementById('sp-notes')?.value.trim() || '',
     message: ''
   });
-  saveState(); closeModal(); toast('Sponsor ajouté !', 'success');
+  saveState(); syncTournament(t);
+  syncSponsorProposal(t.id, t.sponsorProposals[t.sponsorProposals.length - 1]); // RSSI : table dédiée
+  closeModal(); toast('Sponsor ajouté !', 'success');
   activeTab = 'sponsors'; renderTournamentDetail(tid);
 }
 function removeSponsor(tid, spid) {
   if (!confirm('Supprimer ce sponsor ?')) return;
   const t = getTournament(tid);
   t.sponsorProposals = t.sponsorProposals.filter(s => s.id !== spid);
-  saveState(); toast('Sponsor supprimé');
+  saveState(); syncTournament(t); toast('Sponsor supprimé');
   activeTab = 'sponsors'; renderTournamentDetail(tid);
 }
 const PERK_KEYS = [
@@ -6515,19 +6888,21 @@ function confirmPropose(tid) {
     amount: parseInt(document.getElementById('prop-amt').value),
     status: 'pending', message: document.getElementById('prop-msg').value.trim()
   });
-  saveState(); closeModal(); toast('Proposition envoyée !', 'success'); renderTournamentDetail(tid);
+  saveState(); syncTournament(t);
+  syncSponsorProposal(t.id, t.sponsorProposals[t.sponsorProposals.length - 1]); // RSSI : table dédiée
+  closeModal(); toast('Proposition envoyée !', 'success'); renderTournamentDetail(tid);
 }
 function approveSponsor(tid, spid) {
   const t = getTournament(tid);
   const sp = t.sponsorProposals.find(s => s.id === spid);
   sp.status = 'confirme';
-  saveState(); toast('Sponsor accepté !', 'success'); renderTournamentDetail(tid);
+  saveState(); syncTournament(t); toast('Sponsor accepté !', 'success'); renderTournamentDetail(tid);
 }
 function rejectSponsor(tid, spid) {
   const t = getTournament(tid);
   const sp = t.sponsorProposals.find(s => s.id === spid);
   sp.status = 'refuse';
-  saveState(); toast('Sponsor refusé'); renderTournamentDetail(tid);
+  saveState(); syncTournament(t); toast('Sponsor refusé'); renderTournamentDetail(tid);
 }
 
 // MATCH MANAGEMENT
@@ -6702,7 +7077,7 @@ function renderTeamProfile(id) {
           <p class="profile-meta">${esc(team.club)} · ${esc(team.city)} · ${levelLabel(team.level)} · ${team.players.length} joueur${team.players.length > 1 ? 's' : ''} · ${approvedApps} tournoi${approvedApps > 1 ? 's' : ''} joué${approvedApps > 1 ? 's' : ''}</p>
           <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;margin-top:0.5rem;">
             ${renderBadge(teamBadge(team.id))}
-            ${team.website ? `<a href="${esc(team.website)}" target="_blank" rel="noopener" class="btn btn-ghost btn-sm" style="font-size:11px;">Site web →</a>` : ''}
+            ${safeUrl(team.website) ? `<a href="${safeUrl(team.website)}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm" style="font-size:11px;">Site web →</a>` : ''}
           </div>
         </div>
         ${isOwner ? `<button class="btn btn-orange" onclick="editTeamProfileModal()">Modifier</button>` : ''}
@@ -7050,6 +7425,11 @@ function closeUserMenu() {
 // INIT
 saveState();
 render();
+// J1 : charger les tournois réels depuis Supabase (mode réel uniquement)
+loadTournamentsFromSupabase();
+// RSSI : charger candidatures et propositions depuis leurs tables dédiées
+loadRegistrationsFromSupabase();
+loadSponsorProposalsFromSupabase();
 </script>
 </body>
 </html>
