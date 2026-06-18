@@ -2936,7 +2936,7 @@ async function syncTournament(t) {
     const ownerEmail = (a && a.email) ? a.email : (t.ownerEmail || '');
     const row = tournamentToRow(t, ownerEmail);
     t.ownerEmail = ownerEmail;
-    const { error } = await supabaseClient.from('tournaments').upsert(row);
+    const { error } = await supabaseClient.from('tournaments').upsert(row, { returning: 'minimal' });
     if (error) {
       console.error('[Le Tournoi] syncTournament:', error);
       // QA U5 : ne jamais échouer silencieusement — l'utilisateur doit savoir
