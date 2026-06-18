@@ -4,7 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- RSSI : Content-Security-Policy — restreint les sources autorisées -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co https://geo.api.gouv.fr; frame-ancestors 'none'; base-uri 'self'; form-action 'self'">
+<!-- Note : frame-ancestors retiré du meta (invalide ici, honoré uniquement via en-tête HTTP) -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co https://geo.api.gouv.fr https://cdn.jsdelivr.net; base-uri 'self'; form-action 'self'">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>Le Tournoi — la plateforme des tournois de foot amateur</title>
@@ -2926,21 +2927,32 @@ function rowToTournament(row) {
 
 // Enregistre (upsert) un tournoi dans Supabase — appelé après chaque modification
 async function syncTournament(t) {
-  if (!supabaseClient || signupMode !== 'real') return; // mode démo : rien à faire
+  if (!supabaseClient || signupMode !== 'real') return true; // mode démo : rien à synchroniser
   try {
     const a = getAccount();
     const ownerEmail = (a && a.email) ? a.email : (t.ownerEmail || '');
     const row = tournamentToRow(t, ownerEmail);
     t.ownerEmail = ownerEmail;
     const { error } = await supabaseClient.from('tournaments').upsert(row);
-    if (error) console.error('[Le Tournoi] syncTournament:', error);
-    else console.log('[Le Tournoi] Tournoi synchronisé:', t.id);
-  } catch (e) { console.error('[Le Tournoi] syncTournament exception:', e); }
+    if (error) {
+      console.error('[Le Tournoi] syncTournament:', error);
+      // QA U5 : ne jamais échouer silencieusement — l'utilisateur doit savoir
+      // que la modification reste locale (cet appareil) tant que la base la refuse.
+      toast('Modification enregistrée sur cet appareil uniquement (sync base échouée)', 'error');
+      return false;
+    }
+    console.log('[Le Tournoi] Tournoi synchronisé:', t.id);
+    return true;
+  } catch (e) {
+    console.error('[Le Tournoi] syncTournament exception:', e);
+    toast('Modification enregistrée sur cet appareil uniquement (sync base échouée)', 'error');
+    return false;
+  }
 }
 
 // Enregistre une candidature d'équipe (table dédiée, hors JSONB public) — RSSI
 async function syncRegistration(tournamentId, registration) {
-  if (!supabaseClient || signupMode !== 'real') return;
+  if (!supabaseClient || signupMode !== 'real') return true;
   try {
     const row = {
       id: registration.id,
@@ -2954,13 +2966,22 @@ async function syncRegistration(tournamentId, registration) {
     };
     // Pas de .select() : table INSERT-only pour anon (cf. recommandations DBA).
     const { error } = await supabaseClient.from('registrations').insert([row]);
-    if (error) console.error('[Le Tournoi] syncRegistration:', error);
-  } catch (e) { console.error('[Le Tournoi] syncRegistration exception:', e); }
+    if (error) {
+      console.error('[Le Tournoi] syncRegistration:', error);
+      toast('Candidature enregistrée sur cet appareil uniquement (sync base échouée)', 'error');
+      return false;
+    }
+    return true;
+  } catch (e) {
+    console.error('[Le Tournoi] syncRegistration exception:', e);
+    toast('Candidature enregistrée sur cet appareil uniquement (sync base échouée)', 'error');
+    return false;
+  }
 }
 
 // Enregistre une proposition de sponsoring (table dédiée, hors JSONB public) — RSSI
 async function syncSponsorProposal(tournamentId, proposal) {
-  if (!supabaseClient || signupMode !== 'real') return;
+  if (!supabaseClient || signupMode !== 'real') return true;
   try {
     const row = {
       id: proposal.id,
@@ -2977,8 +2998,17 @@ async function syncSponsorProposal(tournamentId, proposal) {
       message: proposal.message || ''
     };
     const { error } = await supabaseClient.from('sponsor_proposals').insert([row]);
-    if (error) console.error('[Le Tournoi] syncSponsorProposal:', error);
-  } catch (e) { console.error('[Le Tournoi] syncSponsorProposal exception:', e); }
+    if (error) {
+      console.error('[Le Tournoi] syncSponsorProposal:', error);
+      toast('Proposition enregistrée sur cet appareil uniquement (sync base échouée)', 'error');
+      return false;
+    }
+    return true;
+  } catch (e) {
+    console.error('[Le Tournoi] syncSponsorProposal exception:', e);
+    toast('Proposition enregistrée sur cet appareil uniquement (sync base échouée)', 'error');
+    return false;
+  }
 }
 
 // Supprime un tournoi de Supabase
@@ -2998,7 +3028,7 @@ async function loadTournamentsFromSupabase() {
     // Cette liste doit rester synchronisée avec le GRANT SELECT côté Supabase.
     const { data, error } = await supabaseClient
       .from('tournaments')
-      .select('id, club_id, name, edition, date, date_end, time_start, time_end, location, format, team_size, max_teams, entry_fee, surface, level, description, status, sponsor_tiers, animations, created_at')
+      .select('id, club_id, name, edition, date, date_end, time_start, time_end, location, format, team_size, max_teams, entry_fee, surface, level, description, status, sponsor_tiers, animations, matches, created_at')
       .order('date', { ascending: true });
     if (error) { console.error('[Le Tournoi] loadTournaments:', error); return; }
     if (data && data.length > 0) {
