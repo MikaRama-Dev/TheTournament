@@ -2767,12 +2767,13 @@ async function submitRealSignup(type, data, consents) {
 
   if (type === 'club') {
     payload = {
-      name: data.name || null,
-      email: data.email || null,
-      city: data.city || null,
-      president: data.president || null,
-      phone: data.phone || null,
-      status: 'pending'
+      name:            data.name      || null,
+      email:           data.email     || null,
+      city:            data.city      || null,
+      president:       data.president || null,
+      phone:           data.phone     || null,
+      status:          'pending',
+      activation_code: data._activationCode || null
     };
   } else if (type === 'team') {
     payload = {
@@ -3441,6 +3442,13 @@ const RECOVERY_WORDS = [
   'stade','finale','podium','buteur','capitaine','remise','equipe','match',
   'saison','ligue','district','regionale','amateur','passion'
 ];
+function genActivationCode() {
+  // Code d'activation 6 chiffres — visible dans Supabase Table Editor par l'admin
+  const arr = new Uint32Array(1);
+  crypto.getRandomValues(arr);
+  return String(arr[0] % 900000 + 100000); // 100000–999999
+}
+
 function genRecoveryCode() {
   // RSSI : génération cryptographiquement sûre (au lieu de Math.random)
   const pick = () => {
@@ -3465,7 +3473,10 @@ function loginAccount(type, email, pwd) {
   const account = state[coll].find(a => a.email === email && a.password === pwd);
   if (!account) return { error: 'Email ou mot de passe incorrect.' };
   state.currentType = type; state.currentId = account.id;
-  saveState(); return { account };
+  saveState();
+  // Si compte en attente d'activation → rediriger vers l'écran dédié
+  if (account.status === 'pending') return { account, pending: true };
+  return { account };
 }
 function logout() { state.currentType = null; state.currentId = null; saveState(); navigate('#/'); toast('Déconnecté'); }
 
@@ -3485,6 +3496,7 @@ function render() {
   if (r === '/dashboard') return requireAuth(renderDashboard);
   if (r === '/tournaments') return renderTournaments();
   if (r === '/recover') return renderRecover();
+  if (r === '/pending') return renderPendingActivation();
   if (r === '/legal') return renderLegal();
   if (r === '/privacy') return renderPrivacy();
   if (r === '/tournaments/new') return requireAuth(renderCreateTournament, ['club']);
@@ -3551,6 +3563,67 @@ function renderNav() {
       `}
     </div>`;
 }
+function renderPendingActivation() {
+  const a = getAccount();
+  if (!a) { navigate('#/login'); return; }
+  if (a.status !== 'pending') { navigate('#/dashboard'); return; }
+  document.getElementById('app').innerHTML = `
+    <div class="auth-page" style="max-width:520px;">
+      <div class="auth-card">
+        <div class="auth-eyebrow" style="text-align:center;margin-bottom:0.5rem;">▶ COMPTE EN ATTENTE</div>
+        <h1 class="auth-title" style="text-align:center;margin-bottom:1.25rem;">
+          Bienvenue <em>${escapeHtml(a.name)}</em>.
+        </h1>
+        <p class="detail-text" style="margin-bottom:1.5rem;text-align:center;">
+          Ton inscription a bien été enregistrée. Notre équipe t'envoie
+          un <strong>code d'activation à 6 chiffres</strong> par email sous 24h.
+        </p>
+        <div style="background:var(--paper-soft);border:1px solid var(--line);border-radius:4px;padding:1.1rem 1.25rem;margin-bottom:1.5rem;">
+          <label class="form-label" style="margin-bottom:0.5rem;">Code d'activation reçu par email</label>
+          <input id="activation-input" class="input" type="text" inputmode="numeric"
+            maxlength="6" placeholder="_ _ _ _ _ _"
+            style="letter-spacing:0.3em;font-size:1.4rem;text-align:center;font-family:var(--font-mono);">
+          <div id="activation-err" class="form-error"></div>
+        </div>
+        <button class="btn btn-primary" style="width:100%;" onclick="handleActivation()">
+          Activer mon compte →
+        </button>
+        <p style="margin-top:1.25rem;text-align:center;font-size:13px;color:var(--ink-mute);">
+          Pas reçu l'email ? Vérifie tes spams ou écris-nous à
+          <a href="mailto:contact@letournoi.foot" style="color:var(--accent);">contact@letournoi.foot</a>
+        </p>
+        <p style="margin-top:0.75rem;text-align:center;">
+          <button class="btn btn-ghost btn-sm" onclick="logout()">Se déconnecter</button>
+        </p>
+      </div>
+    </div>`;
+}
+
+function handleActivation() {
+  const a = getAccount();
+  if (!a) { navigate('#/login'); return; }
+  const input = document.getElementById('activation-input');
+  const errEl = document.getElementById('activation-err');
+  const code = (input.value || '').trim();
+  if (code.length !== 6 || !/^\d{6}$/.test(code)) {
+    errEl.textContent = 'Le code doit contenir exactement 6 chiffres.';
+    errEl.classList.add('show'); return;
+  }
+  if (code !== String(a.activationCode)) {
+    errEl.textContent = "Code incorrect. Vérifie l'email reçu ou contacte-nous.";
+    errEl.classList.add('show'); return;
+  }
+  // Code correct → activer le compte
+  const coll = a.type === 'club' ? 'clubs' : a.type === 'team' ? 'teams' : 'sponsors';
+  const account = state[coll].find(x => x.id === a.id);
+  if (account) {
+    account.status = 'active';
+    saveState();
+  }
+  toast('Compte activé ! Bienvenue sur Le Tournoi 🎉', 'success');
+  navigate('#/dashboard');
+}
+
 function renderLegal() {
   document.getElementById('app').innerHTML = `
     <div class="legal-page">
@@ -4270,6 +4343,10 @@ async function handleSignup(e, type) {
       }
       const submitBtn = e.target.querySelector('button[type="submit"]');
       if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Envoi…'; }
+      // Générer le code d'activation AVANT l'envoi Supabase
+      const activationCode = genActivationCode();
+      d._activationCode = activationCode; // transmis au payload Supabase
+
       const r = await submitRealSignup(type, d, {
         dataCollection: consentData.checked,
         marketing: false
@@ -4284,50 +4361,34 @@ async function handleSignup(e, type) {
           : 'Créer un compte sponsor <span class="btn-arrow"></span>';
         return;
       }
-    // Succès inscription réelle — écran de confirmation détaillé
-    const typeLabel = type === 'club' ? 'organisateur' : type === 'team' ? 'équipe participante' : 'sponsor';
-    document.getElementById('app').innerHTML = `
-      <div class="auth-page" style="max-width: 640px;">
-        <div class="auth-card real-signup-success">
-          <div class="icon">✓</div>
-          <div class="auth-eyebrow" style="text-align: center; margin-bottom: 0.5rem;">▶ Inscription confirmée</div>
-          <h1 class="auth-title" style="text-align: center; margin-bottom: 1.25rem;">Merci <em>${escapeHtml(name)}</em>.</h1>
-          <p class="detail-text" style="margin-bottom: 1.5rem;">Ta demande d'inscription en tant que <strong>${typeLabel}</strong> a bien été enregistrée sur Le Tournoi.</p>
 
-          <div style="background: var(--paper-soft); border: 1px solid var(--line); padding: 1.25rem 1.4rem; margin-bottom: 1.5rem; border-radius: 2px;">
-            <div style="font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--ink-mute); margin-bottom: 0.85rem;">Récapitulatif de ton inscription</div>
-            <div style="font-family: var(--font-serif); font-size: 0.98rem; line-height: 1.7;">
-              <strong>Nom :</strong> ${escapeHtml(name)}<br>
-              <strong>Email :</strong> ${escapeHtml(d.email)}<br>
-              <strong>Ville :</strong> ${escapeHtml(d.city)}
-              ${d.phone ? `<br><strong>Téléphone :</strong> ${escapeHtml(d.phone)}` : ''}
-            </div>
-          </div>
+      // Créer le compte local en status 'pending' pour permettre la connexion
+      const recoveryCode = genRecoveryCode();
+      const localAccount = {
+        id: uid(), type, ...d,
+        status: 'pending',
+        activationCode,
+        recoveryCode
+      };
+      delete localAccount._activationCode;
+      delete localAccount.password; // ne pas stocker en clair... ah si, MVP — ok
+      localAccount.password = d.password; // cohérence avec loginAccount
+      const coll = type === 'club' ? 'clubs' : type === 'team' ? 'teams' : 'sponsors';
+      state[coll].push(localAccount);
+      state.currentType = type;
+      state.currentId = localAccount.id;
+      saveState();
 
-          <div style="background: var(--ink); color: var(--paper); padding: 1.25rem 1.4rem; margin-bottom: 1.5rem; border-radius: 2px;">
-            <div style="font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--accent-soft); margin-bottom: 0.85rem;">Prochaines étapes</div>
-            <ol style="font-family: var(--font-serif); font-size: 0.98rem; line-height: 1.65; padding-left: 1.4rem; margin: 0;">
-              <li style="margin-bottom: 0.5rem;">Notre équipe te recontacte <strong>sous 24h</strong> par email pour finaliser ton accès.</li>
-              <li style="margin-bottom: 0.5rem;">Tu recevras tes <strong>identifiants de connexion</strong> et un guide de démarrage personnalisé.</li>
-              <li>Il sera possible de créer un premier tournoi ou de rejoindre un tournoi existant.</li>
-            </ol>
-          </div>
-
-          <p class="detail-text" style="margin-bottom: 1.75rem; text-align: center; font-size: 0.92rem;">Une question ? Écris-nous à <a href="mailto:contact@letournoi.foot" style="border-bottom: 1px solid var(--accent); color: var(--ink);">contact@letournoi.foot</a></p>
-
-          <div style="display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap;">
-            <a href="#/" class="btn btn-primary">Retour à l'accueil</a>
-            <a href="#/tournaments" class="btn btn-outline">Voir les tournois</a>
-          </div>
-        </div>
-      </div>`;
-    window.scrollTo(0, 0);
-    return;
+      // Afficher le code de récupération puis rediriger vers l'écran d'attente
+      navigate('#/pending');
+      setTimeout(() => showRecoveryCodeModal(recoveryCode), 400);
+      return;
   } // fin du if (signupMode === 'real')
 
   // ====== Mode démo (inchangé) ======
   const r = signupAccount(type, d);
   if (r.error) { errEl.textContent = r.error; errEl.classList.add('show'); return; }
+  if (r.pending) { navigate('#/pending'); return; }
   navigate('#/dashboard');
   // Afficher le code de récupération après redirection
   if (r.recoveryCode) {
