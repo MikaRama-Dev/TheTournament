@@ -2928,7 +2928,7 @@ function rowToTournament(row) {
 
 // Enregistre (upsert) un tournoi dans Supabase — appelé après chaque modification
 async function syncTournament(t) {
-  if (!supabaseClient || signupMode !== 'real') return true; // mode démo : rien à synchroniser
+  if (!supabaseClient) return true; // Supabase non connecté — mode démo
   try {
     const a = getAccount();
     const ownerEmail = (a && a.email) ? a.email : (t.ownerEmail || '');
@@ -2953,7 +2953,7 @@ async function syncTournament(t) {
 
 // Enregistre une candidature d'équipe (table dédiée, hors JSONB public) — RSSI
 async function syncRegistration(tournamentId, registration) {
-  if (!supabaseClient || signupMode !== 'real') return true;
+  if (!supabaseClient) return true;
   try {
     const row = {
       id: registration.id,
@@ -2982,7 +2982,7 @@ async function syncRegistration(tournamentId, registration) {
 
 // Enregistre une proposition de sponsoring (table dédiée, hors JSONB public) — RSSI
 async function syncSponsorProposal(tournamentId, proposal) {
-  if (!supabaseClient || signupMode !== 'real') return true;
+  if (!supabaseClient) return true;
   try {
     const row = {
       id: proposal.id,
@@ -3014,7 +3014,7 @@ async function syncSponsorProposal(tournamentId, proposal) {
 
 // Supprime un tournoi de Supabase
 async function deleteTournamentRemote(id) {
-  if (!supabaseClient || signupMode !== 'real') return;
+  if (!supabaseClient) return;
   try {
     const { error } = await supabaseClient.from('tournaments').delete().eq('id', id);
     if (error) console.error('[Le Tournoi] deleteTournament:', error);
@@ -3023,7 +3023,7 @@ async function deleteTournamentRemote(id) {
 
 // Charge tous les tournois depuis Supabase au démarrage (mode réel)
 async function loadTournamentsFromSupabase() {
-  if (!supabaseClient || signupMode !== 'real') return;
+  if (!supabaseClient) return;
   try {
     // SÉCURITÉ (RSSI/DBA) : owner_email n'est plus lisible publiquement (PII organisateur).
     // Cette liste doit rester synchronisée avec le GRANT SELECT côté Supabase.
@@ -3046,7 +3046,7 @@ async function loadTournamentsFromSupabase() {
 
 // Charge les candidatures depuis leur table dédiée (RSSI) — vide si INSERT-only pour anon
 async function loadRegistrationsFromSupabase() {
-  if (!supabaseClient || signupMode !== 'real') return;
+  if (!supabaseClient) return;
   try {
     const { data, error } = await supabaseClient.from('registrations').select('*');
     if (error) { console.error('[Le Tournoi] loadRegistrations:', error); return; }
@@ -3063,7 +3063,7 @@ async function loadRegistrationsFromSupabase() {
 
 // Charge les propositions de sponsoring depuis leur table dédiée (RSSI)
 async function loadSponsorProposalsFromSupabase() {
-  if (!supabaseClient || signupMode !== 'real') return;
+  if (!supabaseClient) return;
   try {
     const { data, error } = await supabaseClient.from('sponsor_proposals').select('*');
     if (error) { console.error('[Le Tournoi] loadSponsorProposals:', error); return; }
