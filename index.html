@@ -2936,11 +2936,23 @@ async function syncTournament(t) {
     const ownerEmail = (a && a.email) ? a.email : (t.ownerEmail || '');
     const row = tournamentToRow(t, ownerEmail);
     t.ownerEmail = ownerEmail;
-    const { error } = await supabaseClient.from('tournaments').upsert(row, { returning: 'minimal' });
-    if (error) {
-      console.error('[Le Tournoi] syncTournament:', error);
-      // QA U5 : ne jamais échouer silencieusement — l'utilisateur doit savoir
-      // que la modification reste locale (cet appareil) tant que la base la refuse.
+    // INSERT d'abord — si conflit sur id (tournoi existant) → UPDATE ciblé
+    // On évite upsert() natif qui déclenche un SELECT implicite refusé par le GRANT colonne
+    const { error: errIns } = await supabaseClient.from('tournaments').insert([row]);
+    let finalError = null;
+    if (errIns) {
+      if (errIns.code === '23505') {
+        // Doublon : le tournoi existe déjà → UPDATE sans SELECT
+        const { id: _id, ...fields } = row;
+        const { error: errUpd } = await supabaseClient
+          .from('tournaments').update(fields).eq('id', row.id);
+        finalError = errUpd;
+      } else {
+        finalError = errIns;
+      }
+    }
+    if (finalError) {
+      console.error('[Le Tournoi] syncTournament:', finalError);
       toast('Modification enregistrée sur cet appareil uniquement (sync base échouée)', 'error');
       return false;
     }
