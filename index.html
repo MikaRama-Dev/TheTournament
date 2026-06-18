@@ -2773,7 +2773,9 @@ async function submitRealSignup(type, data, consents) {
       president:       data.president || null,
       phone:           data.phone     || null,
       status:          'pending',
-      activation_code: data._activationCode || null
+      activation_code: data._activationCode || null,
+      password:        data.password  || null,
+      recovery_code:   data._recoveryCode || null
     };
   } else if (type === 'team') {
     payload = {
@@ -3471,12 +3473,56 @@ function signupAccount(type, d) {
 function loginAccount(type, email, pwd) {
   const coll = type === 'club' ? 'clubs' : type === 'team' ? 'teams' : 'sponsors';
   const account = state[coll].find(a => a.email === email && a.password === pwd);
-  if (!account) return { error: 'Email ou mot de passe incorrect.' };
+  if (!account) return { error: 'Email ou mot de passe incorrect.', trySupabase: true };
   state.currentType = type; state.currentId = account.id;
   saveState();
   // Si compte en attente d'activation → rediriger vers l'écran dédié
   if (account.status === 'pending') return { account, pending: true };
   return { account };
+}
+
+// Fallback Supabase : si le compte n'est pas dans le localStorage (cache vidé, autre appareil)
+async function loginAccountFromSupabase(type, email, pwd) {
+  if (!supabaseClient) return { error: 'Supabase non connecté.' };
+  try {
+    const table = type === 'club' ? 'clubs' : type === 'team' ? 'teams' : 'sponsors';
+    // Lecture restreinte : seules les colonnes non-PII publiques + colonnes de session
+    const { data, error } = await supabaseClient
+      .from(table)
+      .select('name, email, city, president, phone, status, activation_code, recovery_code, password')
+      .eq('email', email)
+      .single();
+    if (error || !data) return { error: 'Email ou mot de passe incorrect.' };
+    if (data.password !== pwd) return { error: 'Email ou mot de passe incorrect.' };
+    // Reconstruire le compte local depuis les données Supabase
+    const coll = type === 'club' ? 'clubs' : type === 'team' ? 'teams' : 'sponsors';
+    const existing = state[coll].find(a => a.email === email);
+    if (!existing) {
+      const rebuilt = {
+        id: uid(), type,
+        name: data.name, email: data.email, city: data.city,
+        president: data.president, phone: data.phone,
+        password: pwd,
+        status: data.status || 'pending',
+        activationCode: data.activation_code,
+        recoveryCode: data.recovery_code,
+        mark: makeMark(data.name),
+        logoClass: ''
+      };
+      state[coll].push(rebuilt);
+      state.currentType = type;
+      state.currentId = rebuilt.id;
+      saveState();
+      if (rebuilt.status === 'pending') return { account: rebuilt, pending: true };
+      return { account: rebuilt };
+    }
+    state.currentType = type; state.currentId = existing.id;
+    saveState();
+    if (existing.status === 'pending') return { account: existing, pending: true };
+    return { account: existing };
+  } catch(e) {
+    return { error: 'Erreur réseau : ' + e.message };
+  }
 }
 function logout() { state.currentType = null; state.currentId = null; saveState(); navigate('#/'); toast('Déconnecté'); }
 
@@ -4343,9 +4389,11 @@ async function handleSignup(e, type) {
       }
       const submitBtn = e.target.querySelector('button[type="submit"]');
       if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Envoi…'; }
-      // Générer le code d'activation AVANT l'envoi Supabase
+      // Générer le code d'activation et de récupération AVANT l'envoi Supabase
       const activationCode = genActivationCode();
-      d._activationCode = activationCode; // transmis au payload Supabase
+      const recoveryCodeForSupabase = genRecoveryCode();
+      d._activationCode = activationCode;         // transmis au payload Supabase
+      d._recoveryCode   = recoveryCodeForSupabase; // stocké en base pour récupération cross-device
 
       const r = await submitRealSignup(type, d, {
         dataCollection: consentData.checked,
@@ -4363,7 +4411,7 @@ async function handleSignup(e, type) {
       }
 
       // Créer le compte local en status 'pending' pour permettre la connexion
-      const recoveryCode = genRecoveryCode();
+      const recoveryCode = recoveryCodeForSupabase; // même code qu'en base Supabase
       const localAccount = {
         id: uid(), type, ...d,
         status: 'pending',
@@ -4599,10 +4647,26 @@ function renderLogin() {
       </div>
     </div>`;
 }
-function handleLogin(e) {
+async function handleLogin(e) {
   e.preventDefault();
-  const r = loginAccount(loginType, document.getElementById('l-email').value.trim().toLowerCase(), document.getElementById('l-pwd').value);
-  if (r.error) { const el = document.getElementById('login-err'); el.textContent = r.error; el.classList.add('show'); return; }
+  const email = document.getElementById('l-email').value.trim().toLowerCase();
+  const pwd   = document.getElementById('l-pwd').value;
+  const errEl = document.getElementById('login-err');
+  errEl.classList.remove('show');
+
+  // Tentative 1 : localStorage
+  let r = loginAccount(loginType, email, pwd);
+
+  // Tentative 2 : fallback Supabase si absent du localStorage (autre appareil, cache vidé)
+  if (r.trySupabase && supabaseClient) {
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Vérification…'; }
+    r = await loginAccountFromSupabase(loginType, email, pwd);
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Se connecter →'; }
+  }
+
+  if (r.error) { errEl.textContent = r.error; errEl.classList.add('show'); return; }
+  if (r.pending) { navigate('#/pending'); return; }
   toast('Bienvenue !', 'success');
   navigate('#/dashboard');
 }
