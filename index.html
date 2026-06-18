@@ -3501,24 +3501,26 @@ async function loginAccountFromSupabase(type, email, pwd) {
     // Lecture restreinte : seules les colonnes non-PII publiques + colonnes de session
     const { data, error } = await supabaseClient
       .from(table)
-      .select('name, email, city, president, phone, status, activation_code, recovery_code, password')
+      // Sélectionner uniquement les colonnes de credentials (GRANT SELECT restreint, pas de PII)
+      .select('email, status, activation_code, password, recovery_code')
       .eq('email', email)
       .single();
     if (error || !data) return { error: 'Email ou mot de passe incorrect.' };
     if (data.password !== pwd) return { error: 'Email ou mot de passe incorrect.' };
-    // Reconstruire le compte local depuis les données Supabase
+    // Reconstruire le compte local depuis les données Supabase (données minimales)
     const coll = type === 'club' ? 'clubs' : type === 'team' ? 'teams' : 'sponsors';
     const existing = state[coll].find(a => a.email === email);
     if (!existing) {
       const rebuilt = {
         id: uid(), type,
-        name: data.name, email: data.email, city: data.city,
-        president: data.president, phone: data.phone,
+        name: data.email, // nom non disponible sans PII — sera mis à jour à la prochaine session normale
+        email: data.email,
+        city: '', president: '', phone: '',
         password: pwd,
         status: data.status || 'pending',
         activationCode: data.activation_code,
         recoveryCode: data.recovery_code,
-        mark: makeMark(data.name),
+        mark: makeMark(data.email),
         logoClass: ''
       };
       state[coll].push(rebuilt);
