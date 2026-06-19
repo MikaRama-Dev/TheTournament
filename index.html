@@ -3035,9 +3035,12 @@ async function deleteTournamentRemote(id) {
   } catch (e) { console.error('[Le Tournoi] deleteTournament exception:', e); }
 }
 
+// Indique si la synchronisation initiale des tournois distants est terminée
+var _tournamentsSyncDone = false;
+
 // Charge tous les tournois depuis Supabase au démarrage (mode réel)
 async function loadTournamentsFromSupabase() {
-  if (!supabaseClient) return;
+  if (!supabaseClient) { _tournamentsSyncDone = true; return; }
   try {
     // SÉCURITÉ (RSSI/DBA) : owner_email n'est plus lisible publiquement (PII organisateur).
     // Cette liste doit rester synchronisée avec le GRANT SELECT côté Supabase.
@@ -3053,9 +3056,15 @@ async function loadTournamentsFromSupabase() {
       const localOnly = state.tournaments.filter(t => !remoteIds.has(t.id) && !t._remote);
       state.tournaments = [...remote, ...localOnly];
       console.log('[Le Tournoi] ' + remote.length + ' tournoi(s) chargé(s) depuis Supabase');
-      render();
+    } else {
+      console.log('[Le Tournoi] Aucun tournoi distant trouvé (table vide ou non accessible)');
     }
-  } catch (e) { console.error('[Le Tournoi] loadTournaments exception:', e); }
+    _tournamentsSyncDone = true;
+    render();
+  } catch (e) {
+    _tournamentsSyncDone = true;
+    console.error('[Le Tournoi] loadTournaments exception:', e);
+  }
 }
 
 // Charge les candidatures depuis leur table dédiée (RSSI) — vide si INSERT-only pour anon
@@ -5139,7 +5148,7 @@ function updateTournamentResults() {
 
   // Mettre à jour le compteur sans toucher aux champs
   const countEl = document.querySelector('.search-count');
-  if (countEl) countEl.textContent = filtered.length + ' résultat' + (filtered.length !== 1 ? 's' : '');
+  if (countEl) countEl.textContent = (supabaseClient && !_tournamentsSyncDone) ? 'Synchronisation…' : (filtered.length + ' résultat' + (filtered.length !== 1 ? 's' : ''));
 
   // Mettre à jour uniquement la zone résultats
   el.innerHTML = filtered.length === 0
@@ -5189,11 +5198,14 @@ function renderTournaments() {
           </div>
           <div class="search-field-wrap" style="flex:2;">
             <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"/><circle cx="12" cy="10" r="3"/></svg>
-            <input class="search-field" id="s-loc" type="text"
-              placeholder="Ville, département..."
-              value="${esc(tournamentSearchLocation)}"
-              oninput="tournamentSearchLocation = this.value; updateTournamentResults();"
-              onkeydown="if(event.key==='Enter') renderTournaments();">
+            <div class="city-wrap" style="flex:1;">
+              <input class="search-field" id="s-loc" type="text" autocomplete="off"
+                placeholder="Ville, département..."
+                value="${esc(tournamentSearchLocation)}"
+                oninput="tournamentSearchLocation = this.value; updateTournamentResults(); cityAutocomplete(this);"
+                onkeydown="if(event.key==='Enter'){ _closeCityDropdown(this.closest('.city-wrap')); renderTournaments(); } else { _cityKeyNav(event, this); }"
+                onblur="setTimeout(() => _closeCityDropdown(this.closest('.city-wrap')), 150);">
+            </div>
           </div>
           <button class="btn btn-orange btn-sm" onclick="renderTournaments()" style="flex-shrink:0;">
             Trouver un tournoi
@@ -5226,7 +5238,7 @@ function renderTournaments() {
           </div>
 
           ${hasActiveFilters ? `<button class="btn btn-ghost btn-sm" onclick="clearAllTournamentFilters()">✕ Effacer tout</button>` : ''}
-          <span class="search-count">${filtered.length} résultat${filtered.length !== 1 ? 's' : ''}</span>
+          <span class="search-count">${(supabaseClient && !_tournamentsSyncDone) ? 'Synchronisation…' : filtered.length + ' résultat' + (filtered.length !== 1 ? 's' : '')}</span>
         </div>
 
         <!-- RECHERCHE AVANCÉE (dépliable) -->
@@ -5751,12 +5763,80 @@ function handleEditT(e, tid) {
 }
 
 // TOURNAMENT DETAIL with tabs
+// Charge un tournoi précis depuis Supabase s'il n'est pas encore en mémoire locale.
+// Corrige le cas des liens partagés (WhatsApp/Facebook) ouverts par un visiteur
+// dont le state.tournaments local ne contient pas encore ce tournoi.
+async function ensureTournamentLoaded(id) {
+  const local = getTournament(id);
+  if (local) return local;
+  if (!supabaseClient) return null;
+  try {
+    const { data, error } = await supabaseClient
+      .from('tournaments')
+      .select('id, club_id, name, edition, date, date_end, time_start, time_end, location, format, team_size, max_teams, entry_fee, surface, level, description, status, sponsor_tiers, animations, matches, created_at')
+      .eq('id', id)
+      .maybeSingle();
+    if (error || !data) {
+      console.warn('[Le Tournoi] ensureTournamentLoaded: introuvable en base', id, error);
+      return null;
+    }
+    const t = rowToTournament(data);
+    // Charger ses candidatures/propositions dédiées (mêmes tables que le chargement global)
+    try {
+      const [regs, props] = await Promise.all([
+        supabaseClient.from('registrations').select('*').eq('tournament_id', id),
+        supabaseClient.from('sponsor_proposals').select('*').eq('tournament_id', id)
+      ]);
+      if (regs?.data) t.registrations = regs.data.map(row => ({
+        id: row.id, teamId: row.team_id, teamName: row.team_name, clubName: row.club_name,
+        status: row.status, message: row.message, registeredAt: row.registered_at
+      }));
+      if (props?.data) t.sponsorProposals = props.data.map(row => ({
+        id: row.id, sponsorId: row.sponsor_id, name: row.name, tier: row.tier,
+        tierLabel: row.tier_label, amount: row.amount, status: row.status,
+        contactName: row.contact_name, contact: row.contact, notes: row.notes, message: row.message
+      }));
+    } catch(e) { /* non bloquant — le tournoi s'affiche quand même */ }
+    // Ajouter au state local pour que les rendus suivants le trouvent immédiatement
+    if (!state.tournaments.some(x => x.id === t.id)) state.tournaments.push(t);
+    return t;
+  } catch(e) {
+    console.error('[Le Tournoi] ensureTournamentLoaded exception:', e);
+    return null;
+  }
+}
+
 function renderTournamentDetail(id) {
-  // Increment view count once per render (not per session — MVP simplification)
-  const _tv = getTournament(id);
-  if (_tv) { _tv.viewCount = (_tv.viewCount||0) + 1; saveState(); }
   const t = getTournament(id);
-  if (!t) { document.getElementById('app').innerHTML = '<div class="page-head"><h1 class="page-title">Introuvable</h1></div>'; return; }
+
+  // Tournoi absent du state local : tenter un chargement direct depuis Supabase
+  // avant de conclure qu'il est introuvable (corrige les liens partagés WhatsApp/Facebook
+  // ouverts par un visiteur dont la liste complète n'a pas encore fini de se synchroniser).
+  if (!t) {
+    if (supabaseClient && !state._triedTournament?.[id]) {
+      state._triedTournament = state._triedTournament || {};
+      state._triedTournament[id] = true;
+      document.getElementById('app').innerHTML = `
+        <div class="page-head" style="text-align:center;padding:4rem 1rem;">
+          <div class="dash-empty-title">Chargement du tournoi…</div>
+          <p class="dash-empty-text">Un instant, on récupère les informations.</p>
+        </div>`;
+      ensureTournamentLoaded(id).then(found => {
+        if (getRoute() === '/tournaments/' + id) renderTournamentDetail(id);
+      });
+      return;
+    }
+    document.getElementById('app').innerHTML = `
+      <div class="page-head" style="text-align:center;padding:4rem 1rem;">
+        <h1 class="page-title">Tournoi introuvable</h1>
+        <p class="dash-empty-text" style="margin-top:0.5rem;">Ce tournoi n'existe pas ou plus.</p>
+        <a href="#/tournaments" class="btn btn-primary" style="margin-top:1.5rem;display:inline-block;">Voir tous les tournois</a>
+      </div>`;
+    return;
+  }
+
+  // Increment view count once per render (not per session — MVP simplification)
+  t.viewCount = (t.viewCount||0) + 1; saveState();
   const club = getClub(t.clubId);
   const a = getAccount();
   const isOwner = a?.type === 'club' && a.id === t.clubId;
