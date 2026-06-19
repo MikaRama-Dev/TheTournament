@@ -2723,24 +2723,33 @@ var supabaseClient = null;
 
 function initSupabase() {
   try {
+    // Évite une double initialisation si DOMContentLoaded + retry se croisent.
+    if (supabaseClient) return;
+
     if (typeof window.supabase === 'undefined') {
       console.warn('[Le Tournoi] SDK Supabase non chargé — retry dans 200ms');
       setTimeout(initSupabase, 200);
       return;
     }
+
     if (SUPABASE_URL && !SUPABASE_URL.includes('YOUR_PROJECT_ID')) {
       supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
       if (window.location.protocol === 'file:') {
         signupMode = 'demo';
-        console.warn('[Le Tournoi] file:// détecté — mode démo');
+        _tournamentsSyncDone = true;
+        console.warn('[Le Tournoi] file:// détecté — mode démo. Lancez le site via http://localhost pour lire Supabase.');
       } else {
         signupMode = 'real';
         console.log('[Le Tournoi] Supabase connecté — mode réel activé');
+        initRemoteData();
       }
     } else {
       signupMode = 'demo';
+      _tournamentsSyncDone = true;
     }
   } catch(e) {
+    _tournamentsSyncDone = true;
     console.warn('[Le Tournoi] Supabase init failed', e);
   }
 }
@@ -2895,33 +2904,57 @@ function tournamentToRow(t, ownerEmail) {
 
 // Convertit une ligne Supabase vers un tournoi local
 function rowToTournament(row) {
+  const safeJsonArray = (value) => {
+    if (Array.isArray(value)) return value;
+    if (typeof value === 'string' && value.trim()) {
+      try {
+        const parsed = JSON.parse(value);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch(e) {
+        return [];
+      }
+    }
+    return [];
+  };
+
+  const rawLocation = row.location || '';
+  const separatorIndex = rawLocation.indexOf(' — ');
+  const venueName = separatorIndex >= 0 ? rawLocation.slice(0, separatorIndex) : rawLocation;
+  const venueAddress = separatorIndex >= 0 ? rawLocation.slice(separatorIndex + 3) : '';
+
+  const numericTeamSize = Number(row.team_size || 0);
+  const derivedMatchSize =
+    row.match_size ||
+    (numericTeamSize === 5  ? '5v5'  :
+     numericTeamSize === 7  ? '7v7'  :
+     numericTeamSize === 11 ? '11v11' : '');
+
   return {
     id: row.id,
-    ownerEmail: row.owner_email,
+    ownerEmail: row.owner_email || '',
     clubId: row.club_id,
-    name: row.name,
-    edition: row.edition,
-    date: row.date,
-    dateEnd: row.date_end,
-    timeStart: row.time_start,
-    timeEnd: row.time_end,
-    location: row.location,
-    venueName: (row.location || '').split(' — ')[0] || '',
-    venueAddress: (row.location || '').split(' — ')[1] || '',
-    format: row.format,
+    name: row.name || '',
+    edition: row.edition || '',
+    date: row.date || null,
+    dateEnd: row.date_end || null,
+    timeStart: row.time_start || null,
+    timeEnd: row.time_end || null,
+    location: rawLocation,
+    venueName,
+    venueAddress,
+    format: row.format || '',
     categories: row.format ? [row.format] : [],
-    teamSize: row.team_size,
-    matchSize: String(row.team_size || ''),
+    teamSize: numericTeamSize || row.team_size || null,
+    matchSize: derivedMatchSize,
     maxTeams: row.max_teams,
     entryFee: row.entry_fee,
-    surface: row.surface,
-    level: row.level,
-    description: row.description,
-    status: row.status,
-    registrations: row.registrations || [],
-    sponsorTiers: row.sponsor_tiers || [],
-    animations: row.animations || [],
-    matches: row.matches || [],
+    surface: row.surface || '',
+    level: row.level || '',
+    description: row.description || '',
+    status: row.status || 'open',
+    sponsorTiers: safeJsonArray(row.sponsor_tiers),
+    animations: safeJsonArray(row.animations),
+    matches: safeJsonArray(row.matches),
     registrations: [],      // rempli ensuite par loadRegistrationsFromSupabase()
     sponsorProposals: [],   // rempli ensuite par loadSponsorProposalsFromSupabase()
     _remote: true
@@ -3048,7 +3081,12 @@ async function loadTournamentsFromSupabase() {
       .from('tournaments')
       .select('id, club_id, name, edition, date, date_end, time_start, time_end, location, format, team_size, max_teams, entry_fee, surface, level, description, status, sponsor_tiers, animations, matches, created_at')
       .order('date', { ascending: true });
-    if (error) { console.error('[Le Tournoi] loadTournaments:', error); return; }
+    if (error) {
+      _tournamentsSyncDone = true;
+      console.error('[Le Tournoi] loadTournaments:', error);
+      render();
+      return;
+    }
     if (data && data.length > 0) {
       const remote = data.map(rowToTournament);
       // Fusion : les tournois distants remplacent/complètent les tournois de démo
@@ -3100,6 +3138,24 @@ async function loadSponsorProposalsFromSupabase() {
     });
     if (data && data.length) render();
   } catch (e) { console.error('[Le Tournoi] loadSponsorProposals exception:', e); }
+}
+
+// Initialise les données distantes uniquement APRÈS la création du client Supabase.
+// Avant correction, les appels en bas du fichier partaient trop tôt avec supabaseClient === null.
+var _remoteDataInitStarted = false;
+async function initRemoteData() {
+  if (_remoteDataInitStarted || !supabaseClient) return;
+  _remoteDataInitStarted = true;
+  _tournamentsSyncDone = false;
+
+  // Si l'utilisateur est déjà sur la page des tournois, afficher l'état de synchronisation.
+  if (typeof getRoute === 'function' && getRoute() === '/tournaments') {
+    render();
+  }
+
+  await loadTournamentsFromSupabase();
+  await loadRegistrationsFromSupabase();
+  await loadSponsorProposalsFromSupabase();
 }
 
 // ===========================================
@@ -5301,22 +5357,31 @@ function clearAllTournamentFilters() {
 }
 
 function filterTournaments(query, location, category, status) {
-  let results = state.tournaments.filter(t => {
+  const q = (query || '').toLowerCase().trim();
+  const loc = (location || '').toLowerCase().trim();
+
+  let results = (state.tournaments || []).filter(t => {
     const club = getClub(t.clubId);
-    const nameMatch = !query || t.name.toLowerCase().includes(query.toLowerCase()) || (t.edition||'').toLowerCase().includes(query.toLowerCase());
+    const nameMatch = !q ||
+      (t.name || '').toLowerCase().includes(q) ||
+      (t.edition || '').toLowerCase().includes(q) ||
+      (t.description || '').toLowerCase().includes(q);
     const venue = tournVenue(t);
-    const locationMatch = !location ||
-      (venue.name||'').toLowerCase().includes(location.toLowerCase()) ||
-      (venue.address||'').toLowerCase().includes(location.toLowerCase()) ||
-      (club?.city||'').toLowerCase().includes(location.toLowerCase()) ||
-      (t.location||'').toLowerCase().includes(location.toLowerCase());
+    const locationMatch = !loc ||
+      (venue.name || '').toLowerCase().includes(loc) ||
+      (venue.address || '').toLowerCase().includes(loc) ||
+      (club?.city || '').toLowerCase().includes(loc) ||
+      (t.location || '').toLowerCase().includes(loc);
     const cats = tournCategories(t);
     const categoryMatch = !category || cats.includes(category);
     const statusMatch = !status || t.status === status;
     // Filtres avancés
     const levelMatch = !tournamentSearchLevel || (t.level === tournamentSearchLevel);
     const surfaceMatch = !tournamentSearchSurface || t.surface === tournamentSearchSurface;
-    const formatMatch = !tournamentSearchFormat || t.matchSize === tournamentSearchFormat;
+    const sizeAsMatch = t.teamSize ? (String(t.teamSize) + 'v' + String(t.teamSize)) : '';
+    const formatMatch = !tournamentSearchFormat ||
+      t.matchSize === tournamentSearchFormat ||
+      sizeAsMatch === tournamentSearchFormat;
     const feeMatch = !tournamentSearchMaxFee || (t.entryFee || 0) <= parseFloat(tournamentSearchMaxFee);
     return nameMatch && locationMatch && categoryMatch && statusMatch && levelMatch && surfaceMatch && formatMatch && feeMatch;
   });
@@ -7674,11 +7739,8 @@ function closeUserMenu() {
 // INIT
 saveState();
 render();
-// J1 : charger les tournois réels depuis Supabase (mode réel uniquement)
-loadTournamentsFromSupabase();
-// RSSI : charger candidatures et propositions depuis leurs tables dédiées
-loadRegistrationsFromSupabase();
-loadSponsorProposalsFromSupabase();
+// Les données Supabase sont chargées par initRemoteData(), appelé après initSupabase().
+// Ne pas appeler loadTournamentsFromSupabase() ici : à cet instant supabaseClient peut encore être null.
 </script>
 </body>
 </html>
