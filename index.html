@@ -9,6 +9,26 @@
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>Le Tournoi — la plateforme des tournois de foot amateur</title>
+<script id="lt-share-redirect-early">
+// Redirection très tôt des liens de partage sans hash.
+// Exemple : /TheTournament/?tournoi=id-xxx → /TheTournament/#/tournaments/id-xxx
+(function () {
+  try {
+    var params = new URLSearchParams(window.location.search || '');
+    var tid = params.get('tournoi') || params.get('tournament') || params.get('t');
+    if (!tid) return;
+
+    var cleanPath = window.location.pathname.replace(/\/index\.html$/, '/');
+    var target = window.location.origin + cleanPath + '#/tournaments/' + encodeURIComponent(tid);
+
+    // location.replace évite de garder ?tournoi=... dans l'historique et force la SPA
+    // à démarrer directement sur la fiche tournoi, pas sur l'accueil.
+    if (window.location.href !== target) {
+      window.location.replace(target);
+    }
+  } catch (e) {}
+})();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,500;0,600;0,700;0,800;1,500;1,600;1,700;1,800&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400;1,500;1,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -3433,7 +3453,29 @@ function getAccount() {
 }
 function getTournament(id) { return state.tournaments.find(t => t.id === id); }
 function getAnim(id) { return state.catalog.animations.find(a => a.id === id); }
-function getClub(id) { return state.clubs.find(c => c.id === id); }
+function getClub(id) {
+  const found = state.clubs.find(c => c.id === id);
+  if (found) return found;
+
+  // Les tournois venant de Supabase peuvent référencer un club_id qui
+  // n'existe pas dans le localStorage du navigateur courant.
+  // Sans ce fallback, la fiche tournoi plantait sur club.name / club.city :
+  // les tournois "en dur" étaient cliquables, ceux de la BDD non.
+  return {
+    id: id || 'remote-club',
+    type: 'club',
+    name: 'Organisateur',
+    city: '',
+    president: '',
+    phone: '',
+    website: '',
+    mark: 'T',
+    logoClass: ''
+  };
+}
+function clubLine(club) {
+  return [club?.name, club?.city].filter(Boolean).join(' · ') || 'Organisateur';
+}
 function getTeam(id) { return state.teams.find(t => t.id === id); }
 function getSponsor(id) { return state.sponsors.find(s => s.id === id); }
 function esc(s) { if (s == null) return ''; return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -3509,9 +3551,90 @@ function modal(title, body, actions) {
 }
 function closeModal() { document.getElementById('modal-container').innerHTML = ''; }
 function navigate(h) { if (window.location.hash === h) render(); else window.location.hash = h; }
-function getRoute() { return window.location.hash.slice(1) || '/'; }
+function getRoute() {
+  const hashRoute = window.location.hash.slice(1);
+  if (hashRoute) return hashRoute;
+
+  // Fallback robuste pour les liens partagés du type ?tournoi=id.
+  // Même si la redirection précoce ne s'exécute pas encore, le routeur
+  // affiche directement la fiche au lieu de tomber sur l'accueil.
+  try {
+    const params = new URLSearchParams(window.location.search || '');
+    const tid = params.get('tournoi') || params.get('tournament') || params.get('t');
+    if (tid) return '/tournaments/' + encodeURIComponent(tid);
+  } catch(e) {}
+
+  return '/';
+}
+function routeId(raw) {
+  try { return decodeURIComponent(raw || ''); } catch(e) { return raw || ''; }
+}
+function tournamentRoute(id) {
+  return '#/tournaments/' + encodeURIComponent(id || '');
+}
+
+// URL publique de partage.
+// Important : on évite les liens en #/tournaments/... dans les messages sociaux,
+// car certains réseaux/applications coupent ou ignorent la partie après #.
+// On partage donc ?tournoi=ID, puis l'app redirige automatiquement vers le hash-route.
+// Domaine public canonique à utiliser pour les liens partagés.
+// Important : quand le fichier est ouvert depuis l'aperçu ChatGPT / sandbox,
+// window.location.origin vaut web-sandbox.oaiusercontent.com. On force donc
+// l'URL publique GitHub Pages du site.
+const PUBLIC_SITE_BASE_URL = 'https://mikarama-dev.github.io/TheTournament/';
+
+function getPublicSiteBaseUrl() {
+  const canonical = PUBLIC_SITE_BASE_URL.replace(/\/?$/, '/');
+
+  // En local, en file:// ou dans la sandbox ChatGPT, on ne doit jamais partager
+  // l'origine courante, car elle produit des liens faux/non publics.
+  const host = window.location.hostname || '';
+  if (
+    window.location.protocol === 'file:' ||
+    host === 'localhost' ||
+    host === '127.0.0.1' ||
+    host.includes('oaiusercontent.com') ||
+    host.includes('web-sandbox')
+  ) {
+    return canonical;
+  }
+
+  // Sur GitHub Pages / production, on peut reconstruire l'URL depuis l'emplacement courant.
+  const path = window.location.pathname.replace(/\/index\.html$/, '/');
+  return (window.location.origin + path).replace(/\/?$/, '/');
+}
+
+function getTournamentShareUrl(tid) {
+  return getPublicSiteBaseUrl() + '?tournoi=' + encodeURIComponent(tid);
+}
+
+// Convertit https://site/app/?tournoi=ID en https://site/app/#/tournaments/ID
+// avant le rendu de la SPA.
+function normalizeSharedTournamentUrl() {
+  try {
+    const url = new URL(window.location.href);
+    const tid = url.searchParams.get('tournoi') || url.searchParams.get('tournament') || url.searchParams.get('t');
+    if (!tid) return false;
+
+    const cleanPath = url.pathname.replace(/\/index\.html$/, '/');
+    const target = url.origin + cleanPath + '#/tournaments/' + encodeURIComponent(tid);
+
+    // Plus fiable que history.replaceState ici : on force le navigateur à recharger
+    // l'application avec le hash-route déjà présent. Ainsi la SPA ne rend jamais
+    // la page d'accueil par défaut.
+    if (window.location.href !== target) {
+      window.location.replace(target);
+      return true;
+    }
+
+    return false;
+  } catch(e) {
+    return false;
+  }
+}
+
 window.addEventListener('hashchange', () => { activeTab = 'overview'; render(); });
-window.addEventListener('load', render);
+window.addEventListener('load', () => { if (!normalizeSharedTournamentUrl()) render(); });
 
 // AUTH
 // Mots simples pour code de récupération mémorisable
@@ -3625,8 +3748,8 @@ function render() {
   if (r === '/legal') return renderLegal();
   if (r === '/privacy') return renderPrivacy();
   if (r === '/tournaments/new') return requireAuth(renderCreateTournament, ['club']);
-  if (r.match(/^\/tournaments\/[^\/]+\/edit$/)) return requireAuth(() => renderEditTournament(r.split('/')[2]), ['club']);
-  if (r.startsWith('/tournaments/')) return renderTournamentDetail(r.split('/')[2]);
+  if (r.match(/^\/tournaments\/[^\/]+\/edit$/)) return requireAuth(() => renderEditTournament(routeId(r.split('/')[2])), ['club']);
+  if (r.startsWith('/tournaments/')) return renderTournamentDetail(routeId(r.split('/')[2]));
   if (r === '/teams') return renderTeamsList();
   if (r.startsWith('/teams/')) return renderTeamProfile(r.split('/')[2]);
   if (r === '/sponsors') return renderSponsorsList();
@@ -4185,14 +4308,14 @@ function tournCardHome(t) {
   const approved = t.registrations.filter(r => r.status === 'approved').length;
   const placesLeft = (t.maxTeams || 0) - approved;
   return `
-    <div class="t-card" onclick="navigate('#/tournaments/${t.id}')">
+    <a class="t-card" href="${tournamentRoute(t.id)}">
       <div class="t-card-img ${club?.logoClass || ''}">
         <span class="t-card-mark">${esc(club?.mark || '')}</span>
         <div class="t-card-num">${approved}</div>
       </div>
       <div class="t-card-body">
         <div class="t-card-club">
-          ${esc(club?.name || '')} · ${esc(club?.city || '')}
+          ${esc(clubLine(club))}
           ${renderBadge(clubBadge(t.clubId), 'margin-left:0.4rem;font-size:9px;')}
         </div>
         <h3 class="t-card-title">${esc(t.name)}</h3>
@@ -4203,21 +4326,21 @@ function tournCardHome(t) {
           <span class="t-card-progress">${placesLeft > 0 ? placesLeft + ' place' + (placesLeft > 1 ? 's' : '') : 'Complet'}</span>
         </div>
       </div>
-    </div>`;
+    </a>`;
 }
 
 function tournCard(t) {
   const club = getClub(t.clubId);
   const approved = t.registrations.filter(r => r.status !== 'rejected').length;
   return `
-    <div class="t-card" onclick="navigate('#/tournaments/${t.id}')">
+    <a class="t-card" href="${tournamentRoute(t.id)}">
       <div class="t-card-img ${club?.logoClass || ''}">
         <span class="t-card-mark">${esc(club?.mark || '')}</span>
         <div class="t-card-num">${approved}</div>
       </div>
       <div class="t-card-body">
         <div class="t-card-club">
-          ${esc(club?.name || '')} · ${esc(club?.city || '')}
+          ${esc(clubLine(club))}
           ${renderBadge(clubBadge(t.clubId), 'margin-left:0.4rem;font-size:9px;')}
         </div>
         <h3 class="t-card-title">${esc(t.name)}</h3>
@@ -4228,7 +4351,7 @@ function tournCard(t) {
         </div>
         ${(() => { const b = clubBadge(t.clubId); return b ? `<div style="padding:0.5rem 1.1rem 0.75rem;"><span class="lt-badge lt-badge-${b.level}" style="font-size:10px;">${b.icon} ${b.label}</span></div>` : ''; })()}
       </div>
-    </div>`;
+    </a>`;
 }
 
 // SIGNUP
@@ -5915,7 +6038,7 @@ function renderTournamentDetail(id) {
       <div class="tourn-hero-inner">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem;">
           <div class="tourn-hero-club">
-          Organisé par ${esc(club.name)} · ${esc(club.city)}
+          Organisé par ${esc(clubLine(club))}
           ${renderBadge(clubBadge(t.clubId), 'margin-left:0.6rem;vertical-align:middle;')}
           ${safeUrl(club.website) ? `<a href="${safeUrl(club.website)}" target="_blank" rel="noopener noreferrer" style="margin-left:0.6rem;font-family:var(--font-mono);font-size:10px;color:rgba(245,239,228,0.6);border-bottom:1px solid rgba(245,239,228,0.3);letter-spacing:0.08em;">Site web →</a>` : ''}
         </div>
@@ -6395,9 +6518,10 @@ function renderAside(t, isOwner, a) {
   } else if (a?.type === 'club') {
     html += `<button class="btn btn-outline btn-full" onclick="quickRegisterModal('${t.id}')">Inscrire manuellement</button>`;
   }
-  const shareUrl = window.location.href.split('#')[0] + '#/tournaments/' + t.id;
-  // WhatsApp message — plain text + ASCII line separators for max compatibility
-  const shareLines = [
+  const shareUrl = getTournamentShareUrl(t.id);
+  // Message WhatsApp — on encode tout le texte, sinon le # d'une URL hash-route
+  // coupe le paramètre text et le lien devient la page d'accueil.
+  const shareText = [
     '[Le Tournoi] ' + t.name + (t.edition ? ' — ' + t.edition : ''),
     'Date : ' + tournDateRange(t),
     'Lieu : ' + (tournVenue(t).name || '') + (tournVenue(t).address ? ', ' + tournVenue(t).address : ''),
@@ -6405,8 +6529,8 @@ function renderAside(t, isOwner, a) {
     t.entryFee > 0 ? 'Inscription : ' + fmtMoney(t.entryFee) : '',
     '',
     'Infos et inscriptions -> ' + shareUrl
-  ].filter(Boolean).join('%0A');
-  const shareMsg = shareLines;
+  ].filter(Boolean).join('\n');
+  const shareMsg = encodeURIComponent(shareText);
   html += `
     <div class="aside-share">
       <div class="aside-share-label">Partager ce tournoi</div>
@@ -6750,7 +6874,7 @@ function saveTiers(tid) {
   activeTab = 'sponsors'; renderTournamentDetail(tid);
 }
 function copyShareLinkFn(tid) {
-  const url = window.location.href.split('#')[0] + '#/tournaments/' + tid;
+  const url = getTournamentShareUrl(tid);
   navigator.clipboard.writeText(url).then(() => toast('Lien copié !', 'success')).catch(() => prompt('Copie ce lien :', url));
 }
 
@@ -7737,8 +7861,12 @@ function closeUserMenu() {
 }
 
 // INIT
-saveState();
-render();
+// Si l'URL est un lien partagé ?tournoi=..., on redirige d'abord vers le hash-route
+// et on évite de rendre l'accueil pendant la navigation.
+if (!normalizeSharedTournamentUrl()) {
+  saveState();
+  render();
+}
 // Les données Supabase sont chargées par initRemoteData(), appelé après initSupabase().
 // Ne pas appeler loadTournamentsFromSupabase() ici : à cet instant supabaseClient peut encore être null.
 </script>
