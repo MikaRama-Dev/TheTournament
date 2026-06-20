@@ -649,6 +649,13 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
   opacity: 0.85;
 }
 
+.field-error {
+  color: var(--accent-deep);
+  font-size: 12px;
+  margin-top: 0.3rem;
+  display: none;
+}
+.field-error.show { display: block; }
 .form-error {
   background: rgba(151, 73, 46, 0.08);
   color: var(--accent-deep);
@@ -2418,6 +2425,27 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
 }
 .sort-btn:hover { background: var(--line); color: var(--ink); }
 .sort-btn.active { background: var(--ink); color: var(--paper); }
+.dept-multiselect-btn {
+  font-family: var(--font-sans); font-size: 14px; color: var(--ink);
+  background: var(--paper); border: 1px solid var(--line); border-radius: 4px;
+  padding: 0.65rem 0.9rem;
+}
+.dept-multiselect-btn span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dept-multiselect-panel {
+  position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 200;
+  background: var(--paper); border: 1px solid var(--line-strong); border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08); padding: 0.4rem;
+  max-height: 280px; overflow-y: auto;
+}
+.dept-ms-item {
+  display: flex; align-items: center; gap: 0.6rem;
+  padding: 0.45rem 0.6rem; border-radius: 3px; cursor: pointer;
+  font-family: var(--font-sans); font-size: 13px; color: var(--ink);
+}
+.dept-ms-item:hover { background: var(--paper-soft); }
+.dept-ms-item input { accent-color: var(--accent); width: 15px; height: 15px; flex-shrink: 0; }
+.dept-ms-sep { height: 1px; background: var(--line); margin: 0.3rem 0; }
+
 .advanced-search-panel {
   border-top: 1px solid var(--line);
   padding-top: 1rem;
@@ -2798,6 +2826,7 @@ async function submitRealSignup(type, data, consents) {
     payload = {
       name:            data.name      || null,
       email:           data.email     || null,
+      department:      data.department|| null,
       city:            data.city      || null,
       president:       data.president || null,
       phone:           data.phone     || null,
@@ -2810,10 +2839,10 @@ async function submitRealSignup(type, data, consents) {
     payload = {
       name: data.name || null,
       email: data.email || null,
+      department: data.department || null,
       city: data.city || null,
       club: data.club || null,
       category: data.category || null,
-      level: data.level || null,
       manager: data.manager || null,
       phone: data.phone || null,
       status: 'pending'
@@ -2822,6 +2851,7 @@ async function submitRealSignup(type, data, consents) {
     payload = {
       name: data.name || null,
       email: data.email || null,
+      department: data.department || null,
       city: data.city || null,
       sector: data.sector || null,
       contact: data.contact || null,
@@ -2904,13 +2934,15 @@ function tournamentToRow(t, ownerEmail) {
     date_end: t.dateEnd || null,
     time_start: t.timeStart || null,
     time_end: t.timeEnd || null,
+    department: t.department || null,
+    city: t.city || null,
     location: t.location || '',
     format: t.format || '',
     team_size: t.teamSize || null,
     max_teams: t.maxTeams || null,
     entry_fee: t.entryFee || 0,
     surface: t.surface || '',
-    level: t.level || '',
+    registration_deadline: t.registrationDeadline || null,
     description: t.description || '',
     status: t.status || 'open',
     // SÉCURITÉ (RSSI) : registrations et sponsor_proposals contiennent des données de contact (PII).
@@ -2947,6 +2979,7 @@ function rowToTournament(row) {
     row.match_size ||
     (numericTeamSize === 5  ? '5v5'  :
      numericTeamSize === 7  ? '7v7'  :
+     numericTeamSize === 8  ? '8v8'  :
      numericTeamSize === 11 ? '11v11' : '');
 
   return {
@@ -2962,6 +2995,8 @@ function rowToTournament(row) {
     location: rawLocation,
     venueName,
     venueAddress,
+    department: row.department || '',
+    city: row.city || '',
     format: row.format || '',
     categories: row.format ? [row.format] : [],
     teamSize: numericTeamSize || row.team_size || null,
@@ -2969,7 +3004,7 @@ function rowToTournament(row) {
     maxTeams: row.max_teams,
     entryFee: row.entry_fee,
     surface: row.surface || '',
-    level: row.level || '',
+    registrationDeadline: row.registration_deadline || '',
     description: row.description || '',
     status: row.status || 'open',
     sponsorTiers: safeJsonArray(row.sponsor_tiers),
@@ -3028,6 +3063,12 @@ async function syncRegistration(tournamentId, registration) {
       team_id: registration.teamId || null,
       team_name: registration.teamName || '',
       club_name: registration.clubName || '',
+      // Lot 2 (Brief BA Formulaires IDF) — inscription visiteur sans compte
+      captain_name:  registration.captainName  || null,
+      captain_email: registration.captainEmail || null,
+      captain_phone: registration.captainPhone || null,
+      department:    registration.department   || null,
+      city:          registration.city         || null,
       status: registration.status || 'pending',
       message: registration.message || '',
       registered_at: registration.registeredAt || new Date().toISOString()
@@ -3099,7 +3140,7 @@ async function loadTournamentsFromSupabase() {
     // Cette liste doit rester synchronisée avec le GRANT SELECT côté Supabase.
     const { data, error } = await supabaseClient
       .from('tournaments')
-      .select('id, club_id, name, edition, date, date_end, time_start, time_end, location, format, team_size, max_teams, entry_fee, surface, level, description, status, sponsor_tiers, animations, matches, created_at')
+      .select('id, club_id, name, edition, date, date_end, time_start, time_end, department, city, location, format, team_size, max_teams, entry_fee, surface, registration_deadline, description, status, sponsor_tiers, animations, matches, created_at')
       .order('date', { ascending: true });
     if (error) {
       _tournamentsSyncDone = true;
@@ -3135,6 +3176,8 @@ async function loadRegistrationsFromSupabase() {
       const t = state.tournaments.find(t => t.id === row.tournament_id);
       if (t) t.registrations.push({
         id: row.id, teamId: row.team_id, teamName: row.team_name, clubName: row.club_name,
+        captainName: row.captain_name, captainEmail: row.captain_email, captainPhone: row.captain_phone,
+        department: row.department, city: row.city,
         status: row.status, message: row.message, registeredAt: row.registered_at
       });
     });
@@ -3202,7 +3245,6 @@ function loadState() {
       // Always refresh formats catalog to get latest labels and new categories
       loaded.catalog.formats = fresh.catalog.formats;
       if (!loaded.catalog.positions)         loaded.catalog.positions         = fresh.catalog.positions;
-      if (!loaded.catalog.levels)            loaded.catalog.levels            = fresh.catalog.levels;
       if (!loaded.catalog.days)              loaded.catalog.days              = fresh.catalog.days;
       // Migration — add contact privacy fields to existing accounts
       ['clubs','teams','sponsors'].forEach(coll => {
@@ -3245,14 +3287,14 @@ function seed() {
   return {
     currentType: null, currentId: null,
     clubs: [
-      { id: 'club-1', type: 'club', name: 'FC Belleville', email: 'demo@letournoi.foot', password: 'demo', city: 'Paris 20e', president: 'Karim Belkacem', phone: '06 12 34 56 78', mark: 'FCB', logoClass: 'alt-1' },
-      { id: 'club-2', type: 'club', name: 'AS Pantin', email: 'pantin@letournoi.foot', password: 'demo', city: 'Pantin', president: 'Marie Dupont', phone: '06 98 76 54 32', mark: 'ASP', logoClass: 'alt-2' },
-      { id: 'club-3', type: 'club', name: 'US Montreuil', email: 'montreuil@letournoi.foot', password: 'demo', city: 'Montreuil', president: 'Yanis Mehdi', phone: '06 45 67 89 01', mark: 'USM', logoClass: 'alt-3' }
+      { id: 'club-1', type: 'club', name: 'FC Belleville', email: 'demo@letournoi.foot', password: 'demo', department: '75', city: 'Paris 20e', president: 'Karim Belkacem', phone: '06 12 34 56 78', mark: 'FCB', logoClass: 'alt-1' },
+      { id: 'club-2', type: 'club', name: 'AS Pantin', email: 'pantin@letournoi.foot', password: 'demo', department: '93', city: 'Pantin', president: 'Marie Dupont', phone: '06 98 76 54 32', mark: 'ASP', logoClass: 'alt-2' },
+      { id: 'club-3', type: 'club', name: 'US Montreuil', email: 'montreuil@letournoi.foot', password: 'demo', department: '93', city: 'Montreuil', president: 'Yanis Mehdi', phone: '06 45 67 89 01', mark: 'USM', logoClass: 'alt-3' }
     ],
     teams: [
       { id: 'team-1', type: 'team', name: 'CSL Aulnay U15', club: 'CSL Aulnay-sous-Bois',
         email: 'aulnay@letournoi.foot', password: 'demo',
-        city: 'Aulnay-sous-Bois', category: 'u15', level: 'r3',
+        department: '93', city: 'Aulnay-sous-Bois', category: 'u15',
         manager: 'Hakim Ziani', phone: '06 11 22 33 44', mark: 'CSL',
         bio: 'Équipe U15 régionale R3, vice-champions du district 93 saison 2024-25. Cherche tournois compétitifs en Île-de-France.',
         availability: ['sat', 'sun'],
@@ -3271,7 +3313,7 @@ function seed() {
         ] },
       { id: 'team-2', type: 'team', name: 'JS Suresnes U13', club: 'JS Suresnes',
         email: 'suresnes@letournoi.foot', password: 'demo',
-        city: 'Suresnes', category: 'u13', level: 'd1',
+        department: '92', city: 'Suresnes', category: 'u13',
         manager: 'Pierre Lambert', phone: '06 55 66 77 88', mark: 'JSS',
         bio: 'Équipe U13 district 92, ambiance familiale. Cherche 2-3 tournois mai-juillet.',
         availability: ['sat', 'sun'],
@@ -3287,26 +3329,26 @@ function seed() {
     sponsors: [
       { id: 'sp-1', type: 'sponsor', name: 'Garage Belleville Auto',
         email: 'auto@letournoi.foot', password: 'demo',
-        sector: 'Automobile', city: 'Paris 20e',
+        sector: 'Automobile', department: '75', city: 'Paris 20e',
         contact: 'Mohamed Belaid', phone: '01 43 58 92 14', mark: 'GBA',
         description: 'Garage indépendant familial implanté depuis 32 ans à Belleville. Soutient le foot amateur local depuis 2010.',
         budgetRange: '500-1500€', preferredCategories: ['u13', 'u15', 'u17'] },
       { id: 'sp-2', type: 'sponsor', name: 'Boulangerie Naïma',
         email: 'naima@letournoi.foot', password: 'demo',
-        sector: 'Alimentation', city: 'Paris 19e',
+        sector: 'Alimentation', department: '75', city: 'Paris 19e',
         contact: 'Naïma Hadj', phone: '01 42 03 78 22', mark: 'BN',
         description: 'Boulangerie-pâtisserie traditionnelle. Spécialité gâteaux orientaux. Fournit volontiers collations et goûters.',
         budgetRange: '150-500€', preferredCategories: ['u9', 'u11', 'u13', 'u15'] },
       { id: 'sp-3', type: 'sponsor', name: 'Intermarché Pantin',
         email: 'intermarche@letournoi.foot', password: 'demo',
-        sector: 'Grande distribution', city: 'Pantin',
+        sector: 'Grande distribution', department: '93', city: 'Pantin',
         contact: 'Service Communication', phone: '01 48 91 33 22', mark: 'IM',
         description: 'Magasin attaché à la vie locale. Sponsor de plusieurs équipes du 93. Budget mécénat sport amateur 8000€/an.',
         budgetRange: '500-2000€', preferredCategories: ['seniors', 'feminin', 'u15', 'u17'] }
     ],
     tournaments: [
       { id: 'tourn-1', clubId: 'club-1', name: 'Coupe de Belleville', edition: '4ème édition',
-        date: '2026-06-21', location: 'Stade Léo Lagrange, Paris 20e',
+        date: '2026-06-21', department: '75', city: 'Paris', location: 'Stade Léo Lagrange, Paris 20e',
         format: 'u15', teamSize: 11, maxTeams: 16, entryFee: 80,
         description: 'Le rendez-vous incontournable du foot amateur parisien. 16 équipes U15 venues des 4 coins de l\'Île-de-France pour s\'affronter une journée entière sur 4 terrains. Buffet midi inclus, animations toute la journée.',
         status: 'open',
@@ -3341,7 +3383,7 @@ function seed() {
           { name: 'bronze', price: 150, perks: ['Logo sur affiches', '5 invitations', 'Mention site'], slots: 8 }
         ] },
       { id: 'tourn-2', clubId: 'club-2', name: 'Pantin Cup', edition: '2ème édition',
-        date: '2026-07-05', location: 'Complexe Charles Auray',
+        date: '2026-07-05', department: '93', city: 'Pantin', location: 'Complexe Charles Auray',
         format: 'u13', teamSize: 7, maxTeams: 12, entryFee: 60,
         description: 'Tournoi U13 à 7 sur deux jours. Format poules puis phases finales. Animation foot-freestyle, food trucks toute la journée.',
         status: 'open',
@@ -3359,7 +3401,7 @@ function seed() {
           { name: 'bronze', price: 200, perks: ['Mention site', '4 invitations'], slots: 6 }
         ] },
       { id: 'tourn-3', clubId: 'club-3', name: 'Trophée Montreuil 92', edition: '12ème édition',
-        date: '2026-06-14', location: 'Stade des Guilands, Montreuil',
+        date: '2026-06-14', department: '93', city: 'Montreuil', location: 'Stade des Guilands, Montreuil',
         format: 'seniors', teamSize: 11, maxTeams: 8, entryFee: 150,
         description: 'Tournoi seniors fin de saison entre clubs de Seine-Saint-Denis et de l\'Est parisien. Format coupe à élimination directe.',
         status: 'draft',
@@ -3403,22 +3445,17 @@ function seed() {
         { v: 'GK', l: 'Gardien' }, { v: 'DEF', l: 'Défenseur' },
         { v: 'MID', l: 'Milieu' }, { v: 'ATT', l: 'Attaquant' }
       ],
-      levels: [
-        { v: 'd2', l: 'District 2' }, { v: 'd1', l: 'District 1' },
-        { v: 'r3', l: 'Régional 3' }, { v: 'r2', l: 'Régional 2' },
-        { v: 'r1', l: 'Régional 1' }, { v: 'n3', l: 'National 3' },
-        { v: 'loisir', l: 'Loisir' }
-      ],
       matchSizes: [
         { v: '5v5', l: '5 contre 5' },
         { v: '7v7', l: '7 contre 7' },
+        { v: '8v8', l: '8 contre 8' },
         { v: '11v11', l: '11 contre 11' },
         { v: 'futsal', l: 'Futsal' }
       ],
       genders: [
         { v: 'mixte', l: 'Mixte' },
-        { v: 'hommes', l: 'Hommes' },
-        { v: 'femmes', l: 'Femmes' }
+        { v: 'masculin', l: 'Masculin' },
+        { v: 'feminin', l: 'Féminin' }
       ],
       surfaces: [
         { v: 'gazon', l: 'Gazon naturel' },
@@ -3499,7 +3536,6 @@ function fmtDay(iso) {
 }
 function fmtMoney(n) { return n === 0 ? 'Gratuit' : `${n} €`; }
 function formatLabel(v) { const f = state.catalog.formats.find(x => x.v === v); return f ? f.l : v; }
-function levelLabel(v) { const l = state.catalog.levels.find(x => x.v === v); return l ? l.l : v; }
 function posLabel(v) { const p = state.catalog.positions.find(x => x.v === v); return p ? p.l : v; }
 function matchSizeLabel(v) { const m = state.catalog.matchSizes?.find(x => x.v === v); return m ? m.l : v; }
 function genderLabel(v) { const g = state.catalog.genders?.find(x => x.v === v); return g ? g.l : v; }
@@ -3940,7 +3976,7 @@ function renderPrivacy() {
       <p>Lors de votre inscription, nous collectons uniquement les données que vous saisissez volontairement :</p>
       <ul>
         <li><strong>Organisateur</strong> : nom du club, email, ville, nom du responsable, téléphone.</li>
-        <li><strong>Équipe</strong> : nom de l'équipe, email, ville, catégorie, niveau, nom du responsable, téléphone.</li>
+        <li><strong>Équipe</strong> : nom de l'équipe, email, département, ville, catégorie, nom du responsable, téléphone.</li>
         <li><strong>Sponsor</strong> : nom, email, ville, secteur, nom du contact, téléphone.</li>
       </ul>
       <p>Nous ne collectons aucune donnée sensible (origine, opinions, santé...) et n'utilisons pas de cookies de suivi publicitaire.</p>
@@ -4194,7 +4230,7 @@ function renderHome() {
           </div>
           <div class="role-card-eye">Équipes — trouver un tournoi</div>
           <h3 class="role-card-title">Espace <em>Équipe</em></h3>
-          <p class="role-card-desc">Pour les équipes — jeunes et seniors — qui souhaitent trouver des tournois correspondant à leur niveau, leur catégorie et leur zone géographique.</p>
+          <p class="role-card-desc">Pour les équipes — jeunes et seniors — qui souhaitent trouver des tournois correspondant à leur catégorie et leur zone géographique en Île-de-France.</p>
           <ul class="role-card-bullets">
             <li>Recherche par catégorie, ville et format</li>
             <li>Profil équipe avec préférences et mobilité</li>
@@ -4319,7 +4355,7 @@ function tournCardHome(t) {
           ${renderBadge(clubBadge(t.clubId), 'margin-left:0.4rem;font-size:9px;')}
         </div>
         <h3 class="t-card-title">${esc(t.name)}</h3>
-        <p class="t-card-meta">${esc(t.edition)} · ${esc(tournCategoriesLabel(t))} · ${esc(tournDateRange(t))}</p>
+        <p class="t-card-meta">${esc(tournCategoriesLabel(t))} · ${t.city ? esc(t.city) + ' · ' : ''}${esc(tournDateRange(t))}</p>
         ${urgency ? `<div class="t-card-urgency ${urgency.cls}">${urgency.label}</div>` : ''}
         <div class="t-card-foot">
           <span class="t-card-status ${t.status}">${t.status === 'open' ? 'Ouvert' : t.status === 'draft' ? 'Brouillon' : 'En cours'}</span>
@@ -4344,7 +4380,7 @@ function tournCard(t) {
           ${renderBadge(clubBadge(t.clubId), 'margin-left:0.4rem;font-size:9px;')}
         </div>
         <h3 class="t-card-title">${esc(t.name)}</h3>
-        <p class="t-card-meta">${esc(t.edition)} · ${esc(tournCategoriesLabel(t))} · ${esc(tournDateRange(t))}</p>
+        <p class="t-card-meta">${esc(tournCategoriesLabel(t))} · ${t.city ? esc(t.city) + ' · ' : ''}${esc(tournDateRange(t))}</p>
         <div class="t-card-foot">
           <span class="t-card-status ${t.status}">${t.status === 'open' ? 'Ouvert' : t.status === 'draft' ? 'Brouillon' : 'En cours'}</span>
           <span class="t-card-progress">${approved}/${t.maxTeams} équipes</span>
@@ -4426,9 +4462,14 @@ function renderSignupForm(type) {
       </div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Responsable / Président·e</label><input class="input" id="f-pres" required></div>
+        <div class="form-group"><label class="form-label">Département</label>
+        <select class="select" id="f-dept" required onchange="onDeptChange(this, 'f-city')">
+          ${deptOptionsHTML('', true)}
+        </select></div>
         <div class="form-group"><label class="form-label">Ville</label>
         <div class="city-wrap">
-          <input class="input" id="f-city" required autocomplete="off"
+          <input class="input" id="f-city" required autocomplete="off" disabled
+            placeholder="Choisis d'abord un département" data-dept-input="f-dept"
             oninput="cityAutocomplete(this)"
             onkeydown="_cityKeyNav(event, this)"
             onblur="_closeCityDropdown(this.closest('.city-wrap'))">
@@ -4450,19 +4491,19 @@ function renderSignupForm(type) {
         <div class="form-group"><label class="form-label">Mot de passe</label><input type="password" class="input" id="f-pwd" required minlength="6" placeholder="6 caractères minimum"></div>
         <div class="form-group"><label class="form-label">Confirmer le mot de passe</label><input type="password" class="input" id="f-pwd2" required minlength="6"></div>
       </div>
-      <div class="form-row">
-        <div class="form-group"><label class="form-label">Catégorie</label><select class="select" id="f-cat" required>
+      <div class="form-group"><label class="form-label">Catégorie</label><select class="select" id="f-cat" required>
           ${state.catalog.formats.map(f => `<option value="${f.v}">${esc(f.l)}</option>`).join('')}
         </select></div>
-        <div class="form-group"><label class="form-label">Niveau</label><select class="select" id="f-lvl" required>
-          ${state.catalog.levels.map(l => `<option value="${l.v}">${esc(l.l)}</option>`).join('')}
-        </select></div>
-      </div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Responsable</label><input class="input" id="f-mgr" required></div>
+        <div class="form-group"><label class="form-label">Département</label>
+        <select class="select" id="f-dept" required onchange="onDeptChange(this, 'f-city')">
+          ${deptOptionsHTML('', true)}
+        </select></div>
         <div class="form-group"><label class="form-label">Ville</label>
         <div class="city-wrap">
-          <input class="input" id="f-city" required autocomplete="off"
+          <input class="input" id="f-city" required autocomplete="off" disabled
+            placeholder="Choisis d'abord un département" data-dept-input="f-dept"
             oninput="cityAutocomplete(this)"
             onkeydown="_cityKeyNav(event, this)"
             onblur="_closeCityDropdown(this.closest('.city-wrap'))">
@@ -4483,9 +4524,14 @@ function renderSignupForm(type) {
       </div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Secteur</label><input class="input" id="f-sect" required placeholder="Restauration, Auto, Beauté..."></div>
+        <div class="form-group"><label class="form-label">Département</label>
+        <select class="select" id="f-dept" required onchange="onDeptChange(this, 'f-city')">
+          ${deptOptionsHTML('', true)}
+        </select></div>
         <div class="form-group"><label class="form-label">Ville</label>
         <div class="city-wrap">
-          <input class="input" id="f-city" required autocomplete="off"
+          <input class="input" id="f-city" required autocomplete="off" disabled
+            placeholder="Choisis d'abord un département" data-dept-input="f-dept"
             oninput="cityAutocomplete(this)"
             onkeydown="_cityKeyNav(event, this)"
             onblur="_closeCityDropdown(this.closest('.city-wrap'))">
@@ -4548,6 +4594,7 @@ async function handleSignup(e, type) {
     d = { name, email: document.getElementById('f-email').value.trim().toLowerCase(),
       password: document.getElementById('f-pwd').value,
       president: document.getElementById('f-pres').value.trim(),
+      department: document.getElementById('f-dept').value,
       city: document.getElementById('f-city').value.trim(),
       phone: document.getElementById('f-phone').value.trim(),
       mark: makeMark(name),
@@ -4557,8 +4604,8 @@ async function handleSignup(e, type) {
       password: document.getElementById('f-pwd').value,
       club: document.getElementById('f-club').value.trim(),
       category: document.getElementById('f-cat').value,
-      level: document.getElementById('f-lvl').value,
       manager: document.getElementById('f-mgr').value.trim(),
+      department: document.getElementById('f-dept').value,
       city: document.getElementById('f-city').value.trim(),
       phone: document.getElementById('f-phone').value.trim(),
       mark: makeMark(name), bio: '', availability: ['sat', 'sun'], players: [] };
@@ -4566,6 +4613,7 @@ async function handleSignup(e, type) {
     d = { name, email: document.getElementById('f-email').value.trim().toLowerCase(),
       password: document.getElementById('f-pwd').value,
       sector: document.getElementById('f-sect').value.trim(),
+      department: document.getElementById('f-dept').value,
       city: document.getElementById('f-city').value.trim(),
       contact: document.getElementById('f-cont').value.trim(),
       phone: document.getElementById('f-phone').value.trim(),
@@ -4957,7 +5005,7 @@ function renderTeamDashboard(team) {
         </div>
         <div class="aside-card" style="margin: 0;">
           <div class="aside-title">${esc(team.name)}</div>
-          <div class="aside-sub">${esc(team.club)} · ${formatLabel(team.category)} · ${levelLabel(team.level)} · ${esc(team.city)}</div>
+          <div class="aside-sub">${esc(team.club)} · ${formatLabel(team.category)} · ${esc(team.city)}</div>
           <div style="font-family: var(--font-serif); font-style: italic; font-size: 0.95rem; line-height: 1.5; color: var(--ink-soft);">
             ${team.bio ? esc(team.bio) : '<span style="color: var(--ink-mute);">Pas encore de bio. Ajoute-en une pour te présenter aux organisateurs.</span>'}
           </div>
@@ -5127,9 +5175,14 @@ function editTeamProfileModal() {
         </div>
       </div>
 
+      <div class="form-group"><label class="form-label">Département</label>
+        <select class="select" id="ed-dept" onchange="onDeptChange(this, 'ed-location')">
+          ${deptOptionsHTML(team.department || '', true)}
+        </select></div>
       <div class="form-group"><label class="form-label">Ville / Localisation</label>
         <div class="city-wrap">
-          <input class="input" id="ed-location" value="${esc(team.city || '')}" placeholder="Paris, Montreuil, Pantin..." autocomplete="off"
+          <input class="input" id="ed-location" value="${esc(team.city || '')}" placeholder="${team.department ? 'Tape pour chercher une ville…' : 'Choisis d\'abord un département'}" autocomplete="off" ${team.department ? '' : 'disabled'}
+            data-dept-input="ed-dept"
             oninput="cityAutocomplete(this)"
             onkeydown="_cityKeyNav(event, this)"
             onblur="_closeCityDropdown(this.closest('.city-wrap'))">
@@ -5190,6 +5243,8 @@ function saveTeamProfile() {
   const team = getAccount();
   team.bio = document.getElementById('ed-bio').value.trim();
   team.availability = [...document.querySelectorAll('#ed-days .day-check.selected')].map(el => el.dataset.k);
+  const deptEl = document.getElementById('ed-dept');
+  if (deptEl) team.department = deptEl.value;
   const locEl = document.getElementById('ed-location');
   if (locEl) team.city = locEl.value.trim();
   const websiteEl = document.getElementById('ed-website');
@@ -5289,15 +5344,32 @@ function saveSponsorProfile() {
 // TOURNAMENTS LIST
 // State for tournament search filters
 let tournamentSearchQuery    = '';
-let tournamentSearchLocation = '';
+let tournamentSearchDepts    = []; // multi-sélection IDF — [] = tous les départements (Brief BA Formulaires IDF)
 let tournamentSearchCategory = '';
 let tournamentSearchStatus   = '';
-let tournamentSearchLevel    = '';
 let tournamentSearchSurface  = '';
 let tournamentSearchFormat   = '';
 let tournamentSearchMaxFee   = '';
 let tournamentSortBy         = 'date';
 let tournamentAdvancedOpen   = false;
+
+function toggleDeptMultiselect(e) {
+  e.stopPropagation();
+  const panel = document.getElementById('dept-multiselect-panel');
+  if (!panel) return;
+  const willOpen = panel.style.display === 'none';
+  panel.style.display = willOpen ? 'block' : 'none';
+  if (willOpen) {
+    setTimeout(() => document.addEventListener('click', function closeOnce(ev) {
+      if (!panel.contains(ev.target)) { panel.style.display = 'none'; document.removeEventListener('click', closeOnce); }
+    }), 10);
+  }
+}
+function toggleSearchDept(code) {
+  const i = tournamentSearchDepts.indexOf(code);
+  if (i === -1) tournamentSearchDepts.push(code); else tournamentSearchDepts.splice(i, 1);
+  renderTournaments();
+}
 
 function updateSortButtons(activeBtn) {
   // Mettre à jour la classe active sur les boutons de tri sans re-rendre
@@ -5318,11 +5390,10 @@ function updateTournamentResults() {
   const scrollY  = window.scrollY;
 
   const filtered = filterTournaments(
-    tournamentSearchQuery, tournamentSearchLocation,
-    tournamentSearchCategory, tournamentSearchStatus
+    tournamentSearchQuery, tournamentSearchCategory, tournamentSearchStatus
   );
-  const hasActiveFilters = !!(tournamentSearchQuery || tournamentSearchLocation ||
-    tournamentSearchCategory || tournamentSearchStatus || tournamentSearchLevel ||
+  const hasActiveFilters = !!(tournamentSearchQuery || tournamentSearchDepts.length ||
+    tournamentSearchCategory || tournamentSearchStatus ||
     tournamentSearchSurface || tournamentSearchFormat || tournamentSearchMaxFee);
 
   // Mettre à jour le compteur sans toucher aux champs
@@ -5350,9 +5421,9 @@ function updateTournamentResults() {
 
 function renderTournaments() {
   const a = getAccount();
-  const filtered = filterTournaments(tournamentSearchQuery, tournamentSearchLocation, tournamentSearchCategory, tournamentSearchStatus);
+  const filtered = filterTournaments(tournamentSearchQuery, tournamentSearchCategory, tournamentSearchStatus);
   const totalCount = state.tournaments.length;
-  const hasActiveFilters = !!(tournamentSearchQuery || tournamentSearchLocation || tournamentSearchCategory || tournamentSearchStatus || tournamentSearchLevel || tournamentSearchSurface || tournamentSearchFormat || tournamentSearchMaxFee);
+  const hasActiveFilters = !!(tournamentSearchQuery || tournamentSearchDepts.length || tournamentSearchCategory || tournamentSearchStatus || tournamentSearchSurface || tournamentSearchFormat || tournamentSearchMaxFee);
 
   document.getElementById('app').innerHTML = `
     <div class="page-head">
@@ -5375,15 +5446,22 @@ function renderTournaments() {
               oninput="tournamentSearchQuery = this.value; updateTournamentResults();"
               onkeydown="if(event.key==='Enter') renderTournaments();">
           </div>
-          <div class="search-field-wrap" style="flex:2;">
-            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"/><circle cx="12" cy="10" r="3"/></svg>
-            <div class="city-wrap" style="flex:1;">
-              <input class="search-field" id="s-loc" type="text" autocomplete="off"
-                placeholder="Ville, département..."
-                value="${esc(tournamentSearchLocation)}"
-                oninput="tournamentSearchLocation = this.value; updateTournamentResults(); cityAutocomplete(this);"
-                onkeydown="if(event.key==='Enter'){ _closeCityDropdown(this.closest('.city-wrap')); renderTournaments(); } else { _cityKeyNav(event, this); }"
-                onblur="setTimeout(() => _closeCityDropdown(this.closest('.city-wrap')), 150);">
+          <div class="dept-multiselect" style="flex:2;position:relative;">
+            <button type="button" class="search-field dept-multiselect-btn" onclick="toggleDeptMultiselect(event)" style="width:100%;text-align:left;display:flex;align-items:center;gap:0.5rem;cursor:pointer;">
+              <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position:static;flex-shrink:0;"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"/><circle cx="12" cy="10" r="3"/></svg>
+              <span>${tournamentSearchDepts.length === 0 ? 'Tous les départements' : tournamentSearchDepts.map(deptLabel).join(', ')}</span>
+            </button>
+            <div id="dept-multiselect-panel" class="dept-multiselect-panel" style="display:none;">
+              <label class="dept-ms-item">
+                <input type="checkbox" ${tournamentSearchDepts.length === 0 ? 'checked' : ''} onchange="if(this.checked){ tournamentSearchDepts = []; renderTournaments(); }">
+                <span>Tous les départements</span>
+              </label>
+              <div class="dept-ms-sep"></div>
+              ${IDF_DEPARTEMENTS.map(d => `
+              <label class="dept-ms-item">
+                <input type="checkbox" value="${d.code}" ${tournamentSearchDepts.includes(d.code) ? 'checked' : ''} onchange="toggleSearchDept('${d.code}')">
+                <span>${esc(d.nom)} (${d.code})</span>
+              </label>`).join('')}
             </div>
           </div>
           <button class="btn btn-orange btn-sm" onclick="renderTournaments()" style="flex-shrink:0;">
@@ -5425,13 +5503,6 @@ function renderTournaments() {
         <div class="advanced-search-panel">
           <div class="advanced-search-grid">
             <div class="adv-field">
-              <label class="adv-label">Niveau</label>
-              <select class="filter-select" onchange="tournamentSearchLevel = this.value; updateTournamentResults();">
-                <option value="">Tous niveaux</option>
-                ${(state.catalog.levels||[]).map(l => `<option value="${l.v}" ${tournamentSearchLevel === l.v ? 'selected' : ''}>${esc(l.l)}</option>`).join('')}
-              </select>
-            </div>
-            <div class="adv-field">
               <label class="adv-label">Type de terrain</label>
               <select class="filter-select" onchange="tournamentSearchSurface = this.value; updateTournamentResults();">
                 <option value="">Tous terrains</option>
@@ -5471,42 +5542,36 @@ function renderTournaments() {
 }
 
 function clearAllTournamentFilters() {
-  tournamentSearchQuery = ''; tournamentSearchLocation = '';
+  tournamentSearchQuery = '';
   tournamentSearchCategory = ''; tournamentSearchStatus = '';
-  tournamentSearchLevel = ''; tournamentSearchSurface = '';
+  tournamentSearchDepts = []; tournamentSearchSurface = '';
   tournamentSearchFormat = ''; tournamentSearchMaxFee = '';
   tournamentSortBy = 'date'; tournamentAdvancedOpen = false;
   renderTournaments();
 }
 
-function filterTournaments(query, location, category, status) {
+function filterTournaments(query, category, status) {
   const q = (query || '').toLowerCase().trim();
-  const loc = (location || '').toLowerCase().trim();
 
   let results = (state.tournaments || []).filter(t => {
-    const club = getClub(t.clubId);
     const nameMatch = !q ||
       (t.name || '').toLowerCase().includes(q) ||
       (t.edition || '').toLowerCase().includes(q) ||
       (t.description || '').toLowerCase().includes(q);
-    const venue = tournVenue(t);
-    const locationMatch = !loc ||
-      (venue.name || '').toLowerCase().includes(loc) ||
-      (venue.address || '').toLowerCase().includes(loc) ||
-      (club?.city || '').toLowerCase().includes(loc) ||
-      (t.location || '').toLowerCase().includes(loc);
+    // Filtre département IDF (multi-sélection) — remplace l'ancienne recherche libre de lieu
+    const deptMatch = tournamentSearchDepts.length === 0 || tournamentSearchDepts.includes(t.department);
     const cats = tournCategories(t);
     const categoryMatch = !category || cats.includes(category);
     const statusMatch = !status || t.status === status;
     // Filtres avancés
-    const levelMatch = !tournamentSearchLevel || (t.level === tournamentSearchLevel);
+
     const surfaceMatch = !tournamentSearchSurface || t.surface === tournamentSearchSurface;
     const sizeAsMatch = t.teamSize ? (String(t.teamSize) + 'v' + String(t.teamSize)) : '';
     const formatMatch = !tournamentSearchFormat ||
       t.matchSize === tournamentSearchFormat ||
       sizeAsMatch === tournamentSearchFormat;
     const feeMatch = !tournamentSearchMaxFee || (t.entryFee || 0) <= parseFloat(tournamentSearchMaxFee);
-    return nameMatch && locationMatch && categoryMatch && statusMatch && levelMatch && surfaceMatch && formatMatch && feeMatch;
+    return nameMatch && deptMatch && categoryMatch && statusMatch && surfaceMatch && formatMatch && feeMatch;
   });
 
   // Tri
@@ -5514,8 +5579,8 @@ function filterTournaments(query, location, category, status) {
     if (tournamentSortBy === 'date') {
       return (a.date || '').localeCompare(b.date || '');
     } else if (tournamentSortBy === 'location') {
-      const ca = getClub(a.clubId)?.city || a.location || '';
-      const cb = getClub(b.clubId)?.city || b.location || '';
+      const ca = a.city || getClub(a.clubId)?.city || a.location || '';
+      const cb = b.city || getClub(b.clubId)?.city || b.location || '';
       return ca.localeCompare(cb);
     } else if (tournamentSortBy === 'fee') {
       return (a.entryFee || 0) - (b.entryFee || 0);
@@ -5572,9 +5637,29 @@ function renderCreateTournament() {
               <input type="time" class="input" id="t-time-end">
             </div>
           </div>
+          <div class="form-group">
+            <label class="form-label">Date limite d'inscription <span style="font-weight:400;color:var(--ink-mute);text-transform:none;letter-spacing:0;">(recommandé)</span></label>
+            <input type="date" class="input" id="t-deadline"
+              oninput="const ds = document.getElementById('t-date'); if (ds && this.value && ds.value && this.value > ds.value) { this.setCustomValidity('La date limite doit précéder le début du tournoi'); this.reportValidity(); } else { this.setCustomValidity(''); }">
+            <p class="form-help">Au-delà de cette date, les équipes ne pourront plus postuler.</p>
+          </div>
 
           <h3 class="detail-section-title" style="font-size: 1.1rem; margin: 2rem 0 1rem;">Lieu</h3>
 
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Département</label>
+              <select class="select" id="t-dept" required onchange="onDeptChange(this, 't-city')">
+                ${deptOptionsHTML('', true)}
+              </select></div>
+            <div class="form-group"><label class="form-label">Ville</label>
+              <div class="city-wrap">
+                <input class="input" id="t-city" required autocomplete="off" disabled
+                  placeholder="Choisis d'abord un département" data-dept-input="t-dept"
+                  oninput="cityAutocomplete(this)"
+                  onkeydown="_cityKeyNav(event, this)"
+                  onblur="_closeCityDropdown(this.closest('.city-wrap'))">
+              </div></div>
+          </div>
           <div class="form-row">
             <div class="form-group"><label class="form-label">Nom du lieu</label><input class="input" id="t-venue-name" required placeholder="Stade Léo Lagrange"></div>
             <div class="form-group"><label class="form-label">Surface</label>
@@ -5681,8 +5766,22 @@ function handleCreateT(e) {
   const compFormat = document.getElementById('t-compformat').value;
   const compFormatOther = document.getElementById('t-compformat-other').value.trim();
 
+  const department = document.getElementById('t-dept').value;
+  const city = document.getElementById('t-city').value.trim();
+  if (!department) {
+    errEl.textContent = 'Sélectionne un département (Île-de-France uniquement).';
+    errEl.classList.add('show');
+    return;
+  }
+  if (!city) {
+    errEl.textContent = 'Indique la ville du tournoi.';
+    errEl.classList.add('show');
+    return;
+  }
+
   const venueName = document.getElementById('t-venue-name').value.trim();
   const venueAddress = document.getElementById('t-venue-address').value.trim();
+  const registrationDeadline = document.getElementById('t-deadline')?.value || '';
 
   const dateStart = document.getElementById('t-date').value;
   const dateEnd = document.getElementById('t-date-end').value || dateStart; // Default to same day
@@ -5710,6 +5809,8 @@ function handleCreateT(e) {
     dateEnd: dateEnd || dateStart,
     timeStart,
     timeEnd,
+    registrationDeadline,
+    department, city,
     // New venue fields
     venueName, venueAddress,
     // Keep legacy 'location' for backward compat (combined display)
@@ -5808,9 +5909,28 @@ function renderEditTournament(tid) {
               <input type="time" class="input" id="t-time-end" value="${t.timeEnd || ''}">
             </div>
           </div>
+          <div class="form-group">
+            <label class="form-label">Date limite d'inscription <span style="font-weight:400;color:var(--ink-mute);text-transform:none;letter-spacing:0;">(recommandé)</span></label>
+            <input type="date" class="input" id="t-deadline" value="${t.registrationDeadline || ''}">
+            <p class="form-help">Au-delà de cette date, les équipes ne pourront plus postuler.</p>
+          </div>
 
           <h3 class="detail-section-title" style="font-size:1.1rem;margin:2rem 0 1rem;">Lieu</h3>
 
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Département</label>
+              <select class="select" id="t-dept" required onchange="onDeptChange(this, 't-city')">
+                ${deptOptionsHTML(t.department || '', true)}
+              </select></div>
+            <div class="form-group"><label class="form-label">Ville</label>
+              <div class="city-wrap">
+                <input class="input" id="t-city" required autocomplete="off" value="${esc(t.city || '')}" ${t.department ? '' : 'disabled'}
+                  placeholder="${t.department ? 'Tape pour chercher une ville…' : 'Choisis d\'abord un département'}" data-dept-input="t-dept"
+                  oninput="cityAutocomplete(this)"
+                  onkeydown="_cityKeyNav(event, this)"
+                  onblur="_closeCityDropdown(this.closest('.city-wrap'))">
+              </div></div>
+          </div>
           <div class="form-row">
             <div class="form-group"><label class="form-label">Nom du lieu</label>
               <input class="input" id="t-venue-name" required value="${esc(t.venueName || t.location || '')}"></div>
@@ -5912,6 +6032,17 @@ function handleEditT(e, tid) {
   const venueName = document.getElementById('t-venue-name').value.trim();
   const venueAddress = document.getElementById('t-venue-address').value.trim();
   const compFormat = document.getElementById('t-compformat').value;
+  const department = document.getElementById('t-dept').value;
+  const city = document.getElementById('t-city').value.trim();
+  const registrationDeadline = document.getElementById('t-deadline')?.value || '';
+  if (!department) {
+    errEl.textContent = 'Sélectionne un département (Île-de-France uniquement).';
+    errEl.classList.add('show'); return;
+  }
+  if (!city) {
+    errEl.textContent = 'Indique la ville du tournoi.';
+    errEl.classList.add('show'); return;
+  }
 
   // Update in place
   Object.assign(t, {
@@ -5921,6 +6052,8 @@ function handleEditT(e, tid) {
     dateEnd:           dateEnd,
     timeStart,
     timeEnd,
+    registrationDeadline,
+    department, city,
     venueName,
     venueAddress,
     location:          venueName + (venueAddress ? ' — ' + venueAddress : ''),
@@ -5961,7 +6094,7 @@ async function ensureTournamentLoaded(id) {
   try {
     const { data, error } = await supabaseClient
       .from('tournaments')
-      .select('id, club_id, name, edition, date, date_end, time_start, time_end, location, format, team_size, max_teams, entry_fee, surface, level, description, status, sponsor_tiers, animations, matches, created_at')
+      .select('id, club_id, name, edition, date, date_end, time_start, time_end, department, city, location, format, team_size, max_teams, entry_fee, surface, registration_deadline, description, status, sponsor_tiers, animations, matches, created_at')
       .eq('id', id)
       .maybeSingle();
     if (error || !data) {
@@ -6259,6 +6392,7 @@ function renderTabTeams(t, isOwner, a) {
               <div>
                 <div class="app-card-title">${esc(r.teamName)}</div>
                 <div class="app-card-meta">${esc(r.clubName)} · inscription ${fmtDate(r.registeredAt)}${r.teamId ? ' · <a href="#/teams/' + r.teamId + '" style="color: var(--accent); border-bottom: 1px solid;">Voir profil</a>' : ''}</div>
+                ${!r.teamId && (r.captainName || r.captainEmail || r.captainPhone) ? `<div class="app-card-meta" style="margin-top:0.25rem;">Capitaine : <strong>${esc(r.captainName || '')}</strong>${r.captainEmail ? ' · ' + esc(r.captainEmail) : ''}${r.captainPhone ? ' · ' + esc(r.captainPhone) : ''}${r.department ? ' · ' + esc(deptLabel(r.department)) : ''}</div>` : ''}
                 ${r.message ? `<div class="app-card-msg">"${esc(r.message)}"</div>` : ''}
               </div>
               <div class="app-actions">
@@ -6508,7 +6642,12 @@ function renderAside(t, isOwner, a) {
         <div class="aside-stat"><div class="aside-stat-label">Tarif</div><div class="aside-stat-val">${fmtMoney(t.entryFee)}</div></div>
       </div>`;
   if (!a) {
-    html += `<a href="#/login" class="btn btn-orange btn-full">Se connecter pour postuler</a>`;
+    if (conf < t.maxTeams) {
+      html += `<button class="btn btn-orange btn-full" onclick="applyTournamentVisitorModal('${t.id}')">Inscrire mon équipe <span class="btn-arrow"></span></button>
+        <p style="margin-top:0.6rem;font-size:12px;color:var(--ink-mute);text-align:center;">Sans création de compte — 2 minutes</p>`;
+    } else {
+      html += `<button class="btn btn-outline btn-full" disabled>Complet</button>`;
+    }
   } else if (canApply && conf < t.maxTeams) {
     html += `<button class="btn btn-orange btn-full" onclick="applyTournamentModal('${t.id}')">Postuler avec mon équipe <span class="btn-arrow"></span></button>`;
   } else if (hasApplied) {
@@ -6581,7 +6720,7 @@ function applyTournamentModal(tid) {
   if (!a || a.type !== 'team') { toast('Connecte-toi avec un compte équipe', 'error'); return; }
   const t = getTournament(tid);
   modal('Postuler à ' + t.name,
-    `<p>Tu postules avec <strong>${esc(a.name)}</strong> (${formatLabel(a.category)}, ${levelLabel(a.level)}).</p>
+    `<p>Tu postules avec <strong>${esc(a.name)}</strong> (${formatLabel(a.category)}).</p>
      <p style="margin-top: 0.6rem;">Frais : <strong style="color: var(--accent);">${fmtMoney(t.entryFee)}</strong></p>
      <div style="margin-top: 1rem;">
        <label class="form-label">Message à l'organisateur (optionnel)</label>
@@ -6602,6 +6741,184 @@ function confirmApply(tid) {
   syncRegistration(t.id, t.registrations[t.registrations.length - 1]); // RSSI : table dédiée
   closeModal(); toast('Candidature envoyée !', 'success'); renderTournamentDetail(tid);
 }
+
+// ===========================================
+// LOT 2 — Inscription d'équipe par un visiteur (sans compte)
+// Brief BA Formulaires IDF — friction minimale, tournamentId porté par le contexte
+// ===========================================
+function applyTournamentVisitorModal(tid) {
+  const t = getTournament(tid);
+  if (!t) return;
+  const modeNotice = supabaseClient
+    ? '<div style="display:flex;align-items:center;gap:0.4rem;font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--olive);margin-bottom:0.85rem;"><span style="width:7px;height:7px;border-radius:50%;background:var(--olive);display:inline-block;"></span>Mode réel — ta candidature est enregistrée</div>'
+    : '<div style="display:flex;align-items:center;gap:0.4rem;font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-mute);margin-bottom:0.85rem;"><span style="width:7px;height:7px;border-radius:50%;background:var(--ink-mute);display:inline-block;"></span>Mode démo — données locales uniquement</div>';
+  modal('Inscrire mon équipe — ' + t.name, `
+    ${modeNotice}
+    <div style="background:var(--paper-soft);border:1px solid var(--line);border-radius:4px;padding:0.85rem 1rem;margin-bottom:1.1rem;">
+      <div style="font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink-mute);margin-bottom:0.5rem;">Ce tournoi en bref</div>
+      <div style="font-family:var(--font-sans);font-size:13px;line-height:1.7;color:var(--ink-soft);">
+        ${t.matchSize ? `Format <strong style="color:var(--ink);">${esc(matchSizeLabel(t.matchSize))}</strong> · ` : ''}${t.surface ? `Terrain <strong style="color:var(--ink);">${esc(surfaceLabel(t.surface))}</strong> · ` : ''}${t.format ? `Catégorie <strong style="color:var(--ink);">${esc(formatLabel(t.format))}</strong> · ` : ''}Frais <strong style="color:var(--accent);">${fmtMoney(t.entryFee)}</strong>
+      </div>
+    </div>
+
+    <input type="text" name="website" id="va-hp" style="position:absolute;left:-9999px;opacity:0;pointer-events:none;" tabindex="-1" autocomplete="off">
+
+    <div class="form-group"><label class="form-label">Nom de l'équipe</label>
+      <input class="input" id="va-team" required aria-describedby="va-team-err" onblur="vaCheckRequired('va-team','Indique le nom de l\'équipe.')">
+      <p class="field-error" id="va-team-err"></p></div>
+
+    <div class="form-group"><label class="form-label">Nom du capitaine / responsable</label>
+      <input class="input" id="va-captain" required aria-describedby="va-captain-err" onblur="vaCheckRequired('va-captain','Indique le nom du capitaine.')">
+      <p class="field-error" id="va-captain-err"></p></div>
+
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Email du capitaine</label>
+        <input type="email" class="input" id="va-email" required autocomplete="email" aria-describedby="va-email-err" onblur="vaCheckEmail()">
+        <p class="field-error" id="va-email-err"></p></div>
+      <div class="form-group"><label class="form-label">Téléphone</label>
+        <input type="tel" class="input" id="va-phone" required placeholder="06 12 34 56 78" autocomplete="tel" inputmode="tel" aria-describedby="va-phone-err" onblur="vaCheckPhone()">
+        <p class="field-error" id="va-phone-err"></p></div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Département</label>
+        <select class="select" id="va-dept" required onchange="onDeptChange(this, 'va-city'); vaCheckRequired('va-dept','Sélectionne un département.')">
+          ${deptOptionsHTML('', true)}
+        </select>
+        <p class="field-error" id="va-dept-err"></p></div>
+      <div class="form-group"><label class="form-label">Ville <span style="font-weight:400;color:var(--ink-mute);text-transform:none;letter-spacing:0;">(optionnel)</span></label>
+        <div class="city-wrap">
+          <input class="input" id="va-city" autocomplete="off" disabled placeholder="Choisis d'abord un département" data-dept-input="va-dept"
+            oninput="cityAutocomplete(this)" onkeydown="_cityKeyNav(event,this)" onblur="_closeCityDropdown(this.closest('.city-wrap'))">
+        </div></div>
+    </div>
+
+    <div class="form-group"><label class="form-label">Club d'appartenance <span style="font-weight:400;color:var(--ink-mute);text-transform:none;letter-spacing:0;">(optionnel)</span></label>
+      <input class="input" id="va-club"></div>
+
+    <label class="consent-label">
+      <input type="checkbox" id="va-consent-data" required style="flex-shrink:0;margin-top:2px;accent-color:var(--accent);width:16px;height:16px;">
+      <span class="consent-text">J'accepte que mes données soient collectées par Le Tournoi pour traiter cette candidature, conformément à la <a href="#/privacy" style="color:var(--accent);">politique de confidentialité</a>. — obligatoire</span>
+    </label>
+    <label class="consent-label" style="margin-top:0.5rem;">
+      <input type="checkbox" id="va-consent-comms" style="flex-shrink:0;margin-top:2px;accent-color:var(--accent);width:16px;height:16px;">
+      <span class="consent-text">J'accepte de recevoir des communications de Le Tournoi (optionnel).</span>
+    </label>
+
+    <p class="form-error" id="va-err" style="margin-top:0.85rem;"></p>
+  `, `
+    <button class="btn btn-ghost" onclick="closeModal()">Annuler</button>
+    <button class="btn btn-orange" id="va-submit-btn" onclick="confirmApplyVisitor('${tid}')">Envoyer la candidature</button>
+  `);
+}
+
+function vaCheckRequired(id, msg) {
+  const el = document.getElementById(id);
+  const errEl = document.getElementById(id + '-err');
+  if (!errEl) return true;
+  if (!el.value || !el.value.trim()) { errEl.textContent = msg; errEl.classList.add('show'); return false; }
+  errEl.textContent = ''; errEl.classList.remove('show'); return true;
+}
+function vaCheckEmail() {
+  const el = document.getElementById('va-email');
+  const errEl = document.getElementById('va-email-err');
+  const val = (el.value || '').trim();
+  const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
+  if (!val) { errEl.textContent = 'Indique un email.'; errEl.classList.add('show'); return false; }
+  if (!ok)  { errEl.textContent = 'Format d\'email invalide.'; errEl.classList.add('show'); return false; }
+  errEl.textContent = ''; errEl.classList.remove('show'); return true;
+}
+function vaCheckPhone() {
+  const el = document.getElementById('va-phone');
+  const errEl = document.getElementById('va-phone-err');
+  const val = (el.value || '').replace(/[\s.\-]/g, '');
+  const ok = /^(0|\+33)[1-9](\d{2}){4}$/.test(val);
+  if (!val) { errEl.textContent = 'Indique un numéro de téléphone.'; errEl.classList.add('show'); return false; }
+  if (!ok)  { errEl.textContent = 'Format français attendu (ex : 06 12 34 56 78).'; errEl.classList.add('show'); return false; }
+  errEl.textContent = ''; errEl.classList.remove('show'); return true;
+}
+
+async function confirmApplyVisitor(tid) {
+  const t = getTournament(tid);
+  if (!t) return;
+  const errEl = document.getElementById('va-err');
+  errEl.classList.remove('show');
+
+  // Anti-spam honeypot
+  const hp = document.getElementById('va-hp');
+  if (hp && hp.value.trim() !== '') { console.log('[Le Tournoi] honeypot triggered (visitor apply), blocking'); return; }
+
+  // Validation complète avant envoi
+  const okTeam    = vaCheckRequired('va-team', 'Indique le nom de l\'équipe.');
+  const okCaptain = vaCheckRequired('va-captain', 'Indique le nom du capitaine.');
+  const okEmail   = vaCheckEmail();
+  const okPhone   = vaCheckPhone();
+  const okDept    = vaCheckRequired('va-dept', 'Sélectionne un département.');
+  const consent   = document.getElementById('va-consent-data');
+  if (!okTeam || !okCaptain || !okEmail || !okPhone || !okDept) {
+    errEl.textContent = 'Corrige les champs en rouge ci-dessus.'; errEl.classList.add('show'); return;
+  }
+  if (!consent || !consent.checked) {
+    errEl.textContent = 'Le consentement RGPD est obligatoire pour continuer.'; errEl.classList.add('show'); return;
+  }
+
+  const teamName    = document.getElementById('va-team').value.trim();
+  const captainName = document.getElementById('va-captain').value.trim();
+  const email       = document.getElementById('va-email').value.trim().toLowerCase();
+  const phone       = document.getElementById('va-phone').value.trim();
+  const department  = document.getElementById('va-dept').value;
+  const city         = document.getElementById('va-city').value.trim();
+  const club         = document.getElementById('va-club').value.trim();
+  const consentComms = document.getElementById('va-consent-comms')?.checked === true;
+
+  const submitBtn = document.getElementById('va-submit-btn');
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Envoi…'; }
+
+  const registration = {
+    id: uid(), teamId: null, teamName, clubName: club,
+    captainName, captainEmail: email, captainPhone: phone,
+    department, city,
+    status: 'pending', registeredAt: new Date().toISOString(), message: ''
+  };
+  t.registrations.push(registration);
+  saveState();
+  syncTournament(t);
+  await syncRegistration(t.id, registration);
+
+  // Consentement RGPD tracé dans la table consents existante (non bloquant)
+  if (supabaseClient && signupMode === 'real') {
+    try {
+      await supabaseClient.from('consents').insert([{
+        email, account_type: 'team_visitor',
+        consent_data_collection: true,
+        consent_marketing: consentComms
+      }]);
+    } catch(e) { /* non bloquant */ }
+  }
+
+  if (submitBtn) { submitBtn.disabled = false; }
+
+  // Écran de confirmation — recap + "créer mon espace" en option, jamais bloquant
+  modal('Candidature envoyée !', `
+    <div style="text-align:center;padding:0.5rem 0 1rem;">
+      <div style="font-size:2.2rem;color:var(--accent);margin-bottom:0.5rem;">✓</div>
+      <p class="detail-text">Ta candidature pour <strong>${esc(teamName)}</strong> a bien été envoyée à l'organisateur de <strong>${esc(t.name)}</strong>.</p>
+    </div>
+    <div style="background:var(--paper-soft);border:1px solid var(--line);border-radius:4px;padding:0.85rem 1rem;margin:1rem 0;">
+      <div style="font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink-mute);margin-bottom:0.5rem;">Récapitulatif</div>
+      <div style="font-family:var(--font-sans);font-size:13px;line-height:1.8;color:var(--ink-soft);">
+        Capitaine : <strong style="color:var(--ink);">${esc(captainName)}</strong><br>
+        Contact : <strong style="color:var(--ink);">${esc(email)} · ${esc(phone)}</strong><br>
+        Statut : <strong style="color:var(--accent);">En attente de validation par l'organisateur</strong>
+      </div>
+    </div>
+    <p class="detail-text" style="font-size:13px;">Pas besoin de créer de compte pour suivre cette candidature — l'organisateur te recontacte directement. Tu peux toutefois créer ton espace équipe pour gérer plus tard tes inscriptions et ton profil.</p>
+  `, `
+    <button class="btn btn-ghost" onclick="closeModal()">Fermer</button>
+    <a href="#/signup" class="btn btn-orange" onclick="closeModal()">Créer mon espace équipe</a>
+  `);
+}
+
 function quickRegisterModal(tid) {
   modal('Inscrire une équipe',
     `<p>Inscris manuellement une équipe.</p>
@@ -7483,7 +7800,7 @@ function renderTeamsList() {
               <div class="t-card-num">${t.players.length}</div>
             </div>
             <div class="t-card-body">
-              <div class="t-card-club">${formatLabel(t.category)} · ${levelLabel(t.level)}</div>
+              <div class="t-card-club">${formatLabel(t.category)}</div>
               <h3 class="t-card-title">${esc(t.name)}</h3>
               <p class="t-card-meta">${esc(t.club)} · ${esc(t.city)}</p>
               <div class="t-card-foot">
@@ -7512,7 +7829,7 @@ function renderTeamProfile(id) {
         <div class="profile-info">
           <div class="profile-eyebrow">Équipe · ${formatLabel(team.category)}</div>
           <h1 class="profile-name">${esc(team.name)}</h1>
-          <p class="profile-meta">${esc(team.club)} · ${esc(team.city)} · ${levelLabel(team.level)} · ${team.players.length} joueur${team.players.length > 1 ? 's' : ''} · ${approvedApps} tournoi${approvedApps > 1 ? 's' : ''} joué${approvedApps > 1 ? 's' : ''}</p>
+          <p class="profile-meta">${esc(team.club)} · ${esc(team.city)} · ${team.players.length} joueur${team.players.length > 1 ? 's' : ''} · ${approvedApps} tournoi${approvedApps > 1 ? 's' : ''} joué${approvedApps > 1 ? 's' : ''}</p>
           <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;margin-top:0.5rem;">
             ${renderBadge(teamBadge(team.id))}
             ${safeUrl(team.website) ? `<a href="${safeUrl(team.website)}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm" style="font-size:11px;">Site web →</a>` : ''}
@@ -7738,7 +8055,42 @@ function renderSponsorProfile(id) {
 }
 
 
+// ===== Île-de-France — source unique des départements (Brief BA Formulaires IDF) =====
+const IDF_DEPARTEMENTS = [
+  { code: '75', nom: 'Paris' },
+  { code: '77', nom: 'Seine-et-Marne' },
+  { code: '78', nom: 'Yvelines' },
+  { code: '91', nom: 'Essonne' },
+  { code: '92', nom: 'Hauts-de-Seine' },
+  { code: '93', nom: 'Seine-Saint-Denis' },
+  { code: '94', nom: 'Val-de-Marne' },
+  { code: '95', nom: "Val-d'Oise" }
+];
+function deptLabel(code) { const d = IDF_DEPARTEMENTS.find(x => x.code === code); return d ? d.nom : (code || ''); }
+function deptLabelFull(code) { const d = IDF_DEPARTEMENTS.find(x => x.code === code); return d ? d.nom + ' (' + d.code + ')' : (code || ''); }
+
+// Génère les <option> d'un sélecteur département mono-choix IDF
+function deptOptionsHTML(selected, withEmpty) {
+  const empty = withEmpty ? '<option value="">Département...</option>' : '';
+  return empty + IDF_DEPARTEMENTS.map(d =>
+    `<option value="${d.code}" ${selected === d.code ? 'selected' : ''}>${esc(d.nom)} (${d.code})</option>`
+  ).join('');
+}
+
+// Quand le département change : vide + désactive/active le champ ville lié, ferme tout dropdown ouvert
+function onDeptChange(selectEl, cityInputId) {
+  const cityInput = document.getElementById(cityInputId);
+  if (!cityInput) return;
+  cityInput.value = '';
+  cityInput.disabled = !selectEl.value;
+  cityInput.placeholder = selectEl.value ? 'Tape pour chercher une ville…' : 'Choisis d\'abord un département';
+  const wrap = cityInput.closest('.city-wrap');
+  if (wrap) _closeCityDropdown(wrap);
+}
+
 // ===== Autocomplétion ville via geo.api.gouv.fr (API officielle, gratuite) =====
+// Scopée Île-de-France : chaque champ ville est lié à un sélecteur département
+// via l'attribut data-dept-input (id du <select> département correspondant).
 const _cityCache = {};     // cache des résultats pour éviter les appels répétés
 let   _cityDebounce = null; // timer debounce
 let   _cityFocusIdx = -1;   // index de navigation clavier dans le dropdown
@@ -7747,22 +8099,32 @@ function cityAutocomplete(inputEl) {
   const val = inputEl.value.trim();
   const wrap = inputEl.closest('.city-wrap') || inputEl.parentNode;
   _closeCityDropdown(wrap);
+
+  // Champ ville scopé IDF : pas de département sélectionné → aucune suggestion
+  const deptInputId = inputEl.dataset.deptInput;
+  const deptCode = deptInputId ? (document.getElementById(deptInputId)?.value || '') : '';
+  if (deptInputId && !deptCode) return;
   if (val.length < 2) return;
+
+  const cacheKey = deptCode + '|' + val.toLowerCase();
 
   // Debounce 250ms pour ne pas appeler l'API à chaque frappe
   clearTimeout(_cityDebounce);
   _cityDebounce = setTimeout(async () => {
-    if (_cityCache[val]) {
-      _renderCityDropdown(inputEl, wrap, _cityCache[val]);
+    if (_cityCache[cacheKey]) {
+      _renderCityDropdown(inputEl, wrap, _cityCache[cacheKey]);
       return;
     }
     try {
-      const url = 'https://geo.api.gouv.fr/communes?nom=' +
+      let url = 'https://geo.api.gouv.fr/communes?nom=' +
         encodeURIComponent(val) +
         '&fields=nom,codesPostaux,departement&boost=population&limit=8';
+      if (deptCode) url += '&codeDepartement=' + encodeURIComponent(deptCode);
       const res  = await fetch(url);
-      const data = await res.json();
-      _cityCache[val] = data;
+      let data = await res.json();
+      // Garde-fou : ne jamais proposer une commune hors des 8 départements IDF
+      if (deptCode) data = (data || []).filter(c => c.departement?.code === deptCode);
+      _cityCache[cacheKey] = data;
       _renderCityDropdown(inputEl, wrap, data);
     } catch(e) {
       // Silencieux — l'API est optionnelle, la saisie libre reste possible
@@ -7835,7 +8197,7 @@ function navigateToTournamentsWithPrefs() {
   const a = getAccount();
   if (a?.type === 'team' && a.preferences) {
     tournamentSearchCategory = a.preferences.categories?.[0] || '';
-    tournamentSearchLocation = a.city || '';
+    tournamentSearchDepts = a.department ? [a.department] : [];
     tournamentSearchQuery = '';
     tournamentSearchStatus = 'open';
   }
