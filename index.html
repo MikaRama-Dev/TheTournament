@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- RSSI : Content-Security-Policy — restreint les sources autorisées -->
 <!-- Note : frame-ancestors retiré du meta (invalide ici, honoré uniquement via en-tête HTTP) -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co https://geo.api.gouv.fr https://cdn.jsdelivr.net; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co https://geo.api.gouv.fr https://api-adresse.data.gouv.fr https://cdn.jsdelivr.net; base-uri 'self'; form-action 'self'">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>Le Tournoi — la plateforme des tournois de foot amateur</title>
@@ -2826,8 +2826,6 @@ async function submitRealSignup(type, data, consents) {
     payload = {
       name:            data.name      || null,
       email:           data.email     || null,
-      department:      data.department|| null,
-      city:            data.city      || null,
       president:       data.president || null,
       phone:           data.phone     || null,
       status:          'pending',
@@ -2839,10 +2837,6 @@ async function submitRealSignup(type, data, consents) {
     payload = {
       name: data.name || null,
       email: data.email || null,
-      department: data.department || null,
-      city: data.city || null,
-      club: data.club || null,
-      category: data.category || null,
       manager: data.manager || null,
       phone: data.phone || null,
       status: 'pending'
@@ -4460,21 +4454,7 @@ function renderSignupForm(type) {
         <div class="form-group"><label class="form-label">Mot de passe</label><input type="password" class="input" id="f-pwd" required minlength="6" placeholder="6 caractères minimum"></div>
         <div class="form-group"><label class="form-label">Confirmer le mot de passe</label><input type="password" class="input" id="f-pwd2" required minlength="6"></div>
       </div>
-      <div class="form-row">
-        <div class="form-group"><label class="form-label">Responsable / Président·e</label><input class="input" id="f-pres" required></div>
-        <div class="form-group"><label class="form-label">Département</label>
-        <select class="select" id="f-dept" required onchange="onDeptChange(this, 'f-city')">
-          ${deptOptionsHTML('', true)}
-        </select></div>
-        <div class="form-group"><label class="form-label">Ville</label>
-        <div class="city-wrap">
-          <input class="input" id="f-city" required autocomplete="off" disabled
-            placeholder="Choisis d'abord un département" data-dept-input="f-dept"
-            oninput="cityAutocomplete(this)"
-            onkeydown="_cityKeyNav(event, this)"
-            onblur="_closeCityDropdown(this.closest('.city-wrap'))">
-        </div></div>
-      </div>
+      <div class="form-group"><label class="form-label">Responsable / Président·e</label><input class="input" id="f-pres" required></div>
       <div class="form-group"><label class="form-label">Téléphone</label><input class="input" id="f-phone" placeholder="06 12 34 56 78"></div>
       <div class="form-group"><label class="form-label">Site web <span style="font-weight:400;color:var(--ink-mute);text-transform:none;letter-spacing:0;">(optionnel)</span></label><input type="url" class="input" id="f-website" placeholder="https://..."></div>
       <button type="submit" class="btn btn-primary btn-full btn-lg">Créer un compte organisateur <span class="btn-arrow"></span></button>
@@ -4482,35 +4462,15 @@ function renderSignupForm(type) {
   if (type === 'team') return `
     <form onsubmit="handleSignup(event, 'team')" autocomplete="off">
       ${HP}
-      <div class="form-row">
-        <div class="form-group"><label class="form-label">Nom de l'équipe</label><input class="input" id="f-name" required placeholder="FCB U15 A"></div>
-        <div class="form-group"><label class="form-label">Club d'origine</label><input class="input" id="f-club" required placeholder="FC Belleville"></div>
-      </div>
+      <div class="form-group"><label class="form-label">Nom de l'équipe</label><input class="input" id="f-name" required placeholder="FCB U15 A"></div>
       <div class="form-group"><label class="form-label">Email</label><input type="email" class="input" id="f-email" required></div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Mot de passe</label><input type="password" class="input" id="f-pwd" required minlength="6" placeholder="6 caractères minimum"></div>
         <div class="form-group"><label class="form-label">Confirmer le mot de passe</label><input type="password" class="input" id="f-pwd2" required minlength="6"></div>
       </div>
-      <div class="form-group"><label class="form-label">Catégorie</label><select class="select" id="f-cat" required>
-          ${state.catalog.formats.map(f => `<option value="${f.v}">${esc(f.l)}</option>`).join('')}
-        </select></div>
-      <div class="form-row">
-        <div class="form-group"><label class="form-label">Responsable</label><input class="input" id="f-mgr" required></div>
-        <div class="form-group"><label class="form-label">Département</label>
-        <select class="select" id="f-dept" required onchange="onDeptChange(this, 'f-city')">
-          ${deptOptionsHTML('', true)}
-        </select></div>
-        <div class="form-group"><label class="form-label">Ville</label>
-        <div class="city-wrap">
-          <input class="input" id="f-city" required autocomplete="off" disabled
-            placeholder="Choisis d'abord un département" data-dept-input="f-dept"
-            oninput="cityAutocomplete(this)"
-            onkeydown="_cityKeyNav(event, this)"
-            onblur="_closeCityDropdown(this.closest('.city-wrap'))">
-        </div></div>
-      </div>
+      <div class="form-group"><label class="form-label">Responsable</label><input class="input" id="f-mgr" required></div>
       <div class="form-group"><label class="form-label">Téléphone</label><input class="input" id="f-phone" placeholder="06 12 34 56 78"></div>
-      <div class="form-group"><label class="form-label">Site web de l'équipe <span style="font-weight:400;color:var(--ink-mute);text-transform:none;letter-spacing:0;">(optionnel)</span></label><input type="url" class="input" id="f-website" placeholder="https://..."></div>
+      <p class="form-help">Club d'origine, catégorie, ville et site web pourront être complétés depuis votre profil équipe une fois connecté.</p>
       <button type="submit" class="btn btn-primary btn-full btn-lg">Créer un compte équipe <span class="btn-arrow"></span></button>
     </form>`;
   return `
@@ -4594,21 +4554,16 @@ async function handleSignup(e, type) {
     d = { name, email: document.getElementById('f-email').value.trim().toLowerCase(),
       password: document.getElementById('f-pwd').value,
       president: document.getElementById('f-pres').value.trim(),
-      department: document.getElementById('f-dept').value,
-      city: document.getElementById('f-city').value.trim(),
       phone: document.getElementById('f-phone').value.trim(),
       mark: makeMark(name),
       logoClass: ['alt-1','alt-2','alt-3','alt-4',''][state.clubs.length % 5] };
   } else if (type === 'team') {
     d = { name, email: document.getElementById('f-email').value.trim().toLowerCase(),
       password: document.getElementById('f-pwd').value,
-      club: document.getElementById('f-club').value.trim(),
-      category: document.getElementById('f-cat').value,
       manager: document.getElementById('f-mgr').value.trim(),
-      department: document.getElementById('f-dept').value,
-      city: document.getElementById('f-city').value.trim(),
       phone: document.getElementById('f-phone').value.trim(),
-      mark: makeMark(name), bio: '', availability: ['sat', 'sun'], players: [] };
+      mark: makeMark(name), club: '', category: '', department: '', city: '', website: '',
+      bio: '', availability: ['sat', 'sun'], players: [] };
   } else {
     d = { name, email: document.getElementById('f-email').value.trim().toLowerCase(),
       password: document.getElementById('f-pwd').value,
@@ -5061,7 +5016,7 @@ function renderTeamDashboard(team) {
                 <div class="list-num">${a.r.status === 'approved' ? '✓' : a.r.status === 'pending' ? '·' : '×'}</div>
                 <div class="list-info">
                   <div class="list-name">${esc(a.t.name)}</div>
-                  <div class="list-sub">${esc(a.t.edition)} · ${fmtDate(a.t.date)} · ${esc(a.t.location)}</div>
+                  <div class="list-sub">${a.t.edition ? esc(a.t.edition) + ' · ' : ''}${fmtDate(a.t.date)} · ${esc(a.t.location)}</div>
                 </div>
                 <span class="list-status ${a.r.status}">${a.r.status === 'approved' ? 'Accepté' : a.r.status === 'pending' ? 'En attente' : 'Refusé'}</span>
                 <a href="#/tournaments/${a.t.id}" class="btn btn-outline btn-sm">Voir</a>
@@ -5165,6 +5120,16 @@ function editTeamProfileModal() {
   modal('Modifier mon profil',
     `<div style="max-height:70vh;overflow-y:auto;padding-right:0.25rem;">
 
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Club d'origine <span style="font-weight:400;color:var(--ink-mute);text-transform:none;letter-spacing:0;">(optionnel)</span></label>
+          <input class="input" id="ed-club" value="${esc(team.club || '')}" placeholder="FC Belleville"></div>
+        <div class="form-group"><label class="form-label">Catégorie</label>
+          <select class="select" id="ed-cat">
+            <option value="">Non renseignée</option>
+            ${(state.catalog.formats||[]).map(f => `<option value="${f.v}" ${team.category === f.v ? 'selected' : ''}>${esc(f.l)}</option>`).join('')}
+          </select></div>
+      </div>
+
       <div class="form-group"><label class="form-label">Bio (présentation)</label>
         <textarea class="textarea" id="ed-bio" placeholder="Présente ton équipe en quelques phrases...">${esc(team.bio || '')}</textarea>
       </div>
@@ -5241,6 +5206,10 @@ function editTeamProfileModal() {
 }
 function saveTeamProfile() {
   const team = getAccount();
+  const clubEl = document.getElementById('ed-club');
+  if (clubEl) team.club = clubEl.value.trim();
+  const catEl = document.getElementById('ed-cat');
+  if (catEl) team.category = catEl.value;
   team.bio = document.getElementById('ed-bio').value.trim();
   team.availability = [...document.querySelectorAll('#ed-days .day-check.selected')].map(el => el.dataset.k);
   const deptEl = document.getElementById('ed-dept');
@@ -5608,10 +5577,7 @@ function renderCreateTournament() {
           <h3 class="detail-section-title" style="font-size: 1.1rem; margin-bottom: 1rem;">Informations générales</h3>
 
           <div class="form-group"><label class="form-label">Nom du tournoi</label><input class="input" id="t-name" required placeholder="Coupe de Belleville"></div>
-          <div class="form-row">
-            <div class="form-group"><label class="form-label">Édition</label><input class="input" id="t-ed" value="1ère édition"></div>
-            <div class="form-group"><label class="form-label">Frais d'inscription (€)</label><input type="number" class="input" id="t-fee" required min="0" value="80"></div>
-          </div>
+          <div class="form-group"><label class="form-label">Frais d'inscription (€)</label><input type="number" class="input" id="t-fee" required min="0" value="80"></div>
 
           <div class="form-row">
             <div class="form-group">
@@ -5646,29 +5612,31 @@ function renderCreateTournament() {
 
           <h3 class="detail-section-title" style="font-size: 1.1rem; margin: 2rem 0 1rem;">Lieu</h3>
 
+          <input type="hidden" id="t-city" value="">
           <div class="form-row">
             <div class="form-group"><label class="form-label">Département</label>
-              <select class="select" id="t-dept" required onchange="onDeptChange(this, 't-city')">
+              <select class="select" id="t-dept" required onchange="onDeptChange(this, 't-venue-address'); document.getElementById('t-venue-address').placeholder = this.value ? 'Tape pour chercher l\'adresse…' : 'Choisis d\'abord un département';">
                 ${deptOptionsHTML('', true)}
               </select></div>
-            <div class="form-group"><label class="form-label">Ville</label>
-              <div class="city-wrap">
-                <input class="input" id="t-city" required autocomplete="off" disabled
-                  placeholder="Choisis d'abord un département" data-dept-input="t-dept"
-                  oninput="cityAutocomplete(this)"
-                  onkeydown="_cityKeyNav(event, this)"
-                  onblur="_closeCityDropdown(this.closest('.city-wrap'))">
-              </div></div>
+            <div class="form-group"><label class="form-label">Nom du lieu</label><input class="input" id="t-venue-name" required placeholder="Stade Léo Lagrange"></div>
           </div>
           <div class="form-row">
-            <div class="form-group"><label class="form-label">Nom du lieu</label><input class="input" id="t-venue-name" required placeholder="Stade Léo Lagrange"></div>
+            <div class="form-group" style="flex:2;"><label class="form-label">Adresse complète</label>
+              <div class="city-wrap">
+                <input class="input" id="t-venue-address" required autocomplete="off" disabled
+                  placeholder="Choisis d'abord un département" data-dept-input="t-dept"
+                  oninput="addressAutocomplete(this, 't-dept', 't-city')"
+                  onkeydown="_cityKeyNav(event, this)"
+                  onblur="_closeCityDropdown(this.closest('.city-wrap'))">
+              </div>
+              <p class="form-help">Tape et choisis l'adresse dans la liste pour un format normalisé (officiel).</p>
+            </div>
             <div class="form-group"><label class="form-label">Surface</label>
               <select class="select" id="t-surface" required>
                 ${(state.catalog.surfaces||[]).map(s => `<option value="${s.v}">${esc(s.l)}</option>`).join('')}
               </select>
             </div>
           </div>
-          <div class="form-group"><label class="form-label">Adresse complète</label><input class="input" id="t-venue-address" required placeholder="68 boulevard Mortier, 75020 Paris"></div>
 
           <h3 class="detail-section-title" style="font-size: 1.1rem; margin: 2rem 0 1rem;">Catégories et format</h3>
 
@@ -5760,7 +5728,7 @@ function handleCreateT(e) {
 
   const matchSize = document.getElementById('t-matchsize').value;
   // Derive teamSize from matchSize (for backward compat with bracket generation)
-  const teamSizeMap = { '5v5': 5, '7v7': 7, '11v11': 11, 'futsal': 5 };
+  const teamSizeMap = { '5v5': 5, '7v7': 7, '8v8': 8, '11v11': 11, 'futsal': 5 };
   const teamSize = teamSizeMap[matchSize] || 11;
 
   const compFormat = document.getElementById('t-compformat').value;
@@ -5774,7 +5742,7 @@ function handleCreateT(e) {
     return;
   }
   if (!city) {
-    errEl.textContent = 'Indique la ville du tournoi.';
+    errEl.textContent = 'Choisis une adresse dans la liste de suggestions pour renseigner la ville.';
     errEl.classList.add('show');
     return;
   }
@@ -5804,7 +5772,7 @@ function handleCreateT(e) {
   const t = {
     id: uid(), clubId: club.id,
     name: document.getElementById('t-name').value.trim(),
-    edition: document.getElementById('t-ed').value.trim() || '1ère édition',
+    edition: '',
     date: dateStart,
     dateEnd: dateEnd || dateStart,
     timeStart,
@@ -5884,12 +5852,8 @@ function renderEditTournament(tid) {
 
           <div class="form-group"><label class="form-label">Nom du tournoi</label>
             <input class="input" id="t-name" required value="${esc(t.name)}"></div>
-          <div class="form-row">
-            <div class="form-group"><label class="form-label">Édition</label>
-              <input class="input" id="t-ed" value="${esc(t.edition || '1ère édition')}"></div>
-            <div class="form-group"><label class="form-label">Frais d'inscription (€)</label>
-              <input type="number" class="input" id="t-fee" required min="0" value="${t.entryFee}"></div>
-          </div>
+          <div class="form-group"><label class="form-label">Frais d'inscription (€)</label>
+            <input type="number" class="input" id="t-fee" required min="0" value="${t.entryFee}"></div>
 
           <div class="form-row">
             <div class="form-group"><label class="form-label">Date de début</label>
@@ -5917,31 +5881,32 @@ function renderEditTournament(tid) {
 
           <h3 class="detail-section-title" style="font-size:1.1rem;margin:2rem 0 1rem;">Lieu</h3>
 
+          <input type="hidden" id="t-city" value="${esc(t.city || '')}">
           <div class="form-row">
             <div class="form-group"><label class="form-label">Département</label>
-              <select class="select" id="t-dept" required onchange="onDeptChange(this, 't-city')">
+              <select class="select" id="t-dept" required onchange="onDeptChange(this, 't-venue-address'); document.getElementById('t-venue-address').placeholder = this.value ? 'Tape pour chercher l\'adresse…' : 'Choisis d\'abord un département';">
                 ${deptOptionsHTML(t.department || '', true)}
               </select></div>
-            <div class="form-group"><label class="form-label">Ville</label>
-              <div class="city-wrap">
-                <input class="input" id="t-city" required autocomplete="off" value="${esc(t.city || '')}" ${t.department ? '' : 'disabled'}
-                  placeholder="${t.department ? 'Tape pour chercher une ville…' : 'Choisis d\'abord un département'}" data-dept-input="t-dept"
-                  oninput="cityAutocomplete(this)"
-                  onkeydown="_cityKeyNav(event, this)"
-                  onblur="_closeCityDropdown(this.closest('.city-wrap'))">
-              </div></div>
-          </div>
-          <div class="form-row">
             <div class="form-group"><label class="form-label">Nom du lieu</label>
               <input class="input" id="t-venue-name" required value="${esc(t.venueName || t.location || '')}"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group" style="flex:2;"><label class="form-label">Adresse complète</label>
+              <div class="city-wrap">
+                <input class="input" id="t-venue-address" required autocomplete="off" value="${esc(t.venueAddress || '')}" ${t.department ? '' : 'disabled'}
+                  placeholder="${t.department ? 'Tape pour chercher l\'adresse…' : 'Choisis d\'abord un département'}" data-dept-input="t-dept"
+                  oninput="addressAutocomplete(this, 't-dept', 't-city')"
+                  onkeydown="_cityKeyNav(event, this)"
+                  onblur="_closeCityDropdown(this.closest('.city-wrap'))">
+              </div>
+              <p class="form-help">Tape et choisis l'adresse dans la liste pour un format normalisé (officiel).</p>
+            </div>
             <div class="form-group"><label class="form-label">Surface</label>
               <select class="select" id="t-surface" required>
                 ${(state.catalog.surfaces||[]).map(s => `<option value="${s.v}" ${t.surface === s.v ? 'selected' : ''}>${esc(s.l)}</option>`).join('')}
               </select>
             </div>
           </div>
-          <div class="form-group"><label class="form-label">Adresse complète</label>
-            <input class="input" id="t-venue-address" value="${esc(t.venueAddress || '')}"></div>
 
           <h3 class="detail-section-title" style="font-size:1.1rem;margin:2rem 0 1rem;">Catégories et format</h3>
 
@@ -6028,7 +5993,7 @@ function handleEditT(e, tid) {
   }
 
   const matchSize = document.getElementById('t-matchsize').value;
-  const teamSizeMap = { '5v5': 5, '7v7': 7, '11v11': 11, 'futsal': 5 };
+  const teamSizeMap = { '5v5': 5, '7v7': 7, '8v8': 8, '11v11': 11, 'futsal': 5 };
   const venueName = document.getElementById('t-venue-name').value.trim();
   const venueAddress = document.getElementById('t-venue-address').value.trim();
   const compFormat = document.getElementById('t-compformat').value;
@@ -6040,14 +6005,13 @@ function handleEditT(e, tid) {
     errEl.classList.add('show'); return;
   }
   if (!city) {
-    errEl.textContent = 'Indique la ville du tournoi.';
+    errEl.textContent = 'Choisis une adresse dans la liste de suggestions pour renseigner la ville.';
     errEl.classList.add('show'); return;
   }
 
   // Update in place
   Object.assign(t, {
     name:              document.getElementById('t-name').value.trim(),
-    edition:           document.getElementById('t-ed').value.trim() || '1ère édition',
     date:              dateStart,
     dateEnd:           dateEnd,
     timeStart,
@@ -6181,7 +6145,7 @@ function renderTournamentDetail(id) {
             ${t.viewCount > 0 ? `<span class="view-count" style="color:rgba(245,239,228,0.55);">👁 ${t.viewCount} consultation${t.viewCount > 1 ? 's' : ''}</span>` : ''}
           </div>` : ''}
         </div>
-        <h1 class="tourn-hero-title">${esc(t.name)}<br><em>${esc(t.edition)}</em></h1>
+        <h1 class="tourn-hero-title">${esc(t.name)}${t.edition ? '<br><em>' + esc(t.edition) + '</em>' : ''}</h1>
         <div class="tourn-hero-meta">
           <div class="tourn-meta-item"><span class="tourn-meta-label">Date${t.dateEnd && t.dateEnd !== t.date ? 's' : ''}</span><span class="tourn-meta-val">${t.dateEnd && t.dateEnd !== t.date ? tournDateRange(t) : fmtDay(t.date) + ' ' + fmtDate(t.date)}</span></div>
           ${tournTimeRange(t) ? `<div class="tourn-meta-item tourn-meta-item--highlight"><span class="tourn-meta-label">⏱ Horaires</span><span class="tourn-meta-val" style="font-weight:600;">${esc(tournTimeRange(t))}</span></div>` : '<div class="tourn-meta-item" style="opacity:0.45;"><span class="tourn-meta-label">⏱ Horaires</span><span class="tourn-meta-val">À confirmer</span></div>'}
@@ -8088,6 +8052,62 @@ function onDeptChange(selectEl, cityInputId) {
   if (wrap) _closeCityDropdown(wrap);
 }
 
+// ===== Autocomplétion adresse via api-adresse.data.gouv.fr (BAN, officielle, gratuite) =====
+// Utilisée pour le champ "Adresse complète" du tournoi : format uniformisé,
+// scopée au département choisi (filtre client sur le code postal).
+// Au choix d'une suggestion, remplit aussi le champ ville caché (cityFieldId).
+let _addrDebounce = null;
+const _addrCache = {};
+
+function addressAutocomplete(inputEl, deptInputId, cityFieldId) {
+  const val = inputEl.value.trim();
+  const wrap = inputEl.closest('.city-wrap') || inputEl.parentNode;
+  _closeCityDropdown(wrap);
+  const deptCode = deptInputId ? (document.getElementById(deptInputId)?.value || '') : '';
+  if (val.length < 4) return;
+
+  const cacheKey = deptCode + '|' + val.toLowerCase();
+  clearTimeout(_addrDebounce);
+  _addrDebounce = setTimeout(async () => {
+    if (_addrCache[cacheKey]) { _renderAddressDropdown(inputEl, wrap, _addrCache[cacheKey], cityFieldId); return; }
+    try {
+      const url = 'https://api-adresse.data.gouv.fr/search/?q=' + encodeURIComponent(val) + '&limit=8&type=housenumber';
+      const res  = await fetch(url);
+      const data = await res.json();
+      let feats = data.features || [];
+      // Garde-fou IDF : ne proposer que des adresses du département choisi (préfixe code postal)
+      if (deptCode) feats = feats.filter(f => (f.properties.postcode || '').startsWith(deptCode));
+      _addrCache[cacheKey] = feats;
+      _renderAddressDropdown(inputEl, wrap, feats, cityFieldId);
+    } catch(e) { /* API optionnelle — saisie libre reste possible */ }
+  }, 300);
+}
+
+function _renderAddressDropdown(inputEl, wrap, feats, cityFieldId) {
+  _closeCityDropdown(wrap);
+  if (!feats || feats.length === 0) return;
+  const dd = document.createElement('div');
+  dd.className = 'city-dropdown';
+  dd.setAttribute('role', 'listbox');
+  feats.forEach(f => {
+    const div = document.createElement('div');
+    div.className = 'city-item';
+    div.setAttribute('role', 'option');
+    div.innerHTML = '<span>' + esc(f.properties.label) + '</span>';
+    div.addEventListener('mousedown', function(e) {
+      e.preventDefault();
+      clearTimeout(_addrDebounce); // annule une recherche en attente (évite la réouverture du menu)
+      inputEl.value = f.properties.label; // format uniformisé BAN (officiel)
+      const cityField = cityFieldId ? document.getElementById(cityFieldId) : null;
+      if (cityField) cityField.value = f.properties.city || '';
+      _closeCityDropdown(wrap);
+      inputEl.blur(); // libère le focus — la sélection est terminée
+    });
+    dd.appendChild(div);
+  });
+  wrap.appendChild(dd);
+}
+
 // ===== Autocomplétion ville via geo.api.gouv.fr (API officielle, gratuite) =====
 // Scopée Île-de-France : chaque champ ville est lié à un sélecteur département
 // via l'attribut data-dept-input (id du <select> département correspondant).
@@ -8152,9 +8172,10 @@ function _renderCityDropdown(inputEl, wrap, items) {
       (cp ? '<span class="city-cp">' + cp + '</span>' : '');
     div.addEventListener('mousedown', function(e) {
       e.preventDefault(); // empêche le blur du champ
+      clearTimeout(_cityDebounce); // annule une recherche en attente (évite la réouverture du menu)
       inputEl.value = item.nom;
-      inputEl.dispatchEvent(new Event('input', { bubbles: true }));
       _closeCityDropdown(wrap);
+      inputEl.blur(); // libère le focus — la sélection est terminée
     });
     dd.appendChild(div);
   });
