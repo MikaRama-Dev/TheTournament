@@ -3048,6 +3048,74 @@ async function syncTournament(t) {
 }
 
 // Enregistre une candidature d'équipe (table dédiée, hors JSONB public) — RSSI
+// ===========================================
+// Rattachement des candidatures visiteur (sans compte) à un compte équipe
+// ===========================================
+// Appelé après la création (ou la connexion) d'un compte équipe. Deux étapes :
+// 1. Rattachement local immédiat (même session) — toujours exécuté.
+// 2. Rattachement + relecture distante via fonctions Postgres sécurisées
+//    (SECURITY DEFINER) — couvre le cas multi-appareil. Non bloquant :
+//    si le DBA n'a pas encore déployé ces fonctions, échoue silencieusement.
+async function linkPastRegistrations(email, teamId) {
+  if (!email || !teamId) return;
+  const emailLc = email.trim().toLowerCase();
+  let linkedCount = 0;
+
+  // 1) Local — couvre "candidature puis création de compte dans la même session"
+  state.tournaments.forEach(t => {
+    let touched = false;
+    t.registrations.forEach(r => {
+      if (!r.teamId && r.captainEmail && r.captainEmail.toLowerCase() === emailLc) {
+        r.teamId = teamId;
+        linkedCount++;
+        touched = true;
+      }
+    });
+    if (touched) syncTournament(t); // propage le lien (pas de PII dans ce JSONB)
+  });
+  if (linkedCount > 0) saveState();
+
+  // 2) Distant — rattache en base + tente de récupérer le reste pour affichage
+  if (supabaseClient) {
+    try {
+      const { data, error } = await supabaseClient.rpc('link_registrations_by_email', {
+        p_email: emailLc, p_team_id: teamId
+      });
+      if (!error && typeof data === 'number') linkedCount += data;
+    } catch(e) { /* fonction pas encore déployée côté DBA — non bloquant */ }
+    await mergeRegistrationsByEmail(emailLc, teamId);
+  }
+
+  if (linkedCount > 0) {
+    toast(linkedCount + ' candidature' + (linkedCount > 1 ? 's' : '') + ' précédente' + (linkedCount > 1 ? 's' : '') + ' retrouvée' + (linkedCount > 1 ? 's' : '') + ' et liée' + (linkedCount > 1 ? 's' : '') + ' à votre compte !', 'success');
+  }
+}
+
+// Relit les candidatures liées à un email (même non rattachées) et les fusionne
+// dans state.tournaments[].registrations pour qu'elles apparaissent dans
+// "Mes candidatures" — y compris depuis un appareil qui ne les a jamais vues.
+async function mergeRegistrationsByEmail(email, teamId) {
+  if (!supabaseClient || !email) return;
+  try {
+    const { data, error } = await supabaseClient.rpc('get_my_registrations_by_email', { p_email: email });
+    if (error || !data) return;
+    let added = false;
+    data.forEach(row => {
+      const t = state.tournaments.find(t => t.id === row.tournament_id);
+      if (!t) return; // tournoi pas encore chargé localement — ignoré pour cette passe
+      const exists = t.registrations.some(r => r.id === row.id);
+      if (!exists) {
+        t.registrations.push({
+          id: row.id, teamId: teamId, teamName: row.team_name, clubName: '',
+          captainEmail: email, status: row.status, message: '', registeredAt: row.registered_at
+        });
+        added = true;
+      }
+    });
+    if (added) { saveState(); render(); }
+  } catch(e) { /* non bloquant */ }
+}
+
 async function syncRegistration(tournamentId, registration) {
   if (!supabaseClient) return true;
   try {
@@ -4632,6 +4700,9 @@ async function handleSignup(e, type) {
       state.currentId = localAccount.id;
       saveState();
 
+      // Rattacher d'éventuelles candidatures faites sans compte (même email)
+      if (type === 'team') linkPastRegistrations(localAccount.email, localAccount.id);
+
       // Afficher le code de récupération puis rediriger vers l'écran d'attente
       navigate('#/pending');
       setTimeout(() => showRecoveryCodeModal(recoveryCode), 400);
@@ -4642,6 +4713,7 @@ async function handleSignup(e, type) {
   const r = signupAccount(type, d);
   if (r.error) { errEl.textContent = r.error; errEl.classList.add('show'); return; }
   if (r.pending) { navigate('#/pending'); return; }
+  if (type === 'team') linkPastRegistrations(r.account.email, r.account.id);
   navigate('#/dashboard');
   // Afficher le code de récupération après redirection
   if (r.recoveryCode) {
@@ -4874,6 +4946,9 @@ async function handleLogin(e) {
   if (r.pending) { navigate('#/pending'); return; }
   toast('Bienvenue !', 'success');
   navigate('#/dashboard');
+  // Récupérer d'éventuelles candidatures faites sans compte (même email),
+  // y compris celles rattachées depuis un autre appareil
+  if (loginType === 'team') mergeRegistrationsByEmail(email, r.account.id);
 }
 
 // DASHBOARD - branches by account type
@@ -6356,7 +6431,8 @@ function renderTabTeams(t, isOwner, a) {
               <div>
                 <div class="app-card-title">${esc(r.teamName)}</div>
                 <div class="app-card-meta">${esc(r.clubName)} · inscription ${fmtDate(r.registeredAt)}${r.teamId ? ' · <a href="#/teams/' + r.teamId + '" style="color: var(--accent); border-bottom: 1px solid;">Voir profil</a>' : ''}</div>
-                ${!r.teamId && (r.captainName || r.captainEmail || r.captainPhone) ? `<div class="app-card-meta" style="margin-top:0.25rem;">Capitaine : <strong>${esc(r.captainName || '')}</strong>${r.captainEmail ? ' · ' + esc(r.captainEmail) : ''}${r.captainPhone ? ' · ' + esc(r.captainPhone) : ''}${r.department ? ' · ' + esc(deptLabel(r.department)) : ''}</div>` : ''}
+                ${!r.teamId && r.captainName ? `<div class="app-card-meta" style="margin-top:0.25rem;">Capitaine : <strong>${esc(r.captainName)}</strong>${r.captainEmail ? ' · ' + esc(r.captainEmail) : ''}${r.captainPhone ? ' · ' + esc(r.captainPhone) : ''}${r.department ? ' · ' + esc(deptLabel(r.department)) : ''}</div>` : ''}
+                ${!r.teamId && !r.captainName && r.captainEmail ? `<div class="app-card-meta" style="margin-top:0.25rem;">Contact : <strong>${esc(r.captainEmail)}</strong></div>` : ''}
                 ${r.message ? `<div class="app-card-msg">"${esc(r.message)}"</div>` : ''}
               </div>
               <div class="app-actions">
@@ -6731,34 +6807,11 @@ function applyTournamentVisitorModal(tid) {
       <input class="input" id="va-team" required aria-describedby="va-team-err" onblur="vaCheckRequired('va-team','Indique le nom de l\'équipe.')">
       <p class="field-error" id="va-team-err"></p></div>
 
-    <div class="form-group"><label class="form-label">Nom du capitaine / responsable</label>
-      <input class="input" id="va-captain" required aria-describedby="va-captain-err" onblur="vaCheckRequired('va-captain','Indique le nom du capitaine.')">
-      <p class="field-error" id="va-captain-err"></p></div>
+    <div class="form-group"><label class="form-label">Email de contact</label>
+      <input type="email" class="input" id="va-email" required autocomplete="email" aria-describedby="va-email-err" onblur="vaCheckEmail()">
+      <p class="field-error" id="va-email-err"></p></div>
 
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Email du capitaine</label>
-        <input type="email" class="input" id="va-email" required autocomplete="email" aria-describedby="va-email-err" onblur="vaCheckEmail()">
-        <p class="field-error" id="va-email-err"></p></div>
-      <div class="form-group"><label class="form-label">Téléphone</label>
-        <input type="tel" class="input" id="va-phone" required placeholder="06 12 34 56 78" autocomplete="tel" inputmode="tel" aria-describedby="va-phone-err" onblur="vaCheckPhone()">
-        <p class="field-error" id="va-phone-err"></p></div>
-    </div>
-
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Département</label>
-        <select class="select" id="va-dept" required onchange="onDeptChange(this, 'va-city'); vaCheckRequired('va-dept','Sélectionne un département.')">
-          ${deptOptionsHTML('', true)}
-        </select>
-        <p class="field-error" id="va-dept-err"></p></div>
-      <div class="form-group"><label class="form-label">Ville <span style="font-weight:400;color:var(--ink-mute);text-transform:none;letter-spacing:0;">(optionnel)</span></label>
-        <div class="city-wrap">
-          <input class="input" id="va-city" autocomplete="off" disabled placeholder="Choisis d'abord un département" data-dept-input="va-dept"
-            oninput="cityAutocomplete(this)" onkeydown="_cityKeyNav(event,this)" onblur="_closeCityDropdown(this.closest('.city-wrap'))">
-        </div></div>
-    </div>
-
-    <div class="form-group"><label class="form-label">Club d'appartenance <span style="font-weight:400;color:var(--ink-mute);text-transform:none;letter-spacing:0;">(optionnel)</span></label>
-      <input class="input" id="va-club"></div>
+    <p class="form-help" style="margin-bottom:1rem;">Club, catégorie, responsable, téléphone, département et ville pourront être complétés une fois votre espace équipe créé.</p>
 
     <label class="consent-label">
       <input type="checkbox" id="va-consent-data" required style="flex-shrink:0;margin-top:2px;accent-color:var(--accent);width:16px;height:16px;">
@@ -6792,15 +6845,6 @@ function vaCheckEmail() {
   if (!ok)  { errEl.textContent = 'Format d\'email invalide.'; errEl.classList.add('show'); return false; }
   errEl.textContent = ''; errEl.classList.remove('show'); return true;
 }
-function vaCheckPhone() {
-  const el = document.getElementById('va-phone');
-  const errEl = document.getElementById('va-phone-err');
-  const val = (el.value || '').replace(/[\s.\-]/g, '');
-  const ok = /^(0|\+33)[1-9](\d{2}){4}$/.test(val);
-  if (!val) { errEl.textContent = 'Indique un numéro de téléphone.'; errEl.classList.add('show'); return false; }
-  if (!ok)  { errEl.textContent = 'Format français attendu (ex : 06 12 34 56 78).'; errEl.classList.add('show'); return false; }
-  errEl.textContent = ''; errEl.classList.remove('show'); return true;
-}
 
 async function confirmApplyVisitor(tid) {
   const t = getTournament(tid);
@@ -6812,36 +6856,30 @@ async function confirmApplyVisitor(tid) {
   const hp = document.getElementById('va-hp');
   if (hp && hp.value.trim() !== '') { console.log('[Le Tournoi] honeypot triggered (visitor apply), blocking'); return; }
 
-  // Validation complète avant envoi
-  const okTeam    = vaCheckRequired('va-team', 'Indique le nom de l\'équipe.');
-  const okCaptain = vaCheckRequired('va-captain', 'Indique le nom du capitaine.');
-  const okEmail   = vaCheckEmail();
-  const okPhone   = vaCheckPhone();
-  const okDept    = vaCheckRequired('va-dept', 'Sélectionne un département.');
-  const consent   = document.getElementById('va-consent-data');
-  if (!okTeam || !okCaptain || !okEmail || !okPhone || !okDept) {
+  // Validation complète avant envoi — formulaire réduit au strict minimum
+  const okTeam  = vaCheckRequired('va-team', 'Indique le nom de l\'équipe.');
+  const okEmail = vaCheckEmail();
+  const consent = document.getElementById('va-consent-data');
+  if (!okTeam || !okEmail) {
     errEl.textContent = 'Corrige les champs en rouge ci-dessus.'; errEl.classList.add('show'); return;
   }
   if (!consent || !consent.checked) {
     errEl.textContent = 'Le consentement RGPD est obligatoire pour continuer.'; errEl.classList.add('show'); return;
   }
 
-  const teamName    = document.getElementById('va-team').value.trim();
-  const captainName = document.getElementById('va-captain').value.trim();
-  const email       = document.getElementById('va-email').value.trim().toLowerCase();
-  const phone       = document.getElementById('va-phone').value.trim();
-  const department  = document.getElementById('va-dept').value;
-  const city         = document.getElementById('va-city').value.trim();
-  const club         = document.getElementById('va-club').value.trim();
-  const consentComms = document.getElementById('va-consent-comms')?.checked === true;
+  const teamName      = document.getElementById('va-team').value.trim();
+  const email         = document.getElementById('va-email').value.trim().toLowerCase();
+  const consentComms  = document.getElementById('va-consent-comms')?.checked === true;
 
   const submitBtn = document.getElementById('va-submit-btn');
   if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Envoi…'; }
 
+  // Club, responsable, téléphone, département, ville : laissés vides ici,
+  // à compléter depuis le profil équipe une fois un compte créé.
   const registration = {
-    id: uid(), teamId: null, teamName, clubName: club,
-    captainName, captainEmail: email, captainPhone: phone,
-    department, city,
+    id: uid(), teamId: null, teamName, clubName: '',
+    captainName: '', captainEmail: email, captainPhone: '',
+    department: '', city: '',
     status: 'pending', registeredAt: new Date().toISOString(), message: ''
   };
   t.registrations.push(registration);
@@ -6871,12 +6909,12 @@ async function confirmApplyVisitor(tid) {
     <div style="background:var(--paper-soft);border:1px solid var(--line);border-radius:4px;padding:0.85rem 1rem;margin:1rem 0;">
       <div style="font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink-mute);margin-bottom:0.5rem;">Récapitulatif</div>
       <div style="font-family:var(--font-sans);font-size:13px;line-height:1.8;color:var(--ink-soft);">
-        Capitaine : <strong style="color:var(--ink);">${esc(captainName)}</strong><br>
-        Contact : <strong style="color:var(--ink);">${esc(email)} · ${esc(phone)}</strong><br>
+        Équipe : <strong style="color:var(--ink);">${esc(teamName)}</strong><br>
+        Contact : <strong style="color:var(--ink);">${esc(email)}</strong><br>
         Statut : <strong style="color:var(--accent);">En attente de validation par l'organisateur</strong>
       </div>
     </div>
-    <p class="detail-text" style="font-size:13px;">Pas besoin de créer de compte pour suivre cette candidature — l'organisateur te recontacte directement. Tu peux toutefois créer ton espace équipe pour gérer plus tard tes inscriptions et ton profil.</p>
+    <p class="detail-text" style="font-size:13px;">Pas besoin de créer de compte pour suivre cette candidature — l'organisateur te recontacte directement par email. Tu peux toutefois créer ton espace équipe dès maintenant pour compléter ton profil (club, catégorie, contact) et gérer tes futures inscriptions.</p>
   `, `
     <button class="btn btn-ghost" onclick="closeModal()">Fermer</button>
     <a href="#/signup" class="btn btn-orange" onclick="closeModal()">Créer mon espace équipe</a>
