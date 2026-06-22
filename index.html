@@ -3232,7 +3232,12 @@ async function loadTournamentsFromSupabase() {
 async function loadRegistrationsFromSupabase() {
   if (!supabaseClient) return;
   try {
-    const { data, error } = await supabaseClient.from('registrations').select('*');
+    const { data, error } = await supabaseClient
+      .from('registrations')
+      // RSSI/DBA : captain_email et captain_phone absents du select — colonnes PII non accordées à anon.
+      // captainEmail/captainPhone retourneront undefined côté client : comportement attendu.
+      // captain_name inclus : prénom seul, non PII stricte, utile pour l'affichage côté organisateur.
+      .select('id, tournament_id, team_id, team_name, club_name, captain_name, department, city, status, message, registered_at');
     if (error) { console.error('[Le Tournoi] loadRegistrations:', error); return; }
     (data || []).forEach(row => {
       const t = state.tournaments.find(t => t.id === row.tournament_id);
