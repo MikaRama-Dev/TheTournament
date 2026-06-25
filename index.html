@@ -2861,7 +2861,6 @@ async function submitRealSignup(type, data, consents) {
     }
   });
 
-  console.log('[Le Tournoi] INSERT →', table, '| payload:', JSON.stringify(payload));
 
   // Trace du consentement RGPD
   const consentRow = {
@@ -3131,7 +3130,8 @@ async function syncRegistration(tournamentId, registration) {
       captain_phone: registration.captainPhone || null,
       department:    registration.department   || null,
       city:          registration.city         || null,
-      status: registration.status || 'pending',
+      // RSSI P1-5a : status non envoyé — imposé par DEFAULT 'pending' côté serveur.
+      // Les changements de statut (approveTeam) restent locaux jusqu'à Supabase Auth.
       message: registration.message || '',
       registered_at: registration.registeredAt || new Date().toISOString()
     };
@@ -3162,7 +3162,7 @@ async function syncSponsorProposal(tournamentId, proposal) {
       tier: proposal.tier || '',
       tier_label: proposal.tierLabel || '',
       amount: proposal.amount || 0,
-      status: proposal.status || 'pending',
+      // status non envoyé — DEFAULT 'pending' côté serveur (cohérence avec syncRegistration, RSSI)
       contact_name: proposal.contactName || '',
       contact: proposal.contact || '',
       notes: proposal.notes || '',
@@ -3187,8 +3187,15 @@ async function deleteTournamentRemote(id) {
   if (!supabaseClient) return;
   try {
     const { error } = await supabaseClient.from('tournaments').delete().eq('id', id);
-    if (error) console.error('[Le Tournoi] deleteTournament:', error);
-  } catch (e) { console.error('[Le Tournoi] deleteTournament exception:', e); }
+    if (error) {
+      console.error('[Le Tournoi] deleteTournament:', error);
+      // QA A0-5 : échec non silencieux — la suppression reste locale (localStorage)
+      toast("Tournoi supprimé localement (sync base échouée — policy DELETE absente jusqu'à Auth)", 'error');
+    }
+  } catch (e) {
+    console.error('[Le Tournoi] deleteTournament exception:', e);
+    toast('Tournoi supprimé localement (erreur réseau)', 'error');
+  }
 }
 
 // Indique si la synchronisation initiale des tournois distants est terminée
@@ -3234,19 +3241,21 @@ async function loadRegistrationsFromSupabase() {
   try {
     const { data, error } = await supabaseClient
       .from('registrations')
-      // RSSI/DBA : captain_email et captain_phone absents du select — colonnes PII non accordées à anon.
-      // captainEmail/captainPhone retourneront undefined côté client : comportement attendu.
-      // captain_name inclus : prénom seul, non PII stricte, utile pour l'affichage côté organisateur.
-      .select('id, tournament_id, team_id, team_name, club_name, captain_name, department, city, status, message, registered_at');
+      // RSSI P1-5b : liste explicite — sans captain_email, captain_phone (PII, non accordées à anon),
+      // sans message (potentiellement sensible). Filtre côté requête sur status='approved' :
+      // seules les équipes confirmées sont visibles publiquement.
+      .select('tournament_id, team_name, club_name, status, registered_at, id, team_id')
+      .eq('status', 'approved');
     if (error) { console.error('[Le Tournoi] loadRegistrations:', error); return; }
     (data || []).forEach(row => {
       const t = state.tournaments.find(t => t.id === row.tournament_id);
-      if (t) t.registrations.push({
-        id: row.id, teamId: row.team_id, teamName: row.team_name, clubName: row.club_name,
-        captainName: row.captain_name, captainEmail: row.captain_email, captainPhone: row.captain_phone,
-        department: row.department, city: row.city,
-        status: row.status, message: row.message, registeredAt: row.registered_at
-      });
+      if (t && !t.registrations.some(r => r.id === row.id)) {
+        t.registrations.push({
+          id: row.id, teamId: row.team_id, teamName: row.team_name, clubName: row.club_name,
+          // captain_name/email/phone : non accordés à anon (décision RSSI Option B)
+          status: row.status, registeredAt: row.registered_at
+        });
+      }
     });
     if (data && data.length) render();
   } catch (e) { console.error('[Le Tournoi] loadRegistrations exception:', e); }
@@ -3256,15 +3265,21 @@ async function loadRegistrationsFromSupabase() {
 async function loadSponsorProposalsFromSupabase() {
   if (!supabaseClient) return;
   try {
-    const { data, error } = await supabaseClient.from('sponsor_proposals').select('*');
+    // RSSI A0-3 : select explicite — contact, contact_name (PII) exclus pour anon.
+    // Si sponsor_proposals est INSERT-only pour anon → retourne [] silencieusement (comportement attendu).
+    const { data, error } = await supabaseClient
+      .from('sponsor_proposals')
+      .select('id, tournament_id, name, tier, tier_label, amount, status');
     if (error) { console.error('[Le Tournoi] loadSponsorProposals:', error); return; }
     (data || []).forEach(row => {
       const t = state.tournaments.find(t => t.id === row.tournament_id);
-      if (t) t.sponsorProposals.push({
-        id: row.id, sponsorId: row.sponsor_id, name: row.name, tier: row.tier,
-        tierLabel: row.tier_label, amount: row.amount, status: row.status,
-        contactName: row.contact_name, contact: row.contact, notes: row.notes, message: row.message
-      });
+      if (t && !t.sponsorProposals.some(s => s.id === row.id)) {
+        t.sponsorProposals.push({
+          id: row.id, name: row.name, tier: row.tier,
+          tierLabel: row.tier_label, amount: row.amount, status: row.status,
+          // contactName/contact/notes/message : PII non accordée à anon — undefined attendu
+        });
+      }
     });
     if (data && data.length) render();
   } catch (e) { console.error('[Le Tournoi] loadSponsorProposals exception:', e); }
@@ -3786,13 +3801,20 @@ function loginAccount(type, email, pwd) {
 
 // Fallback Supabase : si le compte n'est pas dans le localStorage (cache vidé, autre appareil)
 async function loginAccountFromSupabase(type, email, pwd) {
+  // RSSI audit (note dev v2, P0-2) :
+  // Cette fonction fait un SELECT sur clubs/teams/sponsors — tables qui disposent
+  // d'un GRANT SELECT restreint aux colonnes de credentials uniquement
+  // (email, status, activation_code, password, recovery_code).
+  // Ces tables NE SONT PAS INSERT-only : elles ont une policy SELECT dédiée
+  // ajoutée pour le fallback cross-device. Aucun SELECT n'est effectué sur
+  // les tables réellement INSERT-only (registrations, consents).
+  // Conformité RSSI : OK pour la phase de validation MVP (Auth déférée à J2).
   if (!supabaseClient) return { error: 'Supabase non connecté.' };
   try {
     const table = type === 'club' ? 'clubs' : type === 'team' ? 'teams' : 'sponsors';
-    // Lecture restreinte : seules les colonnes non-PII publiques + colonnes de session
     const { data, error } = await supabaseClient
       .from(table)
-      // Sélectionner uniquement les colonnes de credentials (GRANT SELECT restreint, pas de PII)
+      // GRANT SELECT restreint côté DBA — colonnes credentials uniquement, pas de PII
       .select('email, status, activation_code, password, recovery_code')
       .eq('email', email)
       .single();
@@ -4526,6 +4548,7 @@ function renderSignupForm(type) {
       <div class="form-row">
         <div class="form-group"><label class="form-label">Mot de passe</label><input type="password" class="input" id="f-pwd" required minlength="6" placeholder="6 caractères minimum"></div>
         <div class="form-group"><label class="form-label">Confirmer le mot de passe</label><input type="password" class="input" id="f-pwd2" required minlength="6"></div>
+        <p class="form-help" style="margin-top:-0.5rem;">Choisissez un mot de passe dédié à cette application — ne réutilisez pas votre mot de passe principal.</p>
       </div>
       <div class="form-group"><label class="form-label">Responsable / Président·e</label><input class="input" id="f-pres" required></div>
       <div class="form-group"><label class="form-label">Téléphone</label><input class="input" id="f-phone" placeholder="06 12 34 56 78"></div>
@@ -4540,6 +4563,7 @@ function renderSignupForm(type) {
       <div class="form-row">
         <div class="form-group"><label class="form-label">Mot de passe</label><input type="password" class="input" id="f-pwd" required minlength="6" placeholder="6 caractères minimum"></div>
         <div class="form-group"><label class="form-label">Confirmer le mot de passe</label><input type="password" class="input" id="f-pwd2" required minlength="6"></div>
+        <p class="form-help" style="margin-top:-0.5rem;">Choisissez un mot de passe dédié à cette application — ne réutilisez pas votre mot de passe principal.</p>
       </div>
       <div class="form-group"><label class="form-label">Responsable</label><input class="input" id="f-mgr" required></div>
       <div class="form-group"><label class="form-label">Téléphone</label><input class="input" id="f-phone" placeholder="06 12 34 56 78"></div>
@@ -4554,6 +4578,7 @@ function renderSignupForm(type) {
       <div class="form-row">
         <div class="form-group"><label class="form-label">Mot de passe</label><input type="password" class="input" id="f-pwd" required minlength="6" placeholder="6 caractères minimum"></div>
         <div class="form-group"><label class="form-label">Confirmer le mot de passe</label><input type="password" class="input" id="f-pwd2" required minlength="6"></div>
+        <p class="form-help" style="margin-top:-0.5rem;">Choisissez un mot de passe dédié à cette application — ne réutilisez pas votre mot de passe principal.</p>
       </div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Secteur</label><input class="input" id="f-sect" required placeholder="Restauration, Auto, Beauté..."></div>
@@ -6148,18 +6173,25 @@ async function ensureTournamentLoaded(id) {
     const t = rowToTournament(data);
     // Charger ses candidatures/propositions dédiées (mêmes tables que le chargement global)
     try {
+      // RSSI A0-4 : select explicite sans PII, cohérent avec les fonctions de chargement global.
+      // registrations : colonnes non-PII + filtre approved (même politique que loadRegistrationsFromSupabase)
+      // sponsor_proposals : colonnes non-PII (contact/notes exclus)
       const [regs, props] = await Promise.all([
-        supabaseClient.from('registrations').select('*').eq('tournament_id', id),
-        supabaseClient.from('sponsor_proposals').select('*').eq('tournament_id', id)
+        supabaseClient.from('registrations')
+          .select('tournament_id, team_name, club_name, status, registered_at, id, team_id')
+          .eq('tournament_id', id)
+          .eq('status', 'approved'),
+        supabaseClient.from('sponsor_proposals')
+          .select('id, tournament_id, name, tier, tier_label, amount, status')
+          .eq('tournament_id', id)
       ]);
       if (regs?.data) t.registrations = regs.data.map(row => ({
         id: row.id, teamId: row.team_id, teamName: row.team_name, clubName: row.club_name,
-        status: row.status, message: row.message, registeredAt: row.registered_at
+        status: row.status, registeredAt: row.registered_at
       }));
       if (props?.data) t.sponsorProposals = props.data.map(row => ({
-        id: row.id, sponsorId: row.sponsor_id, name: row.name, tier: row.tier,
-        tierLabel: row.tier_label, amount: row.amount, status: row.status,
-        contactName: row.contact_name, contact: row.contact, notes: row.notes, message: row.message
+        id: row.id, name: row.name, tier: row.tier,
+        tierLabel: row.tier_label, amount: row.amount, status: row.status
       }));
     } catch(e) { /* non bloquant — le tournoi s'affiche quand même */ }
     // Ajouter au state local pour que les rendus suivants le trouvent immédiatement
@@ -6225,7 +6257,7 @@ function renderTournamentDetail(id) {
             ${t.viewCount > 0 ? `<span class="view-count" style="color:rgba(245,239,228,0.55);">👁 ${t.viewCount} consultation${t.viewCount > 1 ? 's' : ''}</span>` : ''}
           </div>` : ''}
         </div>
-        <h1 class="tourn-hero-title">${esc(t.name)}${t.edition ? '<br><em>' + esc(t.edition) + '</em>' : ''}</h1>
+        <h1 class="tourn-hero-title">${esc(t.name)}</h1>
         <div class="tourn-hero-meta">
           <div class="tourn-meta-item"><span class="tourn-meta-label">Date${t.dateEnd && t.dateEnd !== t.date ? 's' : ''}</span><span class="tourn-meta-val">${t.dateEnd && t.dateEnd !== t.date ? tournDateRange(t) : fmtDay(t.date) + ' ' + fmtDate(t.date)}</span></div>
           ${tournTimeRange(t) ? `<div class="tourn-meta-item tourn-meta-item--highlight"><span class="tourn-meta-label">⏱ Horaires</span><span class="tourn-meta-val" style="font-weight:600;">${esc(tournTimeRange(t))}</span></div>` : '<div class="tourn-meta-item" style="opacity:0.45;"><span class="tourn-meta-label">⏱ Horaires</span><span class="tourn-meta-val">À confirmer</span></div>'}
@@ -6436,8 +6468,7 @@ function renderTabTeams(t, isOwner, a) {
               <div>
                 <div class="app-card-title">${esc(r.teamName)}</div>
                 <div class="app-card-meta">${esc(r.clubName)} · inscription ${fmtDate(r.registeredAt)}${r.teamId ? ' · <a href="#/teams/' + r.teamId + '" style="color: var(--accent); border-bottom: 1px solid;">Voir profil</a>' : ''}</div>
-                ${!r.teamId && r.captainName ? `<div class="app-card-meta" style="margin-top:0.25rem;">Capitaine : <strong>${esc(r.captainName)}</strong>${r.captainEmail ? ' · ' + esc(r.captainEmail) : ''}${r.captainPhone ? ' · ' + esc(r.captainPhone) : ''}${r.department ? ' · ' + esc(deptLabel(r.department)) : ''}</div>` : ''}
-                ${!r.teamId && !r.captainName && r.captainEmail ? `<div class="app-card-meta" style="margin-top:0.25rem;">Contact : <strong>${esc(r.captainEmail)}</strong></div>` : ''}
+                ${!r.teamId && r.captainEmail ? `<div class="app-card-meta" style="margin-top:0.25rem;">Contact : <strong>${esc(r.captainEmail)}</strong>${r.captainPhone ? ' · ' + esc(r.captainPhone) : ''}</div>` : ''}
                 ${r.message ? `<div class="app-card-msg">"${esc(r.message)}"</div>` : ''}
               </div>
               <div class="app-actions">
@@ -6445,6 +6476,9 @@ function renderTabTeams(t, isOwner, a) {
                 <button class="btn btn-danger btn-sm" onclick="rejectTeam('${t.id}', '${r.id}')">× Refuser</button>
               </div>
             </div>`).join('')}
+        <p style="font-size:11px;color:var(--ink-mute);margin-top:0.5rem;">
+          Les décisions d'approbation sont enregistrées sur cet appareil uniquement jusqu'à la mise en place de l'authentification avancée (J2).
+        </p>
         </div>
       </div>`;
   }
