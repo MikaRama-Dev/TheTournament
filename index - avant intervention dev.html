@@ -3890,7 +3890,6 @@ function render() {
   if (r === '/tournaments') return renderTournaments();
   if (r === '/recover') return renderRecover();
   if (r === '/pending') return renderPendingActivation();
-  if (r === '/join') return renderJoinRequest();
   if (r === '/legal') return renderLegal();
   if (r === '/privacy') return renderPrivacy();
   if (r === '/tournaments/new') return requireAuth(renderCreateTournament, ['club']);
@@ -4016,150 +4015,6 @@ function handleActivation() {
   }
   toast('Compte activé ! Bienvenue sur Le Tournoi 🎉', 'success');
   navigate('#/dashboard');
-}
-
-// ===========================================
-// DEMANDE D'ACTIVATION CLUB — club_registration_requests
-// Note BA — Persistance des demandes d'activation (P3 QA)
-// ===========================================
-function renderJoinRequest() {
-  document.getElementById('app').innerHTML = `
-    <div class="auth-page" style="max-width:560px;">
-      <div class="auth-card">
-        <div class="auth-eyebrow" style="text-align:center;margin-bottom:0.5rem;">▶ REJOINDRE LE TOURNOI</div>
-        <h1 class="auth-title" style="text-align:center;margin-bottom:0.5rem;">Demande d'activation</h1>
-        <p class="detail-text" style="text-align:center;margin-bottom:1.5rem;font-size:14px;">
-          Remplis ce formulaire pour activer ton espace organisateur.<br>
-          Notre équipe te contacte par email <strong>sous 48h</strong>.
-        </p>
-
-        <input type="text" name="website" id="jr-hp" style="position:absolute;left:-9999px;opacity:0;pointer-events:none;" tabindex="-1" autocomplete="off">
-
-        <div class="form-row">
-          <div class="form-group"><label class="form-label">Nom du club</label>
-            <input class="input" id="jr-club" required placeholder="FC Belleville"></div>
-          <div class="form-group"><label class="form-label">Nom du contact</label>
-            <input class="input" id="jr-contact" required placeholder="Prénom NOM"></div>
-        </div>
-        <div class="form-row">
-          <div class="form-group"><label class="form-label">Email</label>
-            <input type="email" class="input" id="jr-email" required autocomplete="email" placeholder="contact@monclub.fr"></div>
-          <div class="form-group"><label class="form-label">Téléphone <span style="font-weight:400;color:var(--ink-mute);text-transform:none;letter-spacing:0;">(optionnel)</span></label>
-            <input type="tel" class="input" id="jr-phone" placeholder="06 12 34 56 78" autocomplete="tel"></div>
-        </div>
-        <div class="form-row">
-          <div class="form-group"><label class="form-label">Département</label>
-            <select class="select" id="jr-dept" required onchange="onDeptChange(this, 'jr-city')">
-              ${deptOptionsHTML('', true)}
-            </select></div>
-          <div class="form-group"><label class="form-label">Ville <span style="font-weight:400;color:var(--ink-mute);text-transform:none;letter-spacing:0;">(optionnel)</span></label>
-            <div class="city-wrap">
-              <input class="input" id="jr-city" autocomplete="off" disabled
-                placeholder="Choisis d'abord un département" data-dept-input="jr-dept"
-                oninput="cityAutocomplete(this)"
-                onkeydown="_cityKeyNav(event, this)"
-                onblur="_closeCityDropdown(this.closest('.city-wrap'))">
-            </div></div>
-        </div>
-        <div class="form-group"><label class="form-label">Message / motivation <span style="font-weight:400;color:var(--ink-mute);text-transform:none;letter-spacing:0;">(optionnel)</span></label>
-          <textarea class="textarea" id="jr-message" rows="3" placeholder="Parlez-nous de votre club, vos tournois habituels…"></textarea></div>
-
-        <label class="consent-label">
-          <input type="checkbox" id="jr-consent" required style="flex-shrink:0;margin-top:2px;accent-color:var(--accent);width:16px;height:16px;">
-          <span class="consent-text">J'accepte que mes coordonnées soient utilisées pour traiter ma demande d'activation, conformément à la <a href="#/privacy" style="color:var(--accent);">politique de confidentialité</a>. — obligatoire</span>
-        </label>
-
-        <p class="form-error" id="jr-err" style="margin-top:0.75rem;"></p>
-
-        <button class="btn btn-primary btn-full btn-lg" style="margin-top:1rem;" onclick="submitJoinRequest()">
-          Envoyer ma demande <span class="btn-arrow"></span>
-        </button>
-        <p style="margin-top:1rem;text-align:center;font-size:13px;color:var(--ink-mute);">
-          Déjà un compte ? <a href="#/login" style="color:var(--accent);">Se connecter</a>
-        </p>
-      </div>
-    </div>`;
-  window.scrollTo(0, 0);
-}
-
-async function submitJoinRequest() {
-  const errEl = document.getElementById('jr-err');
-  errEl.classList.remove('show');
-
-  // Honeypot
-  const hp = document.getElementById('jr-hp');
-  if (hp && hp.value.trim() !== '') { console.log('[Le Tournoi] honeypot triggered (join request)'); return; }
-
-  // Lecture des champs
-  const clubName    = (document.getElementById('jr-club').value    || '').trim();
-  const contactName = (document.getElementById('jr-contact').value || '').trim();
-  const email       = (document.getElementById('jr-email').value   || '').trim().toLowerCase();
-  const phone       = (document.getElementById('jr-phone').value   || '').trim() || null;
-  const department  = document.getElementById('jr-dept').value;
-  const city        = (document.getElementById('jr-city').value    || '').trim() || null;
-  const message     = (document.getElementById('jr-message').value || '').trim() || null;
-  const consent     = document.getElementById('jr-consent');
-
-  // Validation
-  if (!clubName)    { errEl.textContent = 'Le nom du club est obligatoire.';    errEl.classList.add('show'); return; }
-  if (!contactName) { errEl.textContent = 'Le nom du contact est obligatoire.'; errEl.classList.add('show'); return; }
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { errEl.textContent = 'Email invalide.'; errEl.classList.add('show'); return; }
-  if (!department)  { errEl.textContent = 'Sélectionne un département.';        errEl.classList.add('show'); return; }
-  if (!consent || !consent.checked) { errEl.textContent = 'Le consentement RGPD est obligatoire.'; errEl.classList.add('show'); return; }
-
-  const btn = document.querySelector('#app .btn-primary');
-  if (btn) { btn.disabled = true; btn.textContent = 'Envoi…'; }
-
-  if (supabaseClient) {
-    // Mode réel — INSERT en base, sans .select() (table INSERT-only pour anon)
-    const { error } = await supabaseClient
-      .from('club_registration_requests')
-      .insert([{
-        club_name:    clubName,
-        contact_name: contactName,
-        email:        email,
-        phone:        phone,
-        department:   department,
-        city:         city,
-        message:      message
-        // status et created_at : valeurs par défaut serveur ('pending' / now())
-      }]);
-    if (error) {
-      console.error('[Le Tournoi] club_registration_requests INSERT:', error);
-      errEl.textContent = 'Erreur lors de l\'envoi. Réessayez ou contactez contact@letournoi.foot.';
-      errEl.classList.add('show');
-      if (btn) { btn.disabled = false; btn.textContent = 'Envoyer ma demande →'; }
-      return;
-    }
-    // Consentement RGPD (non bloquant)
-    try {
-      await supabaseClient.from('consents').insert([{
-        email, account_type: 'club_request',
-        consent_data_collection: true, consent_marketing: false
-      }]);
-    } catch(e) { /* non bloquant */ }
-  } else {
-    // Mode démo — localStorage uniquement
-    if (!state.joinRequests) state.joinRequests = [];
-    state.joinRequests.push({ clubName, contactName, email, phone, department, city, message, status: 'pending', createdAt: new Date().toISOString() });
-    saveState();
-  }
-
-  // Confirmation UI — pas de redirection automatique
-  document.getElementById('app').innerHTML = `
-    <div class="auth-page" style="max-width:520px;">
-      <div class="auth-card" style="text-align:center;">
-        <div style="font-size:2.5rem;color:var(--accent);margin-bottom:0.75rem;">✓</div>
-        <h1 class="auth-title" style="margin-bottom:0.75rem;">Demande reçue !</h1>
-        <p class="detail-text">Votre demande d'activation pour <strong>${esc(clubName)}</strong> a bien été reçue.</p>
-        <p class="detail-text" style="margin-top:0.5rem;">Vous serez contacté(e) à l'adresse <strong>${esc(email)}</strong> sous 48h.</p>
-        <div style="margin-top:1.5rem;display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap;">
-          <a href="#/" class="btn btn-primary">Retour à l'accueil</a>
-          <a href="#/tournaments" class="btn btn-outline">Voir les tournois</a>
-        </div>
-      </div>
-    </div>`;
-  window.scrollTo(0, 0);
 }
 
 function renderLegal() {
@@ -4306,7 +4161,6 @@ function renderFooter() {
     <div class="footer-bottom">
       <span>© Le Tournoi · 2026 · Île-de-France</span>
       <span class="footer-legal-links">
-        <a href="#/join" class="footer-legal-link">Devenir organisateur</a>
         <a href="#/legal" class="footer-legal-link">Mentions légales</a>
         <a href="#/privacy" class="footer-legal-link">Confidentialité</a>
         <a href="mailto:contact@letournoi.foot" class="footer-legal-link">contact@letournoi.foot</a>
@@ -4585,7 +4439,7 @@ function renderHome() {
           <p class="cta-sub">Inscription gratuite. Accès immédiat aux tournois ouverts en Île-de-France.</p>
           <div class="cta-actions">
             <a href="#/tournaments" class="btn btn-primary btn-lg">Trouver un tournoi <span class="btn-arrow"></span></a>
-            <a href="#/join" class="btn btn-ghost btn-lg" style="color: var(--paper); border-color: rgba(245,239,228,0.35);">Organiser un tournoi</a>
+            <a href="#/signup" class="btn btn-ghost btn-lg" style="color: var(--paper); border-color: rgba(245,239,228,0.35);" onclick="signupType='club'">Organiser un tournoi</a>
           </div>
         </div>
       </div>
