@@ -33,7 +33,6 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,500;0,600;0,700;0,800;1,500;1,600;1,700;1,800&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400;1,500;1,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/bcryptjs@2.4.3/dist/bcrypt.min.js" integrity="sha256-a5cOKPaB1eRbDZyxWpTxOCGXkXvBqpJGmfUPaqiFwhs=" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 /* =====================================================
@@ -1631,28 +1630,6 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
 /* ===========================================
    TOAST + MODAL
    =========================================== */
-/* ===== Bandeau mode démo ===== */
-#demo-banner {
-  position: sticky; top: 0; z-index: 200;
-  background: #d97706; /* ambre — visible, distinct du terracotta du site */
-  color: #fff;
-  text-align: center;
-  padding: 0.6rem 1rem;
-  font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  line-height: 1.4;
-}
-#demo-banner a {
-  color: #fff;
-  text-decoration: underline;
-  margin-left: 0.5rem;
-}
-@media (max-width: 700px) {
-  #demo-banner { font-size: 12px; padding: 0.55rem 0.85rem; }
-}
-
 .toast-container {
   position: fixed; bottom: 2rem; right: 2rem;
   z-index: 1000;
@@ -1812,7 +1789,6 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
 @media (max-width: 700px) {
   .nav-links { display: none; }
   .nav { padding: 0.85rem 1.25rem; }
-  .nav-find { display: none; } /* Trouver un tournoi masqué sur mobile — évite le scroll horizontal */
   .tourn-aside { position: static; }
   .detail-tab { padding: 0.75rem 0.85rem; font-size: 10.5px; }
   .hero { padding: 3.5rem var(--container) 2.5rem; }
@@ -2765,50 +2741,11 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
   font-style: italic; font-size: 0.98rem; line-height: 1.55;
   color: var(--ink-soft);
 }
-
-/* ===== ADMIN ===== */
-.admin-layout { display: flex; min-height: 100vh; background: #0f1117; }
-.admin-side { width: 220px; flex-shrink: 0; background: #1a1f2e; padding: 1.5rem 0; display: flex; flex-direction: column; }
-.admin-logo { font-family: var(--font-serif); font-size: 1.1rem; font-weight: 700; color: var(--paper); padding: 0 1.25rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 1rem; }
-.admin-logo span { color: var(--accent); }
-.admin-nav-btn { display: block; width: 100%; text-align: left; padding: 0.65rem 1.25rem; font-family: var(--font-sans); font-size: 13px; color: rgba(255,255,255,0.6); background: none; border: none; cursor: pointer; transition: all 0.15s; }
-.admin-nav-btn:hover, .admin-nav-btn.active { background: rgba(184,92,60,0.15); color: var(--paper); }
-.admin-nav-btn.active { border-left: 3px solid var(--accent); }
-.admin-logout { margin-top: auto; padding: 0 1.25rem 1.25rem; }
-.admin-content { flex: 1; padding: 1.5rem 2rem; overflow-y: auto; color: var(--paper); }
-.admin-title { font-family: var(--font-serif); font-size: 1.6rem; font-weight: 700; margin-bottom: 1.25rem; color: var(--paper); }
-.admin-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.75rem; }
-.admin-stat { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 1rem 1.25rem; }
-.admin-stat-val { font-size: 2rem; font-weight: 700; color: var(--accent); font-family: var(--font-serif); }
-.admin-stat-lbl { font-size: 12px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 0.25rem; }
-.admin-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.admin-table th { text-align: left; padding: 0.5rem 0.75rem; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255,255,255,0.4); border-bottom: 1px solid rgba(255,255,255,0.08); }
-.admin-table td { padding: 0.6rem 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: middle; }
-.admin-table tr:hover td { background: rgba(255,255,255,0.02); }
-.admin-badge { display: inline-block; font-size: 10px; font-weight: 600; padding: 0.2rem 0.5rem; border-radius: 3px; text-transform: uppercase; letter-spacing: 0.05em; }
-.admin-badge.pending { background: rgba(255,193,7,0.15); color: #ffc107; }
-.admin-badge.approved { background: rgba(59,109,17,0.2); color: #7bc44b; }
-.admin-badge.rejected { background: rgba(184,92,60,0.2); color: var(--accent); }
-.admin-badge.draft { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.5); }
-.admin-badge.incomplete { background: rgba(255,100,0,0.15); color: #ff8c42; }
-.admin-actions-cell { display: flex; gap: 0.4rem; flex-wrap: wrap; }
-.admin-btn { font-size: 11px; padding: 0.3rem 0.65rem; border-radius: 3px; border: none; cursor: pointer; font-family: var(--font-sans); font-weight: 600; }
-.admin-btn-approve { background: rgba(59,109,17,0.25); color: #7bc44b; }
-.admin-btn-reject { background: rgba(184,92,60,0.2); color: var(--accent); }
-.admin-btn-edit { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7); }
-.admin-btn-primary { background: var(--accent); color: white; }
-.admin-filter-bar { display: flex; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap; align-items: center; }
-.admin-select { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: var(--paper); padding: 0.4rem 0.65rem; border-radius: 4px; font-size: 13px; }
-.admin-quick-actions { display: flex; gap: 0.75rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
-.admin-login-wrap { min-height: 100vh; background: #0f1117; display: flex; align-items: center; justify-content: center; }
-.admin-login-card { background: #1a1f2e; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 2rem; width: 100%; max-width: 360px; }
-@media (max-width: 720px) { .admin-side { display: none; } .admin-content { padding: 1rem; } }
 </style>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231A1F2E'/%3E%3Ctext x='16' y='22' text-anchor='middle' font-family='Arial' font-weight='700' font-size='18' fill='white'%3ET%3C/text%3E%3C/svg%3E">
 </head>
 <body>
 
-<div id="demo-banner" style="display:none;" role="alert" aria-live="polite"></div>
 <nav class="nav" id="nav"></nav>
 <main class="main" id="app"></main>
 <footer class="footer" id="footer"></footer>
@@ -2832,25 +2769,13 @@ var signupMode = 'real';  // 'real' par défaut — bascule sur 'demo' si Supaba
 // APRÈS — attend que le DOM soit prêt
 var supabaseClient = null;
 
-// D06 fix : compteur de retry — évite la boucle infinie si CDN bloqué
-var _supabaseRetryCount = 0;
-var _supabaseMaxRetry   = 15; // 15 × 200ms = 3 s max
-
 function initSupabase() {
   try {
     // Évite une double initialisation si DOMContentLoaded + retry se croisent.
     if (supabaseClient) return;
 
     if (typeof window.supabase === 'undefined') {
-      _supabaseRetryCount++;
-      if (_supabaseRetryCount >= _supabaseMaxRetry) {
-        console.warn('[Le Tournoi] SDK Supabase non chargé après 3 s — bascule en mode démo.');
-        signupMode = 'demo';
-        _tournamentsSyncDone = true;
-        showDemoBanner();
-        return;
-      }
-      console.warn('[Le Tournoi] SDK Supabase non chargé — retry ' + _supabaseRetryCount + '/' + _supabaseMaxRetry);
+      console.warn('[Le Tournoi] SDK Supabase non chargé — retry dans 200ms');
       setTimeout(initSupabase, 200);
       return;
     }
@@ -3957,11 +3882,8 @@ const ICONS = {
 // ROUTER
 function render() {
   renderNav(); renderFooter();
-  // D06 : bandeau démo persistant sur toutes les pages
-  if (signupMode === 'demo') showDemoBanner();
   const r = getRoute();
   if (r === '/') return renderHome();
-  if (r === '/admin') return renderAdmin();
   if (r === '/signup') return renderSignup();
   if (r === '/login') return renderLogin();
   if (r === '/dashboard') return requireAuth(renderDashboard);
@@ -4030,7 +3952,7 @@ function renderNav() {
         </div>
       ` : `
         <a href="#/login" class="btn btn-ghost btn-sm">Connexion</a>
-        <a href="#/tournaments" class="btn btn-outline btn-sm nav-find">Trouver un tournoi</a>
+        <a href="#/tournaments" class="btn btn-outline btn-sm">Trouver un tournoi</a>
         <a href="#/signup" class="btn btn-orange btn-sm">S'inscrire</a>
       `}
     </div>`;
@@ -4238,551 +4160,6 @@ async function submitJoinRequest() {
       </div>
     </div>`;
   window.scrollTo(0, 0);
-}
-
-// ===========================================
-// BRIQUE ADMIN — Phase 1
-// Spec-Admin-Phase1.md + Note-Dev-Admin-Phase1.md
-// Accès : #admin non référencé publiquement
-// ===========================================
-
-// ---- CONSTANTES ADMIN (à remplacer avant mise en prod) ----
-// Générer ADMIN_HASH avec : bcrypt.hash('votre-mot-de-passe', 10)
-const ADMIN_HASH = '$2b$10$W6H7LMzlmYe.9UmjBRJG4eO1XchfyblXKtWLmBOr/5fD8QqIyhX8C';
-// Générer ADMIN_RPC_SECRET avec : crypto.getRandomValues(new Uint8Array(32)) → hex
-const ADMIN_RPC_SECRET = '00db5eff6ad77962d9379c8b2647842a7d68faf4c08fa488f43566671e1337b7';
-function getAdminSecret() { return ADMIN_RPC_SECRET; }
-
-// Champs obligatoires pour l'indicateur de complétude (§4 spec)
-const ADMIN_REQUIRED_FIELDS = ['name','department','city','date','format','max_teams','entry_fee','surface'];
-function isTournamentComplete(t) {
-  return ADMIN_REQUIRED_FIELDS.every(f => t[f] != null && String(t[f]).trim() !== '');
-}
-
-// ---- SESSION ----
-function isAdminLoggedIn() { return sessionStorage.getItem('lt_admin') === '1'; }
-
-// D06 — bandeau mode démo : affiché dès que signupMode bascule sur 'demo'
-function showDemoBanner() {
-  const el = document.getElementById('demo-banner');
-  if (!el) return;
-  el.innerHTML = '⚠ MODE DÉMO — Les données sont stockées localement dans ce navigateur uniquement. Aucune information n\'est enregistrée sur nos serveurs.';
-  el.style.display = 'block';
-}
-function adminLogout() {
-  sessionStorage.removeItem('lt_admin');
-  navigate('#/');
-  toast('Session admin terminée', '');
-}
-
-// ---- LAYOUT ----
-function adminLayout(section, content) {
-  const nav = [
-    { id: 'dashboard', label: '▦ Tableau de bord' },
-    { id: 'tournaments', label: '⚽ Tournois' },
-    { id: 'concierge', label: '＋ Créer (concierge)' },
-    { id: 'club-requests', label: '📋 Demandes club' },
-    { id: 'registrations', label: '👥 Inscriptions' },
-  ];
-  document.getElementById('app').innerHTML = `
-    <div class="admin-layout">
-      <aside class="admin-side">
-        <div class="admin-logo">Le Tournoi <span>Admin</span></div>
-        ${nav.map(n => `<button class="admin-nav-btn ${section === n.id ? 'active' : ''}" onclick="renderAdminSection('${n.id}')">${n.label}</button>`).join('')}
-        <div class="admin-logout">
-          <button class="admin-nav-btn" onclick="adminLogout()" style="color:var(--accent);">✕ Déconnexion</button>
-        </div>
-      </aside>
-      <main class="admin-content">${content}</main>
-    </div>`;
-}
-
-function renderAdminSection(s) {
-  if (!isAdminLoggedIn()) { renderAdminLogin(); return; }
-  if (s === 'dashboard')     renderAdminDashboard();
-  else if (s === 'tournaments')   renderAdminTournaments();
-  else if (s === 'concierge')     renderAdminConcierge();
-  else if (s === 'club-requests') renderAdminClubRequests();
-  else if (s === 'registrations') renderAdminRegistrations();
-}
-
-// ---- ROUTEUR PRINCIPAL ----
-function renderAdmin() {
-  if (!supabaseClient || signupMode !== 'real') {
-    document.getElementById('app').innerHTML = `
-      <div class="auth-page"><div class="auth-card" style="text-align:center;">
-        <p style="color:var(--accent);font-weight:600;">Interface admin disponible en mode réel uniquement.</p>
-        <a href="#/" class="btn btn-outline" style="margin-top:1rem;">Retour</a>
-      </div></div>`;
-    return;
-  }
-  if (!isAdminLoggedIn()) { renderAdminLogin(); return; }
-  renderAdminDashboard();
-}
-
-// ---- LOGIN ----
-function renderAdminLogin() {
-  document.getElementById('app').innerHTML = `
-    <div class="admin-login-wrap">
-      <div class="admin-login-card">
-        <h1 style="font-family:var(--font-serif);font-size:1.4rem;color:#f5efe4;margin-bottom:1.25rem;text-align:center;">
-          Le Tournoi <span style="color:#b85c3c;">Admin</span>
-        </h1>
-        <div class="form-group" style="margin-bottom:1rem;">
-          <label style="font-size:12px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:0.4rem;">Mot de passe</label>
-          <input type="password" id="admin-pwd" class="input" placeholder="••••••••"
-            onkeydown="if(event.key==='Enter') handleAdminLogin()"
-            style="background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.12);color:#f5efe4;">
-        </div>
-        <p id="admin-login-err" style="color:#b85c3c;font-size:13px;display:none;margin-bottom:0.75rem;"></p>
-        <button class="btn btn-primary btn-full" onclick="handleAdminLogin()">Accéder</button>
-        <p style="margin-top:1rem;text-align:center;"><a href="#/" style="font-size:12px;color:rgba(255,255,255,0.3);">Retour au site</a></p>
-      </div>
-    </div>`;
-  setTimeout(() => { const el = document.getElementById('admin-pwd'); if (el) el.focus(); }, 50);
-}
-
-async function handleAdminLogin() {
-  const pwd = (document.getElementById('admin-pwd')?.value || '').trim();
-  const errEl = document.getElementById('admin-login-err');
-  if (!pwd) { errEl.textContent = 'Mot de passe requis.'; errEl.style.display = 'block'; return; }
-  const btn = document.querySelector('.admin-login-card .btn-primary');
-  if (btn) { btn.disabled = true; btn.textContent = 'Vérification…'; }
-  try {
-    const ok = await bcrypt.compare(pwd, ADMIN_HASH);
-    if (ok) {
-      sessionStorage.setItem('lt_admin', '1');
-      renderAdminDashboard();
-    } else {
-      errEl.textContent = 'Mot de passe incorrect.'; errEl.style.display = 'block';
-      if (btn) { btn.disabled = false; btn.textContent = 'Accéder'; }
-    }
-  } catch(e) {
-    errEl.textContent = 'Erreur de vérification. Vérifiez que ADMIN_HASH est un hash bcrypt valide.';
-    errEl.style.display = 'block';
-    if (btn) { btn.disabled = false; btn.textContent = 'Accéder'; }
-  }
-}
-
-// ---- DASHBOARD ----
-async function renderAdminDashboard() {
-  if (!isAdminLoggedIn()) { renderAdminLogin(); return; }
-  adminLayout('dashboard', '<div style="color:rgba(255,255,255,0.3);">Chargement…</div>');
-  try {
-    const [tRes, reqRes] = await Promise.all([
-      supabaseClient.from('tournaments').select('id,name,status,department,date,max_teams'),
-      supabaseClient.from('club_registration_requests').select('id,status,club_name,created_at').eq('status','pending')
-    ]);
-    const tours = tRes.data || [];
-    const reqs  = reqRes.data || [];
-    const draft = tours.filter(t => t.status === 'draft').length;
-    const open  = tours.filter(t => t.status === 'open').length;
-    const incomplete = tours.filter(t => !isTournamentComplete(t)).length;
-
-    const recentTours = [...tours].sort((a,b) => (b.date||'').localeCompare(a.date||'')).slice(0,5);
-
-    adminLayout('dashboard', `
-      <h1 class="admin-title">Tableau de bord</h1>
-      <div class="admin-grid">
-        <div class="admin-stat"><div class="admin-stat-val">${tours.length}</div><div class="admin-stat-lbl">Tournois total</div></div>
-        <div class="admin-stat"><div class="admin-stat-val">${open}</div><div class="admin-stat-lbl">Publiés</div></div>
-        <div class="admin-stat"><div class="admin-stat-val">${draft}</div><div class="admin-stat-lbl">Brouillons</div></div>
-        <div class="admin-stat"><div class="admin-stat-val" style="color:#ff8c42;">${incomplete}</div><div class="admin-stat-lbl">Incomplets</div></div>
-        <div class="admin-stat"><div class="admin-stat-val" style="color:#ffc107;">${reqs.length}</div><div class="admin-stat-lbl">Demandes club en attente</div></div>
-      </div>
-      <div class="admin-quick-actions">
-        <button class="admin-btn admin-btn-primary" onclick="renderAdminConcierge()">＋ Créer un tournoi (concierge)</button>
-        <button class="admin-btn admin-btn-edit" onclick="renderAdminClubRequests()">Demandes en attente (${reqs.length})</button>
-        <button class="admin-btn admin-btn-edit" onclick="renderAdminTournaments()">Fiches incomplètes (${incomplete})</button>
-      </div>
-      <h2 style="font-size:0.95rem;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.75rem;">Tournois récents</h2>
-      <table class="admin-table">
-        <thead><tr><th>Nom</th><th>Dept</th><th>Date</th><th>Statut</th><th>Complétude</th></tr></thead>
-        <tbody>${recentTours.map(t => `<tr>
-          <td><a href="${tournamentRoute(t.id)}" style="color:var(--accent);">${esc(t.name)}</a></td>
-          <td>${esc(t.department||'—')}</td>
-          <td>${t.date ? fmtDate(t.date) : '—'}</td>
-          <td><span class="admin-badge ${t.status}">${t.status}</span></td>
-          <td>${isTournamentComplete(t) ? '<span style="color:#7bc44b;">✓</span>' : '<span class="admin-badge incomplete">Incomplet</span>'}</td>
-        </tr>`).join('')}</tbody>
-      </table>`);
-  } catch(e) {
-    adminLayout('dashboard', `<p style="color:var(--accent);">Erreur de chargement : ${esc(e.message)}</p>`);
-  }
-}
-
-// ---- TOURNOIS ----
-async function renderAdminTournaments(filterStatus, filterDept) {
-  if (!isAdminLoggedIn()) { renderAdminLogin(); return; }
-  adminLayout('tournaments', '<div style="color:rgba(255,255,255,0.3);">Chargement…</div>');
-  try {
-    // AD-3 fix : owner_email révoqué pour anon en SELECT direct → RPC SECURITY DEFINER
-    const { data, error } = await supabaseClient
-      .rpc('admin_get_tournaments', { p_admin_secret: getAdminSecret() });
-    if (error) throw error;
-    let tours = data || [];
-    if (filterStatus) tours = tours.filter(t => filterStatus === 'incomplete' ? !isTournamentComplete(t) : t.status === filterStatus);
-    if (filterDept)   tours = tours.filter(t => t.department === filterDept);
-    adminLayout('tournaments', `
-      <h1 class="admin-title">Tournois (${tours.length})</h1>
-      <div class="admin-filter-bar">
-        <select class="admin-select" onchange="renderAdminTournaments(this.value, '${filterDept||''}')">
-          <option value="">Tous statuts</option>
-          <option value="open" ${filterStatus==='open'?'selected':''}>Ouverts</option>
-          <option value="draft" ${filterStatus==='draft'?'selected':''}>Brouillons</option>
-          <option value="closed" ${filterStatus==='closed'?'selected':''}>Clôturés</option>
-          <option value="incomplete" ${filterStatus==='incomplete'?'selected':''}>Incomplets</option>
-        </select>
-        <select class="admin-select" onchange="renderAdminTournaments('${filterStatus||''}', this.value)">
-          <option value="">Tous départements</option>
-          ${IDF_DEPARTEMENTS.map(d => `<option value="${d.code}" ${filterDept===d.code?'selected':''}>${d.nom}</option>`).join('')}
-        </select>
-        <button class="admin-btn admin-btn-primary" onclick="renderAdminConcierge()">＋ Créer (concierge)</button>
-      </div>
-      <table class="admin-table">
-        <thead><tr><th>Nom</th><th>Dept</th><th>Date</th><th>Statut</th><th>Complétude</th><th>Actions</th></tr></thead>
-        <tbody>${tours.map(t => `<tr>
-          <td><a href="${tournamentRoute(t.id)}" style="color:var(--accent);">${esc(t.name)}</a></td>
-          <td>${esc(t.department||'—')}</td>
-          <td>${t.date ? fmtDate(t.date) : '—'}</td>
-          <td><span class="admin-badge ${t.status}">${t.status}</span></td>
-          <td>${isTournamentComplete(t) ? '<span style="color:#7bc44b;font-size:13px;">✓</span>' : '<span class="admin-badge incomplete">Incomplet</span>'}</td>
-          <td class="admin-actions-cell">
-            <button class="admin-btn admin-btn-edit" onclick="renderAdminEditTournament('${t.id}')">Éditer</button>
-            <button class="admin-btn admin-btn-reject" onclick="adminDeleteTournament('${t.id}', '${esc(t.name)}')">Supprimer</button>
-          </td>
-        </tr>`).join('')}</tbody>
-      </table>`);
-  } catch(e) {
-    adminLayout('tournaments', `<p style="color:var(--accent);">Erreur : ${esc(e.message)}</p>`);
-  }
-}
-
-async function renderAdminEditTournament(id) {
-  if (!isAdminLoggedIn()) { renderAdminLogin(); return; }
-  // AD-3 fix : owner_email révoqué pour anon en SELECT direct → RPC SECURITY DEFINER
-  const { data, error } = await supabaseClient
-    .rpc('admin_get_tournaments', { p_admin_secret: getAdminSecret() });
-  if (error || !data) { toast('Tournoi introuvable', 'error'); return; }
-  const t = data.find(t => t.id === id);
-  if (!t) { toast('Tournoi introuvable', 'error'); return; }
-  adminLayout('tournaments', `
-    <button class="admin-btn admin-btn-edit" onclick="renderAdminTournaments()" style="margin-bottom:1rem;">← Retour</button>
-    <h1 class="admin-title">Édition — ${esc(t.name)}</h1>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;max-width:700px;">
-      ${adminField('t-edit-name', 'Nom', t.name)}
-      ${adminField('t-edit-owner', 'Owner email', t.owner_email)}
-      ${adminField('t-edit-dept', 'Département', t.department)}
-      ${adminField('t-edit-city', 'Ville', t.city)}
-      ${adminField('t-edit-date', 'Date', t.date, 'date')}
-      ${adminField('t-edit-format', 'Format (catégorie)', t.format)}
-      ${adminField('t-edit-max', 'Max équipes', t.max_teams, 'number')}
-      ${adminField('t-edit-fee', 'Frais (€)', t.entry_fee, 'number')}
-      ${adminField('t-edit-surface', 'Surface', t.surface)}
-      <div><label style="font-size:11px;color:rgba(255,255,255,0.4);display:block;margin-bottom:0.3rem;">Statut</label>
-        <select id="t-edit-status" class="admin-select" style="width:100%;">
-          ${['draft','open','closed'].map(s => `<option value="${s}" ${t.status===s?'selected':''}>${s}</option>`).join('')}
-        </select></div>
-      ${adminField('t-edit-deadline', 'Date limite inscription', t.registration_deadline, 'date')}
-    </div>
-    <div style="margin-top:1rem;grid-column:1/-1;">
-      <label style="font-size:11px;color:rgba(255,255,255,0.4);display:block;margin-bottom:0.3rem;">Description</label>
-      <textarea id="t-edit-desc" class="textarea" rows="3" style="background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.12);color:#f5efe4;width:100%;max-width:700px;">${esc(t.description||'')}</textarea>
-    </div>
-    <div style="margin-top:1.25rem;display:flex;gap:0.75rem;">
-      <button class="admin-btn admin-btn-primary" onclick="handleAdminEditTournament('${id}')">Enregistrer</button>
-      <button class="admin-btn admin-btn-edit" onclick="renderAdminTournaments()">Annuler</button>
-    </div>
-    <p id="t-edit-err" style="color:var(--accent);font-size:13px;margin-top:0.75rem;"></p>`);
-}
-
-function adminField(id, label, val, type='text') {
-  return `<div>
-    <label style="font-size:11px;color:rgba(255,255,255,0.4);display:block;margin-bottom:0.3rem;">${label}</label>
-    <input type="${type}" id="${id}" value="${esc(String(val||''))}" class="input" style="background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.12);color:#f5efe4;">
-  </div>`;
-}
-
-async function handleAdminEditTournament(id) {
-  const patch = {
-    name:                  document.getElementById('t-edit-name')?.value.trim(),
-    owner_email:           document.getElementById('t-edit-owner')?.value.trim(),
-    department:            document.getElementById('t-edit-dept')?.value.trim(),
-    city:                  document.getElementById('t-edit-city')?.value.trim(),
-    date:                  document.getElementById('t-edit-date')?.value || null,
-    format:                document.getElementById('t-edit-format')?.value.trim(),
-    max_teams:             parseInt(document.getElementById('t-edit-max')?.value) || null,
-    entry_fee:             parseFloat(document.getElementById('t-edit-fee')?.value) || 0,
-    surface:               document.getElementById('t-edit-surface')?.value.trim(),
-    status:                document.getElementById('t-edit-status')?.value,
-    registration_deadline: document.getElementById('t-edit-deadline')?.value || null,
-    description:           document.getElementById('t-edit-desc')?.value.trim()
-  };
-  const errEl = document.getElementById('t-edit-err');
-  const { error } = await supabaseClient.rpc('admin_update_tournament', {
-    p_admin_secret: getAdminSecret(),
-    p_id: id, p_patch: patch
-  });
-  if (error) {
-    errEl.textContent = 'Erreur RPC : ' + error.message;
-  } else {
-    toast('Tournoi mis à jour', 'success');
-    renderAdminTournaments();
-  }
-}
-
-async function adminDeleteTournament(id, name) {
-  if (!confirm('Annuler le tournoi "' + name + '" ?\n\nLe tournoi sera masqué du catalogue public mais les données resteront en base (soft-delete). Cette action peut être corrigée par le DBA si nécessaire.')) return;
-  if (!confirm('Confirmation finale — annuler "' + name + '" et le masquer du catalogue ?')) return;
-  const { error } = await supabaseClient.rpc('admin_update_tournament', {
-    p_admin_secret: getAdminSecret(), p_id: id, p_patch: { status: 'cancelled' }
-  });
-  if (error) { toast('Erreur : ' + error.message, 'error'); }
-  else { toast('Tournoi annulé', 'success'); renderAdminTournaments(); }
-}
-
-// ---- MODE CONCIERGE ----
-function renderAdminConcierge() {
-  if (!isAdminLoggedIn()) { renderAdminLogin(); return; } // Risque 1
-  adminLayout('concierge', `
-    <h1 class="admin-title">Créer un tournoi — mode concierge</h1>
-    <p style="color:rgba(255,255,255,0.5);margin-bottom:1.25rem;font-size:14px;">
-      Crée une fiche tournoi au nom d'un organisateur IDF. Statut initial : brouillon.
-      L'organisateur reçoit le lien + son code de récupération hors plateforme.
-    </p>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;max-width:700px;">
-      ${adminField('cc-owner', 'Email de l\'organisateur', '', 'email')}
-      ${adminField('cc-name', 'Nom du tournoi', '')}
-      ${adminField('cc-dept', 'Département', '')}
-      ${adminField('cc-city', 'Ville', '')}
-      ${adminField('cc-date', 'Date', '', 'date')}
-      ${adminField('cc-format', 'Format / catégorie', '')}
-      ${adminField('cc-max', 'Max équipes', '8', 'number')}
-      ${adminField('cc-fee', 'Frais (€)', '0', 'number')}
-      ${adminField('cc-surface', 'Surface', '')}
-      <!-- recovery_code généré automatiquement à la création — pas de saisie manuelle -->
-    </div>
-    <div style="margin-top:1rem;max-width:700px;">
-      <label style="font-size:11px;color:rgba(255,255,255,0.4);display:block;margin-bottom:0.3rem;">Description</label>
-      <textarea id="cc-desc" class="textarea" rows="3" style="background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.12);color:#f5efe4;width:100%;"></textarea>
-    </div>
-    <div style="margin-top:1.25rem;display:flex;gap:0.75rem;">
-      <button class="admin-btn admin-btn-primary" onclick="handleAdminConcierge()">Créer le tournoi</button>
-      <button class="admin-btn admin-btn-edit" onclick="renderAdminDashboard()">Annuler</button>
-    </div>
-    <p id="cc-err" style="color:var(--accent);font-size:13px;margin-top:0.75rem;"></p>`);
-}
-
-async function handleAdminConcierge() {
-  const ownerEmail = document.getElementById('cc-owner')?.value.trim();
-  const name       = document.getElementById('cc-name')?.value.trim();
-  const department = document.getElementById('cc-dept')?.value.trim();
-  const errEl      = document.getElementById('cc-err');
-
-  if (!ownerEmail || !name || !department) {
-    errEl.textContent = 'Email organisateur, nom du tournoi et département sont obligatoires.';
-    return;
-  }
-
-  // AD-2 fix : générer un recovery_code aléatoire à haute entropie, le hasher bcrypt,
-  // et l'inclure dans l'INSERT — cohérent avec la politique bcrypt du projet (RSSI).
-  const rawBytes = new Uint8Array(32);
-  crypto.getRandomValues(rawBytes);
-  const recoveryPlain = Array.from(rawBytes).map(b => b.toString(16).padStart(2,'0')).join('');
-  let recoveryHashed;
-  try {
-    recoveryHashed = await bcrypt.hash(recoveryPlain, 10);
-  } catch(e) {
-    errEl.textContent = 'Erreur génération code de récupération : ' + e.message;
-    return;
-  }
-
-  const id = uid();
-  const { error } = await supabaseClient.from('tournaments').insert([{
-    id,
-    owner_email:   ownerEmail,
-    name,
-    department,
-    city:          document.getElementById('cc-city')?.value.trim() || null,
-    date:          document.getElementById('cc-date')?.value || null,
-    format:        document.getElementById('cc-format')?.value.trim() || null,
-    max_teams:     parseInt(document.getElementById('cc-max')?.value) || null,
-    entry_fee:     parseFloat(document.getElementById('cc-fee')?.value) || 0,
-    surface:       document.getElementById('cc-surface')?.value.trim() || null,
-    description:   document.getElementById('cc-desc')?.value.trim() || null,
-    status:        'draft',
-    recovery_code: recoveryHashed   // haché bcrypt — cohérent avec la politique RSSI
-    // Ne pas chaîner .select() — INSERT-only côté client
-  }]);
-  if (error) {
-    errEl.textContent = 'Erreur INSERT : ' + error.message;
-  } else {
-    // recoveryPlain affiché UNE SEULE FOIS pour transmission à l'organisateur — jamais loggé
-    adminLayout('concierge', `
-      <div style="max-width:500px;">
-        <div style="font-size:2rem;color:#7bc44b;margin-bottom:0.75rem;">✓</div>
-        <h2 class="admin-title">Tournoi créé</h2>
-        <p style="color:rgba(255,255,255,0.6);margin-bottom:1rem;">
-          Fiche créée en brouillon pour <strong style="color:#f5efe4;">${esc(ownerEmail)}</strong>.
-        </p>
-        <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:1rem;margin-bottom:1.25rem;">
-          <div style="font-size:11px;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.5rem;">À transmettre à l'organisateur</div>
-          <p style="font-size:13px;color:rgba(255,255,255,0.7);margin-bottom:0.25rem;">Lien : <code style="color:var(--accent);">${window.location.origin}${window.location.pathname}#/tournaments/${id}</code></p>
-          <p style="font-size:13px;color:rgba(255,255,255,0.7);margin-bottom:0.25rem;">Code de récupération : <strong style="color:#f5efe4;font-family:monospace;">${esc(recoveryPlain)}</strong></p>
-          <p style="font-size:11px;color:rgba(255,180,0,0.7);margin-top:0.5rem;">⚠ Ce code s'affiche une seule fois — le noter avant de quitter cet écran.</p>
-        </div>
-        <div style="display:flex;gap:0.75rem;">
-          <button class="admin-btn admin-btn-primary" onclick="renderAdminConcierge()">Nouveau tournoi</button>
-          <button class="admin-btn admin-btn-edit" onclick="renderAdminTournaments()">Voir les tournois</button>
-        </div>
-      </div>`);
-  }
-}
-
-// ---- DEMANDES CLUB ----
-async function renderAdminClubRequests() {
-  if (!isAdminLoggedIn()) { renderAdminLogin(); return; }
-  adminLayout('club-requests', '<div style="color:rgba(255,255,255,0.3);">Chargement…</div>');
-  try {
-    // Risque 2 fix : SELECT direct avec PII → RPC SECURITY DEFINER avec p_admin_secret
-    const { data, error } = await supabaseClient.rpc('admin_get_club_requests', {
-      p_admin_secret: getAdminSecret()
-    });
-    if (error) throw error;
-    const reqs = data || [];
-    adminLayout('club-requests', `
-      <h1 class="admin-title">Demandes d'activation club (${reqs.length})</h1>
-      <div style="margin-bottom:1rem;">
-        <button class="admin-btn admin-btn-reject" style="font-size:11px;" onclick="adminPurgeClubRequests()">
-          Purger les demandes traitées > 90 jours
-        </button>
-      </div>
-      <table class="admin-table">
-        <thead><tr><th>Club</th><th>Contact</th><th>Email</th><th>Tél</th><th>Dept</th><th>Date</th><th>Statut</th><th>Actions</th></tr></thead>
-        <tbody>${reqs.map(r => `<tr>
-          <td><strong style="color:#f5efe4;">${esc(r.club_name)}</strong></td>
-          <td>${esc(r.contact_name)}</td>
-          <td style="color:var(--accent);">${esc(r.email)}</td>
-          <td>${esc(r.phone||'—')}</td>
-          <td>${esc(r.department||'—')}</td>
-          <td style="font-size:11px;color:rgba(255,255,255,0.4);">${fmtDate(r.created_at)}</td>
-          <td><span class="admin-badge ${r.status}">${r.status}</span></td>
-          <td class="admin-actions-cell">
-            ${r.status === 'pending' ? `
-              <button class="admin-btn admin-btn-approve" onclick="adminApproveClubRequest('${r.id}')">Approuver</button>
-              <button class="admin-btn admin-btn-reject" onclick="adminRejectClubRequest('${r.id}')">Refuser</button>
-            ` : ''}
-          </td>
-        </tr>`).join('')}</tbody>
-      </table>`);
-  } catch(e) {
-    adminLayout('club-requests', `<p style="color:var(--accent);">Erreur : ${esc(e.message)}</p>`);
-  }
-}
-
-async function adminApproveClubRequest(id) {
-  const { error } = await supabaseClient.rpc('admin_approve_club_request', {
-    p_admin_secret: getAdminSecret(), p_request_id: id
-  });
-  if (error) toast('Erreur : ' + error.message, 'error');
-  else { toast('Demande approuvée', 'success'); renderAdminClubRequests(); }
-}
-
-async function adminRejectClubRequest(id) {
-  if (!confirm('Refuser cette demande d\'activation ?')) return;
-  // AD-4 fix : RPC SECURITY DEFINER avec p_admin_secret — aligné sur le reste du module admin
-  const { error } = await supabaseClient.rpc('admin_reject_club_request', {
-    p_admin_secret: getAdminSecret(),
-    p_request_id:   id
-  });
-  if (error) toast('Erreur : ' + error.message, 'error');
-  else { toast('Demande refusée', ''); renderAdminClubRequests(); }
-}
-
-async function adminPurgeClubRequests() {
-  if (!confirm('Supprimer toutes les demandes traitées (approved/rejected) de plus de 90 jours ?')) return;
-  // AD-4 fix : RPC SECURITY DEFINER avec p_admin_secret — aligné sur le reste du module admin
-  const { data, error } = await supabaseClient.rpc('admin_purge_club_requests', {
-    p_admin_secret: getAdminSecret()
-  });
-  if (error) toast('Erreur purge : ' + error.message, 'error');
-  else { toast(`Purge effectuée (${data ?? 0} ligne${data > 1 ? 's' : ''} supprimée${data > 1 ? 's' : ''})`, 'success'); renderAdminClubRequests(); }
-}
-
-// ---- INSCRIPTIONS ÉQUIPE ----
-async function renderAdminRegistrations(filterTournament, filterStatus, filterDept) {
-  if (!isAdminLoggedIn()) { renderAdminLogin(); return; }
-  adminLayout('registrations', '<div style="color:rgba(255,255,255,0.3);">Chargement des inscriptions via RPC…</div>');
-  try {
-    // Lecture PII via RPC admin SECURITY DEFINER
-    const { data, error } = await supabaseClient.rpc('admin_get_registrations', {
-      p_admin_secret: getAdminSecret(),
-      p_tournament_id: filterTournament || null
-    });
-    if (error) throw error;
-    let regs = data || [];
-    if (filterStatus) regs = regs.filter(r => r.status === filterStatus);
-    if (filterDept)   regs = regs.filter(r => r.department === filterDept);
-
-    // Récupérer les noms de tournois pour l'affichage
-    const tourIds = [...new Set(regs.map(r => r.tournament_id))];
-    let tourNames = {};
-    if (tourIds.length) {
-      const { data: td } = await supabaseClient.from('tournaments').select('id,name').in('id', tourIds);
-      (td||[]).forEach(t => tourNames[t.id] = t.name);
-    }
-
-    adminLayout('registrations', `
-      <h1 class="admin-title">Inscriptions équipe (${regs.length})</h1>
-      <div class="admin-filter-bar">
-        <select class="admin-select" onchange="renderAdminRegistrations('', this.value, '${filterDept||''}')">
-          <option value="">Tous statuts</option>
-          <option value="pending" ${filterStatus==='pending'?'selected':''}>En attente</option>
-          <option value="approved" ${filterStatus==='approved'?'selected':''}>Approuvées</option>
-          <option value="rejected" ${filterStatus==='rejected'?'selected':''}>Refusées</option>
-        </select>
-        <select class="admin-select" onchange="renderAdminRegistrations('', '${filterStatus||''}', this.value)">
-          <option value="">Tous départements</option>
-          ${IDF_DEPARTEMENTS.map(d => `<option value="${d.code}" ${filterDept===d.code?'selected':''}>${d.nom}</option>`).join('')}
-        </select>
-      </div>
-      <table class="admin-table">
-        <thead><tr><th>Tournoi</th><th>Équipe</th><th>Club</th><th>Capitaine</th><th>Email</th><th>Téléphone</th><th>Dept</th><th>Date</th><th>Statut</th><th>Actions</th></tr></thead>
-        <tbody>${regs.map(r => `<tr>
-          <td style="font-size:12px;">${esc(tourNames[r.tournament_id]||r.tournament_id)}</td>
-          <td><strong style="color:#f5efe4;">${esc(r.team_name||'—')}</strong></td>
-          <td>${esc(r.club_name||'—')}</td>
-          <td>${esc(r.captain_name||'—')}</td>
-          <td style="color:var(--accent);font-size:12px;">${esc(r.captain_email||'—')}</td>
-          <td style="font-size:12px;">${esc(r.captain_phone||'—')}</td>
-          <td>${esc(r.department||'—')}</td>
-          <td style="font-size:11px;color:rgba(255,255,255,0.4);">${fmtDate(r.registered_at)}</td>
-          <td><span class="admin-badge ${r.status}">${r.status}</span></td>
-          <td class="admin-actions-cell">
-            ${r.status !== 'approved' ? `<button class="admin-btn admin-btn-approve" onclick="adminApproveRegistration('${r.id}')">Approuver</button>` : ''}
-            ${r.status !== 'rejected' ? `<button class="admin-btn admin-btn-reject" onclick="adminRejectRegistration('${r.id}')">Refuser</button>` : ''}
-          </td>
-        </tr>`).join('')}</tbody>
-      </table>`);
-  } catch(e) {
-    adminLayout('registrations', `<p style="color:var(--accent);">Erreur RPC : ${esc(e.message)}<br><small style="opacity:0.5;">Vérifier que la RPC admin_get_registrations est déployée (Script-DBA-Admin-RPC-Phase1.sql)</small></p>`);
-  }
-}
-
-async function adminApproveRegistration(id) {
-  const { error } = await supabaseClient.rpc('admin_update_registration_status', {
-    p_admin_secret: getAdminSecret(), p_registration_id: id, p_status: 'approved'
-  });
-  if (error) toast('Erreur : ' + error.message, 'error');
-  else { toast('Inscription approuvée', 'success'); renderAdminRegistrations(); }
-}
-
-async function adminRejectRegistration(id) {
-  const { error } = await supabaseClient.rpc('admin_update_registration_status', {
-    p_admin_secret: getAdminSecret(), p_registration_id: id, p_status: 'rejected'
-  });
-  if (error) toast('Erreur : ' + error.message, 'error');
-  else { toast('Inscription refusée', ''); renderAdminRegistrations(); }
 }
 
 function renderLegal() {
@@ -5528,18 +4905,17 @@ async function handleSignup(e, type) {
       return;
   } // fin du if (signupMode === 'real')
 
-  // ====== Mode démo ======
+  // ====== Mode démo (inchangé) ======
   const r = signupAccount(type, d);
   if (r.error) { errEl.textContent = r.error; errEl.classList.add('show'); return; }
   if (r.pending) { navigate('#/pending'); return; }
   if (type === 'team') linkPastRegistrations(r.account.email, r.account.id);
   navigate('#/dashboard');
-  // D06 fix : avertir explicitement que le compte est local uniquement
-  showDemoBanner();
+  // Afficher le code de récupération après redirection
   if (r.recoveryCode) {
     setTimeout(() => showRecoveryCodeModal(r.recoveryCode), 400);
   } else {
-    toast('Compte créé en mode démo — données locales uniquement, non enregistrées en base.', 'warning');
+    toast('Bienvenue !', 'success');
   }
 }
 

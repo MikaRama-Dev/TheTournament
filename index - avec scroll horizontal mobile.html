@@ -1631,28 +1631,6 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
 /* ===========================================
    TOAST + MODAL
    =========================================== */
-/* ===== Bandeau mode démo ===== */
-#demo-banner {
-  position: sticky; top: 0; z-index: 200;
-  background: #d97706; /* ambre — visible, distinct du terracotta du site */
-  color: #fff;
-  text-align: center;
-  padding: 0.6rem 1rem;
-  font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  line-height: 1.4;
-}
-#demo-banner a {
-  color: #fff;
-  text-decoration: underline;
-  margin-left: 0.5rem;
-}
-@media (max-width: 700px) {
-  #demo-banner { font-size: 12px; padding: 0.55rem 0.85rem; }
-}
-
 .toast-container {
   position: fixed; bottom: 2rem; right: 2rem;
   z-index: 1000;
@@ -1812,7 +1790,6 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
 @media (max-width: 700px) {
   .nav-links { display: none; }
   .nav { padding: 0.85rem 1.25rem; }
-  .nav-find { display: none; } /* Trouver un tournoi masqué sur mobile — évite le scroll horizontal */
   .tourn-aside { position: static; }
   .detail-tab { padding: 0.75rem 0.85rem; font-size: 10.5px; }
   .hero { padding: 3.5rem var(--container) 2.5rem; }
@@ -2808,7 +2785,6 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
 </head>
 <body>
 
-<div id="demo-banner" style="display:none;" role="alert" aria-live="polite"></div>
 <nav class="nav" id="nav"></nav>
 <main class="main" id="app"></main>
 <footer class="footer" id="footer"></footer>
@@ -2832,25 +2808,13 @@ var signupMode = 'real';  // 'real' par défaut — bascule sur 'demo' si Supaba
 // APRÈS — attend que le DOM soit prêt
 var supabaseClient = null;
 
-// D06 fix : compteur de retry — évite la boucle infinie si CDN bloqué
-var _supabaseRetryCount = 0;
-var _supabaseMaxRetry   = 15; // 15 × 200ms = 3 s max
-
 function initSupabase() {
   try {
     // Évite une double initialisation si DOMContentLoaded + retry se croisent.
     if (supabaseClient) return;
 
     if (typeof window.supabase === 'undefined') {
-      _supabaseRetryCount++;
-      if (_supabaseRetryCount >= _supabaseMaxRetry) {
-        console.warn('[Le Tournoi] SDK Supabase non chargé après 3 s — bascule en mode démo.');
-        signupMode = 'demo';
-        _tournamentsSyncDone = true;
-        showDemoBanner();
-        return;
-      }
-      console.warn('[Le Tournoi] SDK Supabase non chargé — retry ' + _supabaseRetryCount + '/' + _supabaseMaxRetry);
+      console.warn('[Le Tournoi] SDK Supabase non chargé — retry dans 200ms');
       setTimeout(initSupabase, 200);
       return;
     }
@@ -3957,8 +3921,6 @@ const ICONS = {
 // ROUTER
 function render() {
   renderNav(); renderFooter();
-  // D06 : bandeau démo persistant sur toutes les pages
-  if (signupMode === 'demo') showDemoBanner();
   const r = getRoute();
   if (r === '/') return renderHome();
   if (r === '/admin') return renderAdmin();
@@ -4030,7 +3992,7 @@ function renderNav() {
         </div>
       ` : `
         <a href="#/login" class="btn btn-ghost btn-sm">Connexion</a>
-        <a href="#/tournaments" class="btn btn-outline btn-sm nav-find">Trouver un tournoi</a>
+        <a href="#/tournaments" class="btn btn-outline btn-sm">Trouver un tournoi</a>
         <a href="#/signup" class="btn btn-orange btn-sm">S'inscrire</a>
       `}
     </div>`;
@@ -4261,14 +4223,6 @@ function isTournamentComplete(t) {
 
 // ---- SESSION ----
 function isAdminLoggedIn() { return sessionStorage.getItem('lt_admin') === '1'; }
-
-// D06 — bandeau mode démo : affiché dès que signupMode bascule sur 'demo'
-function showDemoBanner() {
-  const el = document.getElementById('demo-banner');
-  if (!el) return;
-  el.innerHTML = '⚠ MODE DÉMO — Les données sont stockées localement dans ce navigateur uniquement. Aucune information n\'est enregistrée sur nos serveurs.';
-  el.style.display = 'block';
-}
 function adminLogout() {
   sessionStorage.removeItem('lt_admin');
   navigate('#/');
@@ -5528,18 +5482,17 @@ async function handleSignup(e, type) {
       return;
   } // fin du if (signupMode === 'real')
 
-  // ====== Mode démo ======
+  // ====== Mode démo (inchangé) ======
   const r = signupAccount(type, d);
   if (r.error) { errEl.textContent = r.error; errEl.classList.add('show'); return; }
   if (r.pending) { navigate('#/pending'); return; }
   if (type === 'team') linkPastRegistrations(r.account.email, r.account.id);
   navigate('#/dashboard');
-  // D06 fix : avertir explicitement que le compte est local uniquement
-  showDemoBanner();
+  // Afficher le code de récupération après redirection
   if (r.recoveryCode) {
     setTimeout(() => showRecoveryCodeModal(r.recoveryCode), 400);
   } else {
-    toast('Compte créé en mode démo — données locales uniquement, non enregistrées en base.', 'warning');
+    toast('Bienvenue !', 'success');
   }
 }
 
