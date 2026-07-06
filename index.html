@@ -2910,12 +2910,14 @@ async function submitRealSignup(type, data, consents) {
     };
   } else if (type === 'team') {
     payload = {
-      name:    data.name    || null,
-      email:   data.email   || null,
-      manager: data.manager || null,
-      phone:   data.phone   || null,
-      club:    '',
-      status:  'pending'
+      name:     data.name    || null,
+      email:    data.email   || null,
+      manager:  data.manager || null,
+      phone:    data.phone   || null,
+      club:     '',
+      category: '',
+      level:    '',
+      status:   'pending'
     };
   } else {
     payload = {
