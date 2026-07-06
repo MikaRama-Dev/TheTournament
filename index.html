@@ -2910,22 +2910,22 @@ async function submitRealSignup(type, data, consents) {
     };
   } else if (type === 'team') {
     payload = {
-      name: data.name || null,
-      email: data.email || null,
+      name:    data.name    || null,
+      email:   data.email   || null,
       manager: data.manager || null,
-      phone: data.phone || null,
-      status: 'pending'
+      phone:   data.phone   || null,
+      club:    '',
+      status:  'pending'
     };
   } else {
     payload = {
-      name: data.name || null,
-      email: data.email || null,
-      department: data.department || null,
-      city: data.city || null,
-      sector: data.sector || null,
-      contact: data.contact || null,
-      phone: data.phone || null,
-      status: 'pending'
+      name:        data.name        || null,
+      email:       data.email       || null,
+      sector:      data.sector      || null,
+      contact:     data.contact     || null,
+      phone:       data.phone       || null,
+      budget_range: data.budgetRange || null,
+      status:      'pending'
     };
   }
 
@@ -5369,21 +5369,7 @@ function renderSignupForm(type) {
         <div class="form-group"><label class="form-label">Confirmer le mot de passe</label><input type="password" class="input" id="f-pwd2" required minlength="6"></div>
         <p class="form-help" style="margin-top:-0.5rem;">Choisissez un mot de passe dédié à cette application — ne réutilisez pas votre mot de passe principal.</p>
       </div>
-      <div class="form-row">
-        <div class="form-group"><label class="form-label">Secteur</label><input class="input" id="f-sect" required placeholder="Restauration, Auto, Beauté..."></div>
-        <div class="form-group"><label class="form-label">Département <span style="font-weight:400;color:var(--ink-mute);text-transform:none;letter-spacing:0;">(optionnel)</span></label>
-        <select class="select" id="f-dept" onchange="onDeptChange(this, 'f-city')">
-          ${deptOptionsHTML('', true)}
-        </select></div>
-        <div class="form-group"><label class="form-label">Ville <span style="font-weight:400;color:var(--ink-mute);text-transform:none;letter-spacing:0;">(optionnel)</span></label>
-        <div class="city-wrap">
-          <input class="input" id="f-city" autocomplete="off"
-            placeholder="Ville" data-dept-input="f-dept"
-            oninput="cityAutocomplete(this)"
-            onkeydown="_cityKeyNav(event, this)"
-            onblur="_closeCityDropdown(this.closest('.city-wrap'))">
-        </div></div>
-      </div>
+      <div class="form-group"><label class="form-label">Secteur</label><input class="input" id="f-sect" required placeholder="Restauration, Auto, Beauté..."></div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Contact</label><input class="input" id="f-cont" required></div>
         <div class="form-group"><label class="form-label">Téléphone</label><input class="input" id="f-phone" placeholder="06 12 34 56 78"></div>
@@ -5455,8 +5441,6 @@ async function handleSignup(e, type) {
     d = { name, email: document.getElementById('f-email').value.trim().toLowerCase(),
       password: document.getElementById('f-pwd').value,
       sector: document.getElementById('f-sect').value.trim(),
-      department: document.getElementById('f-dept').value,
-      city: document.getElementById('f-city').value.trim(),
       contact: document.getElementById('f-cont').value.trim(),
       phone: document.getElementById('f-phone').value.trim(),
       budgetRange: document.getElementById('f-budget').value,
