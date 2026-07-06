@@ -33,7 +33,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,500;0,600;0,700;0,800;1,500;1,600;1,700;1,800&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400;1,500;1,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/bcryptjs@2.4.3/dist/bcrypt.min.js" integrity="sha256-a5cOKPaB1eRbDZyxWpTxOCGXkXvBqpJGmfUPaqiFwhs=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bcryptjs@2.4.3/dist/bcrypt.min.js" integrity="sha256-GBYG99Ke4TexG5/k/2/SNV4ZxbCkIYEhilHdBZi8Bq8=" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 /* =====================================================
@@ -2899,13 +2899,13 @@ async function submitRealSignup(type, data, consents) {
 
   if (type === 'club') {
     payload = {
-      name:            data.name      || null,
-      email:           data.email     || null,
-      president:       data.president || null,
-      phone:           data.phone     || null,
+      name:            data.name       || null,
+      email:           data.email      || null,
+      president:       data.president  || null,
+      phone:           data.phone      || null,
       status:          'pending',
       activation_code: data._activationCode || null,
-      password:        data.password  || null,
+      password:        data.password   || null,
       recovery_code:   data._recoveryCode || null
     };
   } else if (type === 'team') {
@@ -5371,14 +5371,14 @@ function renderSignupForm(type) {
       </div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Secteur</label><input class="input" id="f-sect" required placeholder="Restauration, Auto, Beauté..."></div>
-        <div class="form-group"><label class="form-label">Département</label>
-        <select class="select" id="f-dept" required onchange="onDeptChange(this, 'f-city')">
+        <div class="form-group"><label class="form-label">Département <span style="font-weight:400;color:var(--ink-mute);text-transform:none;letter-spacing:0;">(optionnel)</span></label>
+        <select class="select" id="f-dept" onchange="onDeptChange(this, 'f-city')">
           ${deptOptionsHTML('', true)}
         </select></div>
-        <div class="form-group"><label class="form-label">Ville</label>
+        <div class="form-group"><label class="form-label">Ville <span style="font-weight:400;color:var(--ink-mute);text-transform:none;letter-spacing:0;">(optionnel)</span></label>
         <div class="city-wrap">
-          <input class="input" id="f-city" required autocomplete="off" disabled
-            placeholder="Choisis d'abord un département" data-dept-input="f-dept"
+          <input class="input" id="f-city" autocomplete="off"
+            placeholder="Ville" data-dept-input="f-dept"
             oninput="cityAutocomplete(this)"
             onkeydown="_cityKeyNav(event, this)"
             onblur="_closeCityDropdown(this.closest('.city-wrap'))">
