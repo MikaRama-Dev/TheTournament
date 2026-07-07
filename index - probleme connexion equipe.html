@@ -3960,18 +3960,7 @@ async function loginAccountFromSupabase(type, email, pwd) {
         activationCode: data.activation_code,
         recoveryCode: '', // non disponible après hachage bcrypt — l'utilisateur doit le noter à la création
         mark: makeMark(data.email),
-        logoClass: '',
-        // Tableaux requis par les dashboards — vides au premier login cross-device
-        registrations:    [],
-        sponsorProposals: [],
-        tournaments:      [],
-        // Spécifiques team
-        players:      type === 'team'    ? [] : undefined,
-        availability: type === 'team'    ? [] : undefined,
-        // Spécifiques club
-        members:      type === 'club'    ? [] : undefined,
-        // Spécifiques sponsor
-        proposals:    type === 'sponsor' ? [] : undefined,
+        logoClass: ''
       };
       state[coll].push(rebuilt);
       state.currentType = type;
@@ -5869,12 +5858,10 @@ function renderClubDashboard(c) {
 }
 
 function renderTeamDashboard(team) {
-  const players      = team.players      || [];
-  const availability = team.availability || [];
   const myApps = [];
   state.tournaments.forEach(t => t.registrations.forEach(r => { if (r.teamId === team.id) myApps.push({ t, r }); }));
   const approved = myApps.filter(a => a.r.status === 'approved').length;
-  const pending  = myApps.filter(a => a.r.status === 'pending').length;
+  const pending = myApps.filter(a => a.r.status === 'pending').length;
   const matching = state.tournaments.filter(t => t.status === 'open' && t.format === team.category && !t.registrations.some(r => r.teamId === team.id));
 
   document.getElementById('app').innerHTML = `
@@ -5882,7 +5869,7 @@ function renderTeamDashboard(team) {
       <h1 class="dash-greeting"><em>${esc(team.name)}</em></h1>
       <p class="dash-sub">Tableau de bord équipe participante.</p>
       <div class="dash-stats">
-        <div class="dash-stat"><div class="dash-stat-label">Joueurs</div><div class="dash-stat-val">${players.length}</div></div>
+        <div class="dash-stat"><div class="dash-stat-label">Joueurs</div><div class="dash-stat-val">${team.players.length}</div></div>
         <div class="dash-stat"><div class="dash-stat-label">Tournois acceptés</div><div class="dash-stat-val">${approved}</div></div>
         <div class="dash-stat"><div class="dash-stat-label">En attente</div><div class="dash-stat-val"><em>${pending}</em></div></div>
         <div class="dash-stat"><div class="dash-stat-label">Catégorie</div><div class="dash-stat-val" style="font-size: 1.3rem;">${formatLabel(team.category)}</div></div>
@@ -5905,7 +5892,7 @@ function renderTeamDashboard(team) {
           <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed var(--line);">
             <div class="aside-share-label">Disponibilités</div>
             <div class="avail-row" style="margin-top: 0.5rem;">
-              ${state.catalog.days.map(d => `<div class="avail-day ${availability.includes(d.k) ? 'on' : ''}">${d.s}</div>`).join('')}
+              ${state.catalog.days.map(d => `<div class="avail-day ${team.availability?.includes(d.k) ? 'on' : ''}">${d.s}</div>`).join('')}
             </div>
           </div>
           ${team.preferences ? `
@@ -5920,12 +5907,12 @@ function renderTeamDashboard(team) {
 
       <div class="dash-section">
         <div class="dash-section-h">
-          <div class="dash-section-title">Mes joueurs (${(team.players || []).length})</div>
+          <div class="dash-section-title">Mes joueurs (${team.players.length})</div>
           <button class="btn btn-orange btn-sm" onclick="addPlayerModal()">+ Ajouter</button>
         </div>
-        ${(team.players || []).length ? `
+        ${team.players.length ? `
           <div class="players-grid">
-            ${(team.players || []).map(p => `
+            ${team.players.map(p => `
               <div class="player-card">
                 <div class="player-num">${p.number || '#'}</div>
                 <div class="player-info">
@@ -6193,14 +6180,12 @@ function savePlayer() {
   const team = getAccount();
   const name = document.getElementById('p-name').value.trim();
   if (!name) { toast('Saisis un nom', 'error'); return; }
-  if (!team.players) team.players = [];
   team.players.push({ id: uid(), name, position: document.getElementById('p-pos').value, number: parseInt(document.getElementById('p-num').value) || null });
   saveState(); closeModal(); toast('Joueur ajouté', 'success'); render();
 }
 function removePlayer(pid) {
   if (!confirm('Supprimer ce joueur ?')) return;
   const team = getAccount();
-  if (!team.players) team.players = [];
   team.players = team.players.filter(p => p.id !== pid);
   saveState(); toast('Joueur retiré'); render();
 }
@@ -8705,7 +8690,7 @@ function renderTeamProfile(id) {
         <div class="profile-info">
           <div class="profile-eyebrow">Équipe · ${formatLabel(team.category)}</div>
           <h1 class="profile-name">${esc(team.name)}</h1>
-          <p class="profile-meta">${esc(team.club)} · ${esc(team.city)} · ${(team.players || []).length} joueur${(team.players || []).length > 1 ? 's' : ''} · ${approvedApps} tournoi${approvedApps > 1 ? 's' : ''} joué${approvedApps > 1 ? 's' : ''}</p>
+          <p class="profile-meta">${esc(team.club)} · ${esc(team.city)} · ${team.players.length} joueur${team.players.length > 1 ? 's' : ''} · ${approvedApps} tournoi${approvedApps > 1 ? 's' : ''} joué${approvedApps > 1 ? 's' : ''}</p>
           <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;margin-top:0.5rem;">
             ${renderBadge(teamBadge(team.id))}
             ${safeUrl(team.website) ? `<a href="${safeUrl(team.website)}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm" style="font-size:11px;">Site web →</a>` : ''}
@@ -8722,10 +8707,10 @@ function renderTeamProfile(id) {
             <p class="detail-text">${team.bio ? esc(team.bio) : '<em style="color: var(--ink-mute);">Pas de présentation.</em>'}</p>
           </div>
           <div class="detail-section">
-            <h3 class="detail-section-title">Effectif (${(team.players || []).length})</h3>
-            ${(team.players || []).length ? `
+            <h3 class="detail-section-title">Effectif (${team.players.length})</h3>
+            ${team.players.length ? `
               <div class="players-grid">
-                ${(team.players || []).sort((a, b) => (a.number || 99) - (b.number || 99)).map(p => `
+                ${team.players.sort((a, b) => (a.number || 99) - (b.number || 99)).map(p => `
                   <div class="player-card">
                     <div class="player-num">${p.number || '#'}</div>
                     <div class="player-info">
