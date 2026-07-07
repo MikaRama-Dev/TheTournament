@@ -4348,7 +4348,7 @@ async function submitJoinRequest() {
 
 // ---- CONSTANTES ADMIN (à remplacer avant mise en prod) ----
 // Générer ADMIN_HASH avec : bcrypt.hash('votre-mot-de-passe', 10)
-const ADMIN_HASH = '$2a$10$NHAKGlxyO0.m2q2ZER/CPOJObrbzb2/tGY3xTytcESShrCxA38lOO';
+const ADMIN_HASH = '$2b$10$W6H7LMzlmYe.9UmjBRJG4eO1XchfyblXKtWLmBOr/5fD8QqIyhX8C';
 // Générer ADMIN_RPC_SECRET avec : crypto.getRandomValues(new Uint8Array(32)) → hex
 const ADMIN_RPC_SECRET = '00db5eff6ad77962d9379c8b2647842a7d68faf4c08fa488f43566671e1337b7';
 function getAdminSecret() { return ADMIN_RPC_SECRET; }
