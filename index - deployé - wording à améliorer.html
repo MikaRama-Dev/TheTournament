@@ -8,7 +8,7 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co https://geo.api.gouv.fr https://api-adresse.data.gouv.fr https://cdn.jsdelivr.net; base-uri 'self'; form-action 'self'">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<title>Le Tournoi — la plateforme des tournois de foot amateur</title>
+<title>Le Tournoi : la plateforme des tournois de foot amateur</title>
 <script id="lt-share-redirect-early">
 // Redirection très tôt des liens de partage sans hash.
 // Exemple : /TheTournament/?tournoi=id-xxx → /TheTournament/#/tournaments/id-xxx
@@ -164,7 +164,8 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
   position: sticky; top: 0; z-index: 100;
   background: var(--ink);
   border-bottom: 1px solid rgba(247,247,244,0.08);
-  padding: 1.1rem var(--container);
+  padding: 0 var(--container);
+  height: 64px;
   display: flex; justify-content: space-between; align-items: center; gap: 1rem;
 }
 .brand { display: flex; align-items: center; gap: 0.75rem; }
@@ -211,8 +212,8 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
 .nav-link:hover, .nav-link.active { color: var(--paper); }
 .nav-link.active::after {
   content: ""; position: absolute;
-  bottom: -32px; left: 0; right: 0;
-  height: 1px; background: var(--accent-2);
+  bottom: -22px; left: 0; right: 0;
+  height: 3px; background: var(--accent-2);
 }
 .nav-right { display: flex; align-items: center; gap: 0.65rem; }
 .role-badge {
@@ -356,16 +357,17 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
 .hero-eyebrow::before { display: none; }
 .hero-h1 {
   font-family: var(--font-serif);
-  font-weight: 800;
-  font-size: clamp(2.8rem, 7vw, 5.5rem);
-  line-height: 1;
-  letter-spacing: -0.02em;
-  margin-bottom: 1.75rem;
+  font-weight: 900;
+  font-size: clamp(2.4rem, 5vw, 3.625rem); /* 58px desktop */
+  line-height: 0.93;
+  letter-spacing: -0.025em;
+  max-width: 580px;
+  margin-bottom: 1.5rem;
   color: var(--paper);
 }
 .hero-h1 em {
   font-style: normal;
-  font-weight: 800;
+  font-weight: 900;
   color: var(--accent-2);
 }
 .hero-h1 .underline {
@@ -375,39 +377,38 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
 .hero-h1 .underline::after {
   content: ""; position: absolute;
   bottom: 0.05em; left: 0; right: 0;
-  height: 1px; background: var(--accent-2);
+  height: 3px; background: var(--accent-2); opacity: 0.4;
 }
 .hero-sub {
-  font-family: var(--font-serif);
-  font-weight: 300;
-  font-size: clamp(1.05rem, 1.4vw, 1.25rem);
-  line-height: 1.55;
-  color: rgba(247,247,244,0.55);
-  max-width: 520px;
-  margin-bottom: 2.25rem;
-  letter-spacing: -0.005em;
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgba(247,247,244,0.45);
+  max-width: 420px;
+  margin-bottom: 32px;
 }
-.hero-actions { display: flex; gap: 0.65rem; flex-wrap: wrap; }
-/* CTA hero spécifiques */
+.hero-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+/* CTA hero spécifiques §5 */
 .hero-cta-primary {
   display: inline-flex; align-items: center; gap: 0.5rem;
   background: var(--accent-2); color: var(--ink);
-  font-family: var(--font-serif); font-weight: 700; font-size: 13px;
-  padding: 0.75rem 1.5rem; border-radius: 2px; border: none;
-  text-decoration: none; cursor: pointer;
+  font-family: var(--font-serif); font-weight: 800; font-size: 15px;
+  padding: 16px 34px; border-radius: 3px; border: none;
+  text-decoration: none; cursor: pointer; letter-spacing: 0.04em;
   transition: opacity 0.15s;
 }
 .hero-cta-primary:hover { opacity: 0.88; }
 .hero-cta-secondary {
   display: inline-flex; align-items: center; gap: 0.5rem;
   background: transparent; color: var(--paper);
-  font-family: var(--font-serif); font-weight: 600; font-size: 13px;
-  padding: 0.75rem 1.5rem; border-radius: 2px;
-  border: 1px solid rgba(247,247,244,0.25);
+  font-family: var(--font-serif); font-weight: 700; font-size: 15px;
+  padding: 14px 28px; border-radius: 3px;
+  border: 2px solid rgba(247,247,244,0.30);
   text-decoration: none; cursor: pointer;
   transition: border-color 0.15s;
 }
-.hero-cta-secondary:hover { border-color: rgba(247,247,244,0.55); }
+.hero-cta-secondary:hover { border-color: rgba(247,247,244,0.6); }
 /* Masquer les hero-numbers (remplacés par hero-stats-band) */
 .hero-numbers { display: none; }
 .hero-number-val {
@@ -472,35 +473,35 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
 .hero-stats-band {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  border-top: 1px solid rgba(247,247,244,0.08);
-  margin-top: 3rem;
+  background: var(--accent);
+  position: relative;
 }
 .hero-stat {
-  padding: 1.5rem var(--container);
-  border-right: 1px solid rgba(247,247,244,0.08);
+  padding: 16px 24px;
+  border-right: 1px solid rgba(247,247,244,0.12);
   text-align: center;
 }
 .hero-stat:last-child { border-right: none; }
 .hero-stat-val {
   font-family: var(--font-mono);
-  font-size: 18px;
-  font-weight: 500;
+  font-size: 26px;
+  font-weight: 700;
   color: var(--paper);
   line-height: 1;
-  margin-bottom: 0.4rem;
+  margin-bottom: 4px;
 }
 .hero-stat-val.open { color: var(--accent-2); }
 .hero-stat-lbl {
   font-family: var(--font-sans);
   font-size: 10px;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: rgba(247,247,244,0.4);
+  letter-spacing: 0.09em;
+  color: rgba(247,247,244,0.55);
 }
 @media (max-width: 880px) {
   .hero-stats-band { grid-template-columns: repeat(4,1fr); }
-  .hero-stat { padding: 1rem 0.5rem; }
-  .hero-stat-val { font-size: 14px; }
+  .hero-stat { padding: 12px 8px; }
+  .hero-stat-val { font-size: 18px; }
 }
 
 /* ===========================================
@@ -645,13 +646,14 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
 .t-card-img.alt-3 { border-top-color: var(--slate);  color: var(--slate); }
 .t-card-img.alt-4 { border-top-color: var(--accent); color: var(--accent); }
 .t-card-pattern {
-  position: absolute; inset: 0;
-  width: 100%; height: 100%;
-  opacity: 0.15;
+  position: absolute;
+  width: 90px; height: 60px;
+  right: -8px; bottom: -8px;
+  opacity: 0.09;
   transition: opacity 0.2s ease;
   pointer-events: none;
 }
-.t-card:hover .t-card-pattern { opacity: 0.22; }
+.t-card:hover .t-card-pattern { opacity: 0.15; }
 .t-card-mark {
   position: absolute; top: 1.1rem; left: 1.25rem;
   font-family: var(--font-mono);
@@ -1822,6 +1824,42 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
   line-height: 1;
 }
 .btn-toggle-pwd:hover { color: var(--ink); }
+
+/* ===== Ticker bandeau défilant ===== */
+.ticker-wrap {
+  position: relative; z-index: 110;
+  background: var(--accent-2);
+  height: 28px;
+  overflow: hidden;
+  display: flex; align-items: center;
+}
+.ticker-track {
+  display: flex;
+  white-space: nowrap;
+  animation: ticker 18s linear infinite;
+}
+.ticker-copy {
+  display: flex; align-items: center;
+  flex-shrink: 0;
+  padding-right: 0; /* séparateurs dans le contenu */
+}
+.ticker-item {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink);
+  padding: 0 24px;
+  white-space: nowrap;
+}
+@keyframes ticker {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ticker-track { animation: none; }
+}
 
 /* ===== Bandeau mode démo ===== */
 #demo-banner {
@@ -3032,6 +3070,24 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
 </svg>
 
 <div id="demo-banner" style="display:none;" role="alert" aria-live="polite"></div>
+<div class="ticker-wrap" id="ticker-wrap" aria-live="off" aria-atomic="false">
+  <div class="ticker-track">
+    <div class="ticker-copy" id="ticker-c1" aria-hidden="true">
+      <span class="ticker-item">⚽ LE TOURNOI · IDF</span>
+    </div>
+    <div class="ticker-copy" id="ticker-c2" aria-hidden="true">
+      <span class="ticker-item">⚽ LE TOURNOI · IDF</span>
+    </div>
+  </div>
+</div>
+<noscript><div class="ticker-wrap"><span class="ticker-item" style="padding:6px 16px;display:block;">⚽ LE TOURNOI · IDF</span></div></noscript>
+<div class="ticker-wrap" aria-label="Actualités Le Tournoi" role="marquee">
+  <div class="ticker-track">
+    <span id="ticker-c1" class="ticker-copy"></span>
+    <span id="ticker-c2" class="ticker-copy" aria-hidden="true"></span>
+  </div>
+</div>
+<noscript><div class="ticker-wrap" style="text-align:center;padding:6px 0;"><span class="ticker-item">⚽ LE TOURNOI · IDF</span></div></noscript>
 <nav class="nav" id="nav"></nav>
 <main class="main" id="app"></main>
 <footer class="footer" id="footer"></footer>
@@ -3051,6 +3107,54 @@ var SUPABASE_ANON_KEY = 'sb_publishable_OsHKOIepUW6C8IbwYELsCQ_S7mUzTXA';
 
 // Le client Supabase est créé seulement si les valeurs ont été configurées
 var signupMode = 'real';  // 'real' par défaut — bascule sur 'demo' si Supabase absent
+
+// ─── Constantes métier (validées PO — ne pas hardcoder ailleurs) ────────────
+const SAISON_BASCULE_MOIS = 7;  // juillet = bascule saison (calendrier FFF)
+const SEUIL_URGENT_PLACES = 3;  // places restantes déclenchant badge urgent
+
+/** Retourne la saison en cours au format "AAAA–AA" */
+function getSaison() {
+  const now   = new Date();
+  const annee = now.getFullYear();
+  const mois  = now.getMonth() + 1; // 1 = janvier
+  if (mois >= SAISON_BASCULE_MOIS) {
+    return `${annee}–${String(annee + 1).slice(-2)}`;
+  } else {
+    return `${annee - 1}–${String(annee).slice(-2)}`;
+  }
+}
+
+/** Nombre de places restantes pour un tournoi (calcul côté client) */
+function placesRestantes(tournoi) {
+  if (!tournoi.maxTeams) return null;
+  const inscrits = (state.registrations || [])
+    .filter(r => r.tournamentId === tournoi.id && r.status === 'approved')
+    .length;
+  return tournoi.maxTeams - inscrits;
+}
+
+/** Initialise le contenu dynamique du ticker (appelé après chargement state) */
+function initTicker() {
+  const open = (state.tournaments || []).filter(t => t.status === 'open');
+  const messages = [];
+  messages.push(`⚽ SAISON ${getSaison()} EN COURS`);
+  messages.push(`${open.length} TOURNOI${open.length !== 1 ? 'S' : ''} OUVERT${open.length !== 1 ? 'S' : ''} EN IDF`);
+  open.forEach(t => {
+    const places = placesRestantes(t);
+    if (places !== null && places <= SEUIL_URGENT_PLACES && places > 0) {
+      messages.push(`${t.name.toUpperCase()} : ${places} PLACE${places > 1 ? 'S' : ''} RESTANTE${places > 1 ? 'S' : ''}`);
+    }
+  });
+  const SEP = ' ·· ';
+  const html = messages.map(m =>
+    `<span class="ticker-item">${escapeHtml(m)}</span>`
+  ).join(`<span class="ticker-item" aria-hidden="true">${SEP}</span>`);
+  const c1 = document.getElementById('ticker-c1');
+  const c2 = document.getElementById('ticker-c2');
+  if (c1) c1.innerHTML = html;
+  if (c2) c2.innerHTML = html; // copie identique pour loop CSS sans JS
+}
+// ────────────────────────────────────────────────────────────────────────────
 
 // APRÈS — attend que le DOM soit prêt
 var supabaseClient = null;
@@ -3333,7 +3437,7 @@ async function syncTournament(t, isNew) {
       const { error: errIns } = await supabaseClient.from('tournaments').insert([row]);
       if (errIns) {
         console.error('[Le Tournoi] syncTournament INSERT:', errIns);
-        toast('Tournoi enregistré localement — sync base échouée', 'error');
+        toast('Tournoi enregistré localement (sync base échouée)', 'error');
         return false;
       }
     } else {
@@ -3349,7 +3453,7 @@ async function syncTournament(t, isNew) {
       if (errRpc) {
         console.error('[Le Tournoi] update_tournament RPC:', errRpc);
         // Message générique — pas de détail technique exposé à l'UI
-        toast('Modification enregistrée localement — vérification d\'autorisation échouée en base', 'error');
+        toast('Modification enregistrée localement (vérification autorisation échouée)', 'error');
         return false;
       }
     }
@@ -3514,7 +3618,7 @@ async function deleteTournamentRemote(id) {
     if (error) {
       console.error('[Le Tournoi] delete_tournament RPC:', error);
       // Message générique — pas de détail technique côté UI
-      toast("Tournoi supprimé localement — vérification d'autorisation échouée en base", 'error');
+      toast("Tournoi supprimé localement (vérification autorisation échouée)", 'error');
     }
   } catch (e) {
     console.error('[Le Tournoi] deleteTournamentRemote exception:', e);
@@ -3553,6 +3657,7 @@ async function loadTournamentsFromSupabase() {
     }
     _tournamentsSyncDone = true;
     render();
+    initTicker(); // mise à jour ticker après chargement Supabase
   } catch (e) {
     _tournamentsSyncDone = true;
     console.error('[Le Tournoi] loadTournaments exception:', e);
@@ -4201,6 +4306,8 @@ function render() {
   renderNav(); renderFooter();
   // D06 : bandeau démo persistant sur toutes les pages
   if (signupMode === 'demo') showDemoBanner();
+  // Ticker : mise à jour dynamique à chaque rendu (mode réel et démo)
+  initTicker();
   const r = getRoute();
   if (r === '/') return renderHome();
   if (r === '/admin') return renderAdmin();
@@ -4221,7 +4328,7 @@ function render() {
   if (r.startsWith('/teams/')) return renderTeamProfile(r.split('/')[2]);
   if (r === '/sponsors') return renderSponsorsList();
   if (r.startsWith('/sponsors/')) return renderSponsorProfile(r.split('/')[2]);
-  document.getElementById('app').innerHTML = `<div class="page-head"><h1 class="page-title">404 — <em>introuvable</em></h1><div class="page-head-actions"><a href="#/" class="btn btn-primary">Retour</a></div></div>`;
+  document.getElementById('app').innerHTML = `<div class="page-head"><h1 class="page-title">404 : <em>introuvable</em></h1><div class="page-head-actions"><a href="#/" class="btn btn-primary">Retour</a></div></div>`;
 }
 function requireAuth(cb, allowed) {
   const a = getAccount();
@@ -4388,7 +4495,7 @@ function renderJoinRequest() {
 
         <label class="consent-label">
           <input type="checkbox" id="jr-consent" required style="flex-shrink:0;margin-top:2px;accent-color:var(--accent);width:16px;height:16px;">
-          <span class="consent-text">J'accepte que mes coordonnées soient utilisées pour traiter ma demande d'activation, conformément à la <a href="#/privacy" style="color:var(--accent);">politique de confidentialité</a>. — obligatoire</span>
+          <span class="consent-text">J'accepte que mes coordonnées soient utilisées pour traiter ma demande d'activation, conformément à la <a href="#/privacy" style="color:var(--accent);">politique de confidentialité</a>. (obligatoire)</span>
         </label>
 
         <p class="form-error" id="jr-err" style="margin-top:0.75rem;"></p>
@@ -4525,7 +4632,7 @@ function togglePassword(inputId, btn) {
 function showDemoBanner() {
   const el = document.getElementById('demo-banner');
   if (!el) return;
-  el.innerHTML = '⚠ MODE DÉMO — Les données sont stockées localement dans ce navigateur uniquement. Aucune information n\'est enregistrée sur nos serveurs.';
+  el.innerHTML = '⚠ MODE DÉMO : Les données sont stockées localement dans ce navigateur uniquement. Aucune information n\'est enregistrée sur nos serveurs.';
   el.style.display = 'block';
 }
 function adminLogout() {
@@ -4729,7 +4836,7 @@ async function renderAdminEditTournament(id) {
   if (!t) { toast('Tournoi introuvable', 'error'); return; }
   adminLayout('tournaments', `
     <button class="admin-btn admin-btn-edit" onclick="renderAdminTournaments()" style="margin-bottom:1rem;">← Retour</button>
-    <h1 class="admin-title">Édition — ${esc(t.name)}</h1>
+    <h1 class="admin-title">Édition : ${esc(t.name)}</h1>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;max-width:700px;">
       ${adminField('t-edit-name', 'Nom', t.name)}
       ${adminField('t-edit-owner', 'Owner email', t.owner_email)}
@@ -4794,7 +4901,7 @@ async function handleAdminEditTournament(id) {
 
 async function adminDeleteTournament(id, name) {
   if (!confirm('Annuler le tournoi "' + name + '" ?\n\nLe tournoi sera masqué du catalogue public mais les données resteront en base (soft-delete). Cette action peut être corrigée par le DBA si nécessaire.')) return;
-  if (!confirm('Confirmation finale — annuler "' + name + '" et le masquer du catalogue ?')) return;
+  if (!confirm('Confirmation finale : annuler "' + name + '" et le masquer du catalogue ?')) return;
   const { error } = await supabaseClient.rpc('admin_update_tournament', {
     p_admin_secret: getAdminSecret(), p_id: id, p_patch: { status: 'cancelled' }
   });
@@ -4806,7 +4913,7 @@ async function adminDeleteTournament(id, name) {
 function renderAdminConcierge() {
   if (!isAdminLoggedIn()) { renderAdminLogin(); return; } // Risque 1
   adminLayout('concierge', `
-    <h1 class="admin-title">Créer un tournoi — mode concierge</h1>
+    <h1 class="admin-title">Créer un tournoi (mode concierge)</h1>
     <p style="color:rgba(255,255,255,0.5);margin-bottom:1.25rem;font-size:14px;">
       Crée une fiche tournoi au nom d'un organisateur IDF. Statut initial : brouillon.
       L'organisateur reçoit le lien + son code de récupération hors plateforme.
@@ -4890,7 +4997,7 @@ async function handleAdminConcierge() {
           <div style="font-size:11px;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.5rem;">À transmettre à l'organisateur</div>
           <p style="font-size:13px;color:rgba(255,255,255,0.7);margin-bottom:0.25rem;">Lien : <code style="color:var(--accent);">${window.location.origin}${window.location.pathname}#/tournaments/${id}</code></p>
           <p style="font-size:13px;color:rgba(255,255,255,0.7);margin-bottom:0.25rem;">Code de récupération : <strong style="color:#f5efe4;font-family:monospace;">${esc(recoveryPlain)}</strong></p>
-          <p style="font-size:11px;color:rgba(255,180,0,0.7);margin-top:0.5rem;">⚠ Ce code s'affiche une seule fois — le noter avant de quitter cet écran.</p>
+          <p style="font-size:11px;color:rgba(255,180,0,0.7);margin-top:0.5rem;">⚠ Ce code s'affiche une seule fois. Le noter avant de quitter cet écran.</p>
         </div>
         <div style="display:flex;gap:0.75rem;">
           <button class="admin-btn admin-btn-primary" onclick="renderAdminConcierge()">Nouveau tournoi</button>
@@ -5061,7 +5168,7 @@ function renderLegal() {
       <p>Le site <strong>Le Tournoi</strong> est édité par <strong>[Prénom NOM]</strong>, personne physique, agissant dans le cadre d'un projet personnel.</p>
       <ul>
         <li>Contact : <a href="mailto:contact@letournoi.foot">contact@letournoi.foot</a></li>
-        <li>Adresse : <strong>[à compléter — adresse de contact]</strong></li>
+        <li>Adresse : <strong>[à compléter : adresse de contact]</strong></li>
       </ul>
 
       <h2>2. Directeur de la publication</h2>
@@ -5070,11 +5177,11 @@ function renderLegal() {
       <h2>3. Hébergement</h2>
       <p>Le site est hébergé par :</p>
       <ul>
-        <li><strong>GitHub Pages</strong> — GitHub Inc., 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, États-Unis.</li>
+        <li><strong>GitHub Pages</strong> : GitHub Inc., 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, États-Unis.</li>
       </ul>
       <p>Les données des inscriptions sont stockées par :</p>
       <ul>
-        <li><strong>Supabase</strong> — infrastructure située dans l'Union européenne (région Paris, eu-west-3).</li>
+        <li><strong>Supabase</strong> : infrastructure située dans l'Union européenne (région Paris, eu-west-3).</li>
       </ul>
 
       <h2>4. Propriété intellectuelle</h2>
@@ -5198,7 +5305,7 @@ function renderFooter() {
     </div>
     <div class="site-footer-editorial">
       <span>75 · 77 · 78 · 91 · 92 · 93 · 94 · 95</span>
-      <span>Saison 2025–26</span>
+      <span>Saison ${getSaison()}</span>
     </div>`;
 }
 
@@ -5280,24 +5387,21 @@ function renderHome() {
     <!-- HERO -->
     <section class="hero">
       <div class="hero-deco" aria-hidden="true"><svg preserveAspectRatio="xMidYMid slice"><use href="#terrain"/></svg></div>
+      <span style="position:absolute;top:20px;right:32px;font-family:var(--font-mono);font-size:11px;color:rgba(247,247,244,0.20);letter-spacing:0.1em;" aria-hidden="true">01 / ACCUEIL</span>
       <div class="hero-grid" style="padding-bottom:3rem;">
         <div class="hero-content fade-in">
-          <div class="hero-badge-saison">Saison 2025–26 · 8 dép. IDF</div>
-          <h1 class="hero-h1">Le football amateur<br>mérite une<br><span class="underline"><em>vraie vitrine.</em></span></h1>
-          <p class="hero-sub">Trouvez un tournoi près de chez vous, ou publiez le vôtre — une plateforme pensée pour le foot amateur en Île-de-France.</p>
+          <div class="hero-badge-saison">Saison ${getSaison()} · 8 dép. IDF</div>
+          <h1 class="hero-h1"><em>Tournois</em><br>de foot amateur.</h1>
+          <p class="hero-sub">Trouvez un tournoi près de chez vous, ou publiez le vôtre, une plateforme pensée pour le foot amateur en Île-de-France.</p>
           <div class="hero-actions">
             <a href="#/tournaments" class="hero-cta-primary">Trouver un tournoi →</a>
-            <a href="#/signup" class="hero-cta-secondary" onclick="signupType='club'">Organiser le mien</a>
+            <a href="#/signup" class="hero-cta-secondary" onclick="signupType='club'">Organiser le mien →</a>
           </div>
         </div>
-        <div class="hero-numbers fade-in delay-2">
-          <div><div class="hero-number-val">${state.clubs.length}</div><div class="hero-number-label">Clubs</div></div>
-          <div><div class="hero-number-val">${state.teams.length}</div><div class="hero-number-label">Équipes</div></div>
-          <div><div class="hero-number-val">${openTournaments.length}</div><div class="hero-number-label">Ouverts</div></div>
-          <div><div class="hero-number-val">${state.tournaments.length}</div><div class="hero-number-label">Organisés</div></div>
-        </div>
+        <div class="hero-numbers fade-in delay-2"></div>
       </div>
-      <div class="hero-stats-band">
+      <div class="hero-stats-band" style="position:relative;">
+        <span style="position:absolute;right:16px;top:50%;transform:translateY(-50%);font-family:var(--font-mono);font-size:10px;color:rgba(247,247,244,0.15);letter-spacing:0.1em;" aria-hidden="true">02 / STATS</span>
         <div class="hero-stat"><div class="hero-stat-val">${state.clubs.length}</div><div class="hero-stat-lbl">Clubs organisateurs</div></div>
         <div class="hero-stat"><div class="hero-stat-val">${state.teams.length}</div><div class="hero-stat-lbl">Équipes inscrites</div></div>
         <div class="hero-stat"><div class="hero-stat-val open">${openTournaments.length}</div><div class="hero-stat-lbl">Tournois ouverts</div></div>
@@ -5307,9 +5411,14 @@ function renderHome() {
 
     <!-- TOURNOIS OUVERTS — tri intelligent -->
     <section class="section container">
-      <div class="section-eyebrow">Inscriptions ouvertes maintenant</div>
-      <h2 class="section-h2">Des tournois <em>qui cherchent des équipes.</em></h2>
-      ${userCity ? '<p style="font-family:var(--font-sans);font-size:13px;color:var(--ink-mute);margin-bottom:1.5rem;">Résultats priorisés selon votre secteur — <a href=\"#/tournaments\" style=\"color:var(--accent);\">voir tous les tournois</a></p>' : ''}
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:1.5rem;">
+        <div>
+          <div style="font-family:var(--font-mono);font-size:10px;color:var(--ink-mute);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px;">03 / Tournois</div>
+          <h2 class="section-h2" style="margin-bottom:0;">Des tournois <em>qui cherchent des équipes.</em> <span style="font-family:var(--font-mono);font-size:12px;color:var(--ink-mute);font-weight:400;">${state.tournaments.filter(t=>t.status==='open').length} disponibles</span></h2>
+        </div>
+        <a href="#/tournaments" style="font-family:var(--font-serif);font-weight:700;font-size:12px;color:var(--accent);border-bottom:2px solid var(--accent);padding-bottom:2px;text-decoration:none;white-space:nowrap;">Voir tout →</a>
+      </div>
+      ${userCity ? '<p style="font-family:var(--font-sans);font-size:13px;color:var(--ink-mute);margin-bottom:1.5rem;">Résultats priorisés selon votre secteur. <a href=\"#/tournaments\" style=\"color:var(--accent);\">Voir tous les tournois</a></p>' : ''}
       <div class="grid grid-3">${
         [...state.tournaments]
           .map(t => ({ t, score: tournPriorityScore(t, userCity) }))
@@ -5377,9 +5486,9 @@ function renderHome() {
               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
             </svg>
           </div>
-          <div class="role-card-eye">Équipes — trouver un tournoi</div>
+          <div class="role-card-eye">Équipes : trouver un tournoi</div>
           <h3 class="role-card-title">Espace <em>Équipe</em></h3>
-          <p class="role-card-desc">Pour les équipes — jeunes et seniors — qui souhaitent trouver des tournois correspondant à leur catégorie et leur zone géographique en Île-de-France.</p>
+          <p class="role-card-desc">Pour les équipes, jeunes et seniors, qui souhaitent trouver des tournois correspondant à leur catégorie et leur zone géographique en Île-de-France.</p>
           <ul class="role-card-bullets">
             <li>Recherche par catégorie, ville et format</li>
             <li>Profil équipe avec préférences et mobilité</li>
@@ -5396,9 +5505,9 @@ function renderHome() {
               <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
             </svg>
           </div>
-          <div class="role-card-eye">Organisateurs — monter un tournoi</div>
+          <div class="role-card-eye">Organisateurs : monter un tournoi</div>
           <h3 class="role-card-title">Espace <em>Organisateur</em></h3>
-          <p class="role-card-desc">Clubs, associations sportives, mairies — pour publier et gérer un tournoi de bout en bout, des inscriptions au bilan financier.</p>
+          <p class="role-card-desc">Clubs, associations sportives, mairies : pour publier et gérer un tournoi de bout en bout, des inscriptions au bilan financier.</p>
           <ul class="role-card-bullets">
             <li>Fiche tournoi partageable par lien</li>
             <li>Validation des équipes et suivi des places</li>
@@ -5442,7 +5551,7 @@ function renderHome() {
           </div>
           <div class="how-step-body">
             <h4 class="how-step-title">Publication du tournoi</h4>
-            <p class="how-step-desc">La fiche est créée en quelques minutes — dates, lieu, catégories, format, contact. Un lien unique permet aux équipes de s'inscrire directement depuis tout appareil.</p>
+            <p class="how-step-desc">La fiche est créée en quelques minutes : dates, lieu, catégories, format, contact. Un lien unique permet aux équipes de s'inscrire directement depuis tout appareil.</p>
           </div>
         </div>
         <div class="how-step">
@@ -5549,7 +5658,7 @@ function renderSignup() {
   document.getElementById('app').innerHTML = `
     <div class="auth-page">
       <div class="auth-card">
-        <div class="auth-eyebrow">▶ Inscription — Le Tournoi · Île-de-France</div>
+        <div class="auth-eyebrow">▶ Inscription · Le Tournoi · Île-de-France</div>
         <h1 class="auth-title">Bienvenue sur <em>Le Tournoi.</em></h1>
         <p class="auth-sub">Choisissez votre profil pour accéder aux fonctionnalités adaptées à votre rôle sur la plateforme.</p>
 
@@ -5576,7 +5685,7 @@ function renderSignup() {
         <div id="signup-err" class="form-error"></div>
         ${signupMode === 'real' && !supabaseClient ? `
         <div style="background:#FEF3CD;border:1px solid #F0C040;border-radius:4px;padding:0.65rem 0.9rem;margin-bottom:1rem;font-family:var(--font-sans);font-size:13px;color:#7A5C00;">
-          ⚠ Supabase non connecté — vérifiez <code>config.js</code> puis rechargez la page.
+          ⚠ Supabase non connecté : vérifiez <code>config.js</code> puis rechargez la page.
         </div>` : ''}
         ${renderSignupForm(signupType)}
         ${signupMode === 'real' ? renderConsentBox() : ''}
@@ -5597,7 +5706,7 @@ function renderConsentBox() {
           <a href="#/privacy" style="color:var(--accent);">politique de confidentialité</a>.
           Je peux demander leur suppression à tout moment via
           <a href="mailto:contact@letournoi.foot" style="color:var(--accent);">contact@letournoi.foot</a>.
-          <em style="color:var(--ink-mute);font-style:normal;font-size:12px;"> — obligatoire</em>
+          <em style="color:var(--ink-mute);font-style:normal;font-size:12px;"> (obligatoire)</em>
         </span>
       </label>
     </div>`;
@@ -5613,7 +5722,7 @@ function renderSignupForm(type) {
       <div class="form-row">
         <div class="form-group"><label class="form-label">Mot de passe</label><div class="input-pwd-wrap"><input type="password" class="input" id="f-pwd" required minlength="6" placeholder="6 caractères minimum"><button type="button" class="btn-toggle-pwd" aria-label="Afficher le mot de passe" onclick="togglePassword('f-pwd',this)">👁</button></div></div>
         <div class="form-group"><label class="form-label">Confirmer le mot de passe</label><div class="input-pwd-wrap"><input type="password" class="input" id="f-pwd2" required minlength="6"><button type="button" class="btn-toggle-pwd" aria-label="Afficher le mot de passe" onclick="togglePassword('f-pwd2',this)">👁</button></div></div>
-        <p class="form-help" style="margin-top:-0.5rem;">Choisissez un mot de passe dédié à cette application — ne réutilisez pas votre mot de passe principal.</p>
+        <p class="form-help" style="margin-top:-0.5rem;">Choisissez un mot de passe dédié à cette application. Ne réutilisez pas votre mot de passe principal.</p>
       </div>
       <div class="form-group"><label class="form-label">Responsable / Président·e</label><input class="input" id="f-pres" required></div>
       <div class="form-group"><label class="form-label">Téléphone</label><input class="input" id="f-phone" placeholder="06 12 34 56 78"></div>
@@ -5628,7 +5737,7 @@ function renderSignupForm(type) {
       <div class="form-row">
         <div class="form-group"><label class="form-label">Mot de passe</label><div class="input-pwd-wrap"><input type="password" class="input" id="f-pwd" required minlength="6" placeholder="6 caractères minimum"><button type="button" class="btn-toggle-pwd" aria-label="Afficher le mot de passe" onclick="togglePassword('f-pwd',this)">👁</button></div></div>
         <div class="form-group"><label class="form-label">Confirmer le mot de passe</label><div class="input-pwd-wrap"><input type="password" class="input" id="f-pwd2" required minlength="6"><button type="button" class="btn-toggle-pwd" aria-label="Afficher le mot de passe" onclick="togglePassword('f-pwd2',this)">👁</button></div></div>
-        <p class="form-help" style="margin-top:-0.5rem;">Choisissez un mot de passe dédié à cette application — ne réutilisez pas votre mot de passe principal.</p>
+        <p class="form-help" style="margin-top:-0.5rem;">Choisissez un mot de passe dédié à cette application. Ne réutilisez pas votre mot de passe principal.</p>
       </div>
       <div class="form-group"><label class="form-label">Responsable</label><input class="input" id="f-mgr" required></div>
       <div class="form-group"><label class="form-label">Téléphone</label><input class="input" id="f-phone" placeholder="06 12 34 56 78"></div>
@@ -5643,7 +5752,7 @@ function renderSignupForm(type) {
       <div class="form-row">
         <div class="form-group"><label class="form-label">Mot de passe</label><div class="input-pwd-wrap"><input type="password" class="input" id="f-pwd" required minlength="6" placeholder="6 caractères minimum"><button type="button" class="btn-toggle-pwd" aria-label="Afficher le mot de passe" onclick="togglePassword('f-pwd',this)">👁</button></div></div>
         <div class="form-group"><label class="form-label">Confirmer le mot de passe</label><div class="input-pwd-wrap"><input type="password" class="input" id="f-pwd2" required minlength="6"><button type="button" class="btn-toggle-pwd" aria-label="Afficher le mot de passe" onclick="togglePassword('f-pwd2',this)">👁</button></div></div>
-        <p class="form-help" style="margin-top:-0.5rem;">Choisissez un mot de passe dédié à cette application — ne réutilisez pas votre mot de passe principal.</p>
+        <p class="form-help" style="margin-top:-0.5rem;">Choisissez un mot de passe dédié à cette application. Ne réutilisez pas votre mot de passe principal.</p>
       </div>
       <div class="form-group"><label class="form-label">Secteur</label><input class="input" id="f-sect" required placeholder="Restauration, Auto, Beauté..."></div>
       <div class="form-row">
@@ -5799,7 +5908,7 @@ async function handleSignup(e, type) {
   if (r.recoveryCode) {
     setTimeout(() => showRecoveryCodeModal(r.recoveryCode), 400);
   } else {
-    toast('Compte créé en mode démo — données locales uniquement, non enregistrées en base.', 'warning');
+    toast('Compte créé en mode démo. Données locales uniquement, non enregistrées en base.', 'warning');
   }
 }
 
@@ -5832,7 +5941,7 @@ function renderRecover(step) {
   const stepOneContent = `
     <!-- ÉTAPE 1 : vérification email + code -->
     <div style="background:var(--paper-soft);border:1px solid var(--line);padding:1.25rem 1.5rem;border-radius:2px;margin-bottom:1.25rem;">
-      <div style="font-family:var(--font-mono);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.15em;color:var(--accent);margin-bottom:0.85rem;">Étape 1 sur 2 — Vérification de votre identité</div>
+      <div style="font-family:var(--font-mono);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.15em;color:var(--accent);margin-bottom:0.85rem;">Étape 1 sur 2 : Vérification de votre identité</div>
       <div id="rec-err" class="form-error"></div>
       <div class="form-group">
         <label class="form-label">Email du compte</label>
@@ -5849,7 +5958,7 @@ function renderRecover(step) {
   const stepTwoContent = `
     <!-- ÉTAPE 2 : nouveau mot de passe -->
     <div style="background:var(--paper-soft);border:1px solid var(--line);padding:1.25rem 1.5rem;border-radius:2px;margin-bottom:1.25rem;">
-      <div style="font-family:var(--font-mono);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.15em;color:var(--accent);margin-bottom:0.85rem;">Étape 2 sur 2 — Nouveau mot de passe</div>
+      <div style="font-family:var(--font-mono);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.15em;color:var(--accent);margin-bottom:0.85rem;">Étape 2 sur 2 : Nouveau mot de passe</div>
       <div style="background:rgba(45,122,79,0.08);border:1px solid rgba(45,122,79,0.2);padding:0.75rem 1rem;border-radius:2px;margin-bottom:1rem;">
         <p style="font-family:var(--font-serif);font-size:0.9rem;color:var(--ink-soft);">✓ Identité vérifiée. Choisissez maintenant votre nouveau mot de passe.</p>
       </div>
@@ -5878,7 +5987,7 @@ function renderRecover(step) {
 
         <!-- Option B : contact humain — toujours visible -->
         <div style="background:var(--paper-soft);border:1px solid var(--line);padding:1.25rem 1.5rem;border-radius:2px;margin-bottom:1.5rem;">
-          <div style="font-family:var(--font-mono);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.15em;color:var(--ink-mute);margin-bottom:0.75rem;">Code perdu — Contact Le Tournoi</div>
+          <div style="font-family:var(--font-mono);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.15em;color:var(--ink-mute);margin-bottom:0.75rem;">Code perdu : Contact Le Tournoi</div>
           <p style="font-family:var(--font-serif);font-size:0.88rem;line-height:1.6;color:var(--ink-mute);margin-bottom:0.85rem;">
             Sans code de récupération, contactez-nous avec votre email et le nom de votre organisation. Réponse sous 24h.
           </p>
@@ -5964,7 +6073,7 @@ function handleRecoverStep2() {
        Votre mot de passe a été réinitialisé avec succès.
      </p>
      <p style="font-family:var(--font-serif);font-size:0.9rem;color:var(--ink-soft);margin-bottom:0.85rem;">
-       Un nouveau code de récupération a été généré automatiquement. Notez-le dès maintenant — il ne sera plus affiché.
+       Un nouveau code de récupération a été généré automatiquement. Notez-le dès maintenant : il ne sera plus affiché.
      </p>
      <div style="background:var(--ink);color:var(--paper);padding:1.25rem 1.5rem;border-radius:2px;text-align:center;">
        <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.15em;color:var(--accent-soft);margin-bottom:0.6rem;">NOUVEAU CODE DE RÉCUPÉRATION</div>
@@ -5977,7 +6086,7 @@ function renderLogin() {
   document.getElementById('app').innerHTML = `
     <div class="auth-page">
       <div class="auth-card">
-        <div class="auth-eyebrow">▶ Connexion — Le Tournoi · Île-de-France</div>
+        <div class="auth-eyebrow">▶ Connexion · Le Tournoi · Île-de-France</div>
         <h1 class="auth-title">Re-<em>bonjour</em>.</h1>
         <p class="auth-sub">Accédez à votre espace et retrouvez vos tournois, équipes et données.</p>
         <div class="auth-tabs">
@@ -6869,7 +6978,7 @@ function renderCreateTournament() {
                 oninput="this.setCustomValidity(''); const df = document.getElementById('t-date-end'); if (df && !df.value) df.min = this.value;">
             </div>
             <div class="form-group">
-              <label class="form-label">Date de fin <span style="font-weight:400;color:var(--ink-mute);text-transform:none;letter-spacing:0;">(optionnel — si plusieurs jours)</span></label>
+              <label class="form-label">Date de fin <span style="font-weight:400;color:var(--ink-mute);text-transform:none;letter-spacing:0;">(optionnel, si plusieurs jours)</span></label>
               <input type="date" class="input" id="t-date-end"
                 oninput="const ds = document.getElementById('t-date'); if (ds && this.value && this.value < ds.value) { this.setCustomValidity('La date de fin doit être après la date de début'); this.reportValidity(); } else { this.setCustomValidity(''); }">
             </div>
@@ -7063,7 +7172,7 @@ function handleCreateT(e) {
     // New venue fields
     venueName, venueAddress,
     // Keep legacy 'location' for backward compat (combined display)
-    location: venueName + (venueAddress ? ' — ' + venueAddress : ''),
+    location: venueName + (venueAddress ? ' · ' + venueAddress : ''),
     // New categorization
     categories,
     matchSize,
@@ -7301,7 +7410,7 @@ function handleEditT(e, tid) {
     department, city,
     venueName,
     venueAddress,
-    location:          venueName + (venueAddress ? ' — ' + venueAddress : ''),
+    location:          venueName + (venueAddress ? ' · ' + venueAddress : ''),
     categories,
     format:            categories[0],
     matchSize,
@@ -7469,7 +7578,7 @@ function renderTab(t, isOwner, a) {
     ${isOpen && !isOwner ? `
       <div class="tourn-open-callout">
         <div class="tourn-open-callout-text">
-          <strong style="font-style: normal; color: var(--ink);">Inscriptions ouvertes</strong> · ${placesLeft} place${placesLeft > 1 ? 's encore disponibles' : ' encore disponible'} sur ${t.maxTeams}. ${a?.type === 'team' ? "Postuler directement — l'organisateur répond sous 24h." : a?.type === 'sponsor' ? 'Ce tournoi est ouvert aux partenaires locaux — voir l\'onglet Sponsors.' : 'Créez un compte équipe gratuit pour postuler en un clic.'}
+          <strong style="font-style: normal; color: var(--ink);">Inscriptions ouvertes</strong> · ${placesLeft} place${placesLeft > 1 ? 's encore disponibles' : ' encore disponible'} sur ${t.maxTeams}. ${a?.type === 'team' ? "Postuler directement : l'organisateur répond sous 24h." : a?.type === 'sponsor' ? 'Ce tournoi est ouvert aux partenaires locaux. Voir l\'onglet Sponsors.' : 'Créez un compte équipe gratuit pour postuler en un clic.'}
         </div>
       </div>` : ''}
     <div class="detail-section">
@@ -7660,7 +7769,7 @@ function renderTabTeams(t, isOwner, a) {
   }
   html += `
     <div class="detail-section">
-      <h3 class="detail-section-title">Équipes confirmées (${activeCount}/${t.maxTeams}) — ${t.maxTeams - activeCount} place${t.maxTeams - activeCount > 1 ? 's' : ''} disponible${t.maxTeams - activeCount > 1 ? 's' : ''}</h3>
+      <h3 class="detail-section-title">Équipes confirmées (${activeCount}/${t.maxTeams}) · ${t.maxTeams - activeCount} place${t.maxTeams - activeCount > 1 ? 's' : ''} disponible${t.maxTeams - activeCount > 1 ? 's' : ''}</h3>
       ${activeCount === 0 ? `
         <div class="dash-empty">
           <div class="dash-empty-title">Pas encore d'équipe confirmée</div>
@@ -7810,7 +7919,7 @@ function renderTabAnimations(t, isOwner) {
   }
   return `
     <div class="detail-section">
-      <h3 class="detail-section-title">${isOwner ? 'Catalogue des animations — clique pour sélectionner' : 'Animations prévues ce jour-là'}</h3>
+      <h3 class="detail-section-title">${isOwner ? 'Catalogue des animations : cliquez pour sélectionner' : 'Animations prévues ce jour-là'}</h3>
       ${!isOwner ? `<p class="detail-text" style="margin-bottom: 1.5rem;">Au programme de ce tournoi :</p>` : ''}
       <div class="anim-grid">
         ${state.catalog.animations.map(an => {
@@ -7899,7 +8008,7 @@ function renderAside(t, isOwner, a) {
   if (!a) {
     if (conf < t.maxTeams) {
       html += `<button class="btn btn-orange btn-full" onclick="applyTournamentVisitorModal('${t.id}')">Inscrire mon équipe <span class="btn-arrow"></span></button>
-        <p style="margin-top:0.6rem;font-size:12px;color:var(--ink-mute);text-align:center;">Sans création de compte — 2 minutes</p>`;
+        <p style="margin-top:0.6rem;font-size:12px;color:var(--ink-mute);text-align:center;">Sans création de compte · 2 minutes</p>`;
     } else {
       html += `<button class="btn btn-outline btn-full" disabled>Complet</button>`;
     }
@@ -7916,7 +8025,7 @@ function renderAside(t, isOwner, a) {
   // Message WhatsApp — on encode tout le texte, sinon le # d'une URL hash-route
   // coupe le paramètre text et le lien devient la page d'accueil.
   const shareText = [
-    '[Le Tournoi] ' + t.name + (t.edition ? ' — ' + t.edition : ''),
+    '[Le Tournoi] ' + t.name + (t.edition ? ' · ' + t.edition : ''),
     'Date : ' + tournDateRange(t),
     'Lieu : ' + (tournVenue(t).name || '') + (tournVenue(t).address ? ', ' + tournVenue(t).address : ''),
     'Categorie(s) : ' + tournCategoriesLabel(t) + (t.matchSize ? ' - ' + matchSizeLabel(t.matchSize) : ''),
@@ -8005,9 +8114,9 @@ function applyTournamentVisitorModal(tid) {
   const t = getTournament(tid);
   if (!t) return;
   const modeNotice = supabaseClient
-    ? '<div style="display:flex;align-items:center;gap:0.4rem;font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--olive);margin-bottom:0.85rem;"><span style="width:7px;height:7px;border-radius:50%;background:var(--olive);display:inline-block;"></span>Mode réel — ta candidature est enregistrée</div>'
-    : '<div style="display:flex;align-items:center;gap:0.4rem;font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-mute);margin-bottom:0.85rem;"><span style="width:7px;height:7px;border-radius:50%;background:var(--ink-mute);display:inline-block;"></span>Mode démo — données locales uniquement</div>';
-  modal('Inscrire mon équipe — ' + esc(t.name), `
+    ? '<div style="display:flex;align-items:center;gap:0.4rem;font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--olive);margin-bottom:0.85rem;"><span style="width:7px;height:7px;border-radius:50%;background:var(--olive);display:inline-block;"></span>Mode réel : ta candidature est enregistrée</div>'
+    : '<div style="display:flex;align-items:center;gap:0.4rem;font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-mute);margin-bottom:0.85rem;"><span style="width:7px;height:7px;border-radius:50%;background:var(--ink-mute);display:inline-block;"></span>Mode démo : données locales uniquement</div>';
+  modal('Inscrire mon équipe : ' + esc(t.name), `
     ${modeNotice}
     <div style="background:var(--paper-soft);border:1px solid var(--line);border-radius:4px;padding:0.85rem 1rem;margin-bottom:1.1rem;">
       <div style="font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink-mute);margin-bottom:0.5rem;">Ce tournoi en bref</div>
@@ -8030,7 +8139,7 @@ function applyTournamentVisitorModal(tid) {
 
     <label class="consent-label">
       <input type="checkbox" id="va-consent-data" required style="flex-shrink:0;margin-top:2px;accent-color:var(--accent);width:16px;height:16px;">
-      <span class="consent-text">J'accepte que mes données soient collectées par Le Tournoi pour traiter cette candidature, conformément à la <a href="#/privacy" style="color:var(--accent);">politique de confidentialité</a>. — obligatoire</span>
+      <span class="consent-text">J'accepte que mes données soient collectées par Le Tournoi pour traiter cette candidature, conformément à la <a href="#/privacy" style="color:var(--accent);">politique de confidentialité</a>. (obligatoire)</span>
     </label>
     <label class="consent-label" style="margin-top:0.5rem;">
       <input type="checkbox" id="va-consent-comms" style="flex-shrink:0;margin-top:2px;accent-color:var(--accent);width:16px;height:16px;">
@@ -8129,7 +8238,7 @@ async function confirmApplyVisitor(tid) {
         Statut : <strong style="color:var(--accent);">En attente de validation par l'organisateur</strong>
       </div>
     </div>
-    <p class="detail-text" style="font-size:13px;">Pas besoin de créer de compte pour suivre cette candidature — l'organisateur te recontacte directement par email. Tu peux toutefois créer ton espace équipe dès maintenant pour compléter ton profil (club, catégorie, contact) et gérer tes futures inscriptions.</p>
+    <p class="detail-text" style="font-size:13px;">Pas besoin de créer de compte pour suivre cette candidature : l'organisateur te recontacte directement par email. Tu peux toutefois créer ton espace équipe dès maintenant pour compléter ton profil (club, catégorie, contact) et gérer tes futures inscriptions.</p>
   `, `
     <button class="btn btn-ghost" onclick="closeModal()">Fermer</button>
     <a href="#/signup" class="btn btn-orange" onclick="closeModal()">Créer mon espace équipe</a>
@@ -8183,14 +8292,14 @@ function confirmWithdraw(tid, rid) {
   const r = t.registrations.find(x => x.id === rid);
   r.status = 'withdrawn';
   r.withdrawnAt = new Date().toISOString();
-  saveState(); syncTournament(t, false); closeModal(); toast('Équipe retirée — place libérée', 'success');
+  saveState(); syncTournament(t, false); closeModal(); toast('Équipe retirée, place libérée', 'success');
   renderTournamentDetail(tid);
 }
 function addSponsorManualModal(tid) {
   const t = getTournament(tid);
   const tierOpts = (t.sponsorTiers||[]).map(tr =>
     `<option value="${tr.name}">${esc(tr.label||tr.name.toUpperCase())}</option>`
-  ).join('') + '<option value="_autre">— Autre palier (personnalisé) —</option>';
+  ).join('') + '<option value="_autre">· Autre palier (personnalisé) ·</option>';
 
   const PERK_LIST = [
     { k: 'banniere',    l: 'Bannière (entrée / terrain)' },
@@ -8454,7 +8563,7 @@ function teamBadge(teamId) {
 }
 function renderBadge(b, extraStyle) {
   if (!b) return '';
-  return `<span class="badge-pill ${b.css}" style="${extraStyle||''}" title="${esc(b.label)} — ${b.count} tournoi${b.count > 1 ? 's' : ''}">${b.icon} ${esc(b.label)}</span>`;
+  return `<span class="badge-pill ${b.css}" style="${extraStyle||''}" title="${esc(b.label)} · ${b.count} tournoi${b.count > 1 ? 's' : ''}">${b.icon} ${esc(b.label)}</span>`;
 }
 
 // ===== Render secure contact block =====
@@ -8619,7 +8728,7 @@ function renderTabFinances(t, isOwner) {
         <div>
           <strong>Ces informations sont strictement confidentielles.</strong>
           Elles ne sont visibles que par vous, ne sont jamais partagées ni diffusées.
-          Aucune saisie n'est obligatoire — utilisez cet outil à votre rythme, selon vos besoins.
+          Aucune saisie n'est obligatoire : utilisez cet outil à votre rythme, selon vos besoins.
         </div>
       </div>
 

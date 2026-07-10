@@ -101,33 +101,31 @@ if(window.dcodeIO&&window.dcodeIO.bcrypt){window.bcrypt=window.dcodeIO.bcrypt;}
    ===================================================== */
 
 :root {
-  /* Encre — à dominante verte (palette §7bis-2 CPO) */
-  --ink: #1B1F1A;
-  --ink-soft: #2C332B;
-  --ink-mute: #5A6358;
-  --ink-faint: #8A9388;
+  /* Encre — bleus nuit profonds */
+  --ink: #1A1F2E;
+  --ink-soft: #2C3346;
+  --ink-mute: #5A6378;
+  --ink-faint: #8A93A8;
 
-  /* Papier — blancs cassés neutres */
-  --paper: #F7F7F4;
-  --paper-soft: #EDEEE9;
-  --paper-deep: #E2E4DD;
+  /* Papier — ivoires chauds */
+  --paper: #FAF7F2;
+  --paper-soft: #F2EEE6;
+  --paper-deep: #E8E2D5;
 
-  /* Accent — vert gazon (signature) */
-  --accent: #2E5339;
-  --accent-deep: #1F3D28;
-  --accent-soft: #4A7A58;
-  --accent-2: #E0A83E; /* jaune carton — urgences/badges uniquement, jamais CTA */
+  /* Accent — terracotta sobre */
+  --accent: #B85C3C;
+  --accent-deep: #97492E;
+  --accent-soft: #D4886A;
 
-  /* Tons secondaires — catégories (noms historiques conservés, valeurs §7bis-2 :
-     --olive = cat-2 vert clair terrain, --bronze = cat-3 jaune carton, --slate = cat-4 bleu maillot) */
-  --olive: #3D6B4A;
-  --bronze: #E0A83E;
-  --slate: #33507A;
+  /* Tons secondaires */
+  --olive: #5C6B3F;
+  --bronze: #9B7A4A;
+  --slate: #4A5568;
 
   /* Filets et séparateurs */
-  --line: rgba(27, 31, 26, 0.10);
-  --line-soft: rgba(27, 31, 26, 0.05);
-  --line-strong: rgba(27, 31, 26, 0.20);
+  --line: rgba(26, 31, 46, 0.10);
+  --line-soft: rgba(26, 31, 46, 0.05);
+  --line-strong: rgba(26, 31, 46, 0.20);
 
   /* Typo */
   --font-serif: 'Poppins', system-ui, sans-serif;
@@ -162,65 +160,57 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
    =========================================== */
 .nav {
   position: sticky; top: 0; z-index: 100;
-  background: var(--ink);
-  border-bottom: 1px solid rgba(247,247,244,0.08);
+  background: rgba(250, 247, 242, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
   padding: 1.1rem var(--container);
   display: flex; justify-content: space-between; align-items: center; gap: 1rem;
 }
 .brand { display: flex; align-items: center; gap: 0.75rem; }
 .brand-mark {
-  width: 28px; height: 28px;
-  background: var(--accent-2);
-  color: #fff;
+  width: 32px; height: 32px;
+  background: var(--ink); color: var(--paper);
   display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 18px;
+  letter-spacing: -0.02em;
   border-radius: 2px;
-  overflow: hidden;
-  flex-shrink: 0;
 }
-.brand-mark svg { width: 34px; height: 34px; }
+.brand-mark span { transform: translateY(-1px); }
 .brand-name {
   font-family: var(--font-serif);
-  font-weight: 700;
-  font-size: 14px;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  color: var(--paper);
-  display: flex; align-items: center; gap: 0.5rem;
+  font-weight: 400;
+  font-size: 20px;
+  letter-spacing: -0.02em;
+  color: var(--ink);
 }
-.brand-name .dot { display: none; }
-.brand-idf {
-  font-family: var(--font-mono);
-  font-size: 9px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  color: var(--accent-2);
-  border: 1px solid var(--accent-2);
-  padding: 0.15rem 0.35rem;
-  border-radius: 2px;
-}
+.brand-name .dot { color: var(--accent); }
 .nav-links {
   display: flex; gap: 2.25rem; align-items: center;
   font-size: 13px; font-weight: 500;
   letter-spacing: -0.005em;
 }
 .nav-link {
-  color: rgba(247,247,244,0.55);
+  color: var(--ink-mute);
   transition: color 0.25s ease;
   position: relative; padding: 0.3rem 0;
 }
-.nav-link:hover, .nav-link.active { color: var(--paper); }
+.nav-link:hover, .nav-link.active { color: var(--ink); }
 .nav-link.active::after {
   content: ""; position: absolute;
   bottom: -32px; left: 0; right: 0;
-  height: 1px; background: var(--accent-2);
+  height: 1px; background: var(--accent);
 }
 .nav-right { display: flex; align-items: center; gap: 0.65rem; }
 .role-badge {
   font-family: var(--font-mono); font-size: 10px;
   padding: 0.3rem 0.55rem;
-  background: rgba(247,247,244,0.08);
-  color: rgba(247,247,244,0.6);
-  border: 1px solid rgba(247,247,244,0.15);
+  background: var(--paper-soft);
+  color: var(--ink-mute);
+  border: 1px solid var(--line);
   text-transform: uppercase;
   letter-spacing: 0.12em;
   font-weight: 500;
@@ -339,11 +329,7 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
   background: var(--paper);
   padding: 5rem var(--container) 4rem;
   position: relative;
-  overflow: hidden;
   border-bottom: 1px solid var(--line);
-}
-.hero-eyebrow {
-  display: none; /* remplacé par .hero-badge-saison */
 }
 .hero-grid {
   max-width: 1280px; margin: 0 auto;
@@ -353,7 +339,19 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
 }
 @media (max-width: 880px) { .hero-grid { grid-template-columns: 1fr; gap: 3rem; } }
 .hero-content { position: relative; z-index: 2; }
-.hero-eyebrow::before { display: none; }
+.hero-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px; font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--accent);
+  margin-bottom: 1.75rem;
+  display: flex; align-items: center; gap: 0.85rem;
+}
+.hero-eyebrow::before {
+  content: ""; width: 28px; height: 1px;
+  background: var(--accent);
+}
 .hero-h1 {
   font-family: var(--font-serif);
   font-weight: 800;
@@ -361,12 +359,12 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
   line-height: 1;
   letter-spacing: -0.02em;
   margin-bottom: 1.75rem;
-  color: var(--paper);
+  color: var(--ink);
 }
 .hero-h1 em {
-  font-style: normal;
-  font-weight: 800;
-  color: var(--accent-2);
+  font-style: italic;
+  font-weight: 300;
+  color: var(--accent);
 }
 .hero-h1 .underline {
   position: relative;
@@ -375,41 +373,28 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
 .hero-h1 .underline::after {
   content: ""; position: absolute;
   bottom: 0.05em; left: 0; right: 0;
-  height: 1px; background: var(--accent-2);
+  height: 1px; background: var(--accent);
 }
 .hero-sub {
   font-family: var(--font-serif);
   font-weight: 300;
   font-size: clamp(1.05rem, 1.4vw, 1.25rem);
   line-height: 1.55;
-  color: rgba(247,247,244,0.55);
+  color: var(--ink-soft);
   max-width: 520px;
   margin-bottom: 2.25rem;
   letter-spacing: -0.005em;
 }
 .hero-actions { display: flex; gap: 0.65rem; flex-wrap: wrap; }
-/* CTA hero spécifiques */
-.hero-cta-primary {
-  display: inline-flex; align-items: center; gap: 0.5rem;
-  background: var(--accent-2); color: var(--ink);
-  font-family: var(--font-serif); font-weight: 700; font-size: 13px;
-  padding: 0.75rem 1.5rem; border-radius: 2px; border: none;
-  text-decoration: none; cursor: pointer;
-  transition: opacity 0.15s;
+
+.hero-numbers {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2rem 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--line);
+  align-self: end;
 }
-.hero-cta-primary:hover { opacity: 0.88; }
-.hero-cta-secondary {
-  display: inline-flex; align-items: center; gap: 0.5rem;
-  background: transparent; color: var(--paper);
-  font-family: var(--font-serif); font-weight: 600; font-size: 13px;
-  padding: 0.75rem 1.5rem; border-radius: 2px;
-  border: 1px solid rgba(247,247,244,0.25);
-  text-decoration: none; cursor: pointer;
-  transition: border-color 0.15s;
-}
-.hero-cta-secondary:hover { border-color: rgba(247,247,244,0.55); }
-/* Masquer les hero-numbers (remplacés par hero-stats-band) */
-.hero-numbers { display: none; }
 .hero-number-val {
   font-family: var(--font-serif);
   font-weight: 300;
@@ -430,78 +415,7 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
   color: var(--ink-mute);
   margin-top: 0.65rem;
 }
-.hero {
-  background: var(--ink);
-  padding: 5rem var(--container) 0;
-  position: relative;
-  overflow: hidden;
-}
-.hero-deco {
-  position: absolute;
-  top: -10%; right: -8%;
-  width: 55%; height: 120%;
-  opacity: 0.12;
-  color: var(--accent);
-  pointer-events: none;
-  z-index: 0;
-}
-.hero-deco svg { width: 100%; height: 100%; }
-/* Pastille saison */
-.hero-badge-saison {
-  display: inline-flex; align-items: center; gap: 0.5rem;
-  background: rgba(46,83,57,0.4);
-  border: 1px solid var(--accent);
-  border-radius: 2px;
-  padding: 0.3rem 0.7rem;
-  margin-bottom: 1.5rem;
-  font-family: var(--font-mono);
-  font-size: 9px;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: rgba(247,247,244,0.7);
-}
-.hero-badge-saison::before {
-  content: "";
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: var(--accent-2);
-  flex-shrink: 0;
-}
-/* Bande stats fond --ink */
-.hero-stats-band {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  border-top: 1px solid rgba(247,247,244,0.08);
-  margin-top: 3rem;
-}
-.hero-stat {
-  padding: 1.5rem var(--container);
-  border-right: 1px solid rgba(247,247,244,0.08);
-  text-align: center;
-}
-.hero-stat:last-child { border-right: none; }
-.hero-stat-val {
-  font-family: var(--font-mono);
-  font-size: 18px;
-  font-weight: 500;
-  color: var(--paper);
-  line-height: 1;
-  margin-bottom: 0.4rem;
-}
-.hero-stat-val.open { color: var(--accent-2); }
-.hero-stat-lbl {
-  font-family: var(--font-sans);
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: rgba(247,247,244,0.4);
-}
-@media (max-width: 880px) {
-  .hero-stats-band { grid-template-columns: repeat(4,1fr); }
-  .hero-stat { padding: 1rem 0.5rem; }
-  .hero-stat-val { font-size: 14px; }
-}
+.hero-deco { display: none; }
 
 /* ===========================================
    ACCOUNT ROLES — cards minimales
@@ -634,32 +548,26 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
 }
 .t-card-img {
   height: 140px;
-  background: var(--paper-soft);
-  border-top: 5px solid var(--ink);
+  background: linear-gradient(135deg, var(--ink) 0%, var(--ink-soft) 100%);
   position: relative;
   overflow: hidden;
-  color: var(--ink); /* teinte héritée par le motif via currentColor */
 }
-.t-card-img.alt-1 { border-top-color: var(--olive);  color: var(--olive); }
-.t-card-img.alt-2 { border-top-color: var(--bronze); color: var(--bronze); }
-.t-card-img.alt-3 { border-top-color: var(--slate);  color: var(--slate); }
-.t-card-img.alt-4 { border-top-color: var(--accent); color: var(--accent); }
-.t-card-pattern {
-  position: absolute; inset: 0;
-  width: 100%; height: 100%;
-  opacity: 0.15;
-  transition: opacity 0.2s ease;
-  pointer-events: none;
+.t-card-img.alt-1 { background: linear-gradient(135deg, var(--olive) 0%, #2c3522 100%); }
+.t-card-img.alt-2 { background: linear-gradient(135deg, var(--bronze) 0%, #6e5532 100%); }
+.t-card-img.alt-3 { background: linear-gradient(135deg, var(--slate) 0%, #2d3540 100%); }
+.t-card-img.alt-4 { background: linear-gradient(135deg, var(--accent) 0%, var(--accent-deep) 100%); }
+.t-card-img::after {
+  content: ""; position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 70% 30%, rgba(250,247,242,0.08) 0%, transparent 60%);
 }
-.t-card:hover .t-card-pattern { opacity: 0.22; }
 .t-card-mark {
   position: absolute; top: 1.1rem; left: 1.25rem;
   font-family: var(--font-mono);
   font-size: 10px; font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.15em;
-  color: var(--ink-soft);
-  z-index: 1;
+  color: rgba(250, 247, 242, 0.7);
 }
 .t-card-num {
   position: absolute; bottom: 0.4rem; right: 1.25rem;
@@ -668,10 +576,8 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
   font-weight: 300;
   font-size: 5rem;
   line-height: 1;
-  color: var(--ink);
-  opacity: 0.1;
+  color: rgba(250, 247, 242, 0.12);
   letter-spacing: -0.04em;
-  z-index: 1;
 }
 .t-card-body {
   padding: 1.5rem 1.5rem 1.5rem;
@@ -719,23 +625,6 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
 .t-card-status.open { background: var(--ink); color: var(--paper); border-color: var(--ink); }
 .t-card-status.draft { background: transparent; color: var(--ink-mute); }
 .t-card-status.live { background: var(--olive); color: var(--paper); border-color: var(--olive); }
-.t-card-status.urgent { background: var(--accent-2); color: var(--ink); border-color: var(--accent-2); }
-/* Ligne catégorie+format §7ter */
-.t-card-category {
-  font-family: var(--font-mono);
-  font-size: 9px; font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--accent);
-  margin-bottom: 0.35rem;
-}
-/* Compteur équipes §7ter */
-.t-card-count {
-  font-family: var(--font-mono);
-  font-size: 9px; font-weight: 500;
-  color: var(--ink-mute);
-  letter-spacing: 0.05em;
-}
 .t-card-progress {
   font-family: var(--font-mono);
   font-size: 11px; font-weight: 500;
@@ -946,8 +835,8 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
   user-select: none;
 }
 .signup-radio-opt.opt-real.selected {
-  background: var(--accent);
-  border-color: var(--accent);
+  background: #B85C3C;
+  border-color: #B85C3C;
   opacity: 1;
 }
 .signup-radio-opt.opt-demo {
@@ -1150,7 +1039,7 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
   display: flex; flex-wrap: wrap;
   gap: 2rem 3.5rem;
   margin-top: 2rem; padding-top: 2rem;
-  border-top: 1px solid rgba(247, 247, 244, 0.12);
+  border-top: 1px solid rgba(250, 247, 242, 0.12);
 }
 .tourn-meta-item { display: flex; flex-direction: column; gap: 0.5rem; }
 .tourn-meta-label {
@@ -1158,7 +1047,7 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
   font-size: 10px; font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.15em;
-  color: rgba(247, 247, 244, 0.5);
+  color: rgba(250, 247, 242, 0.5);
 }
 .tourn-meta-val {
   font-family: var(--font-serif);
@@ -1467,7 +1356,7 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
   font-family: var(--font-serif);
   font-weight: 300;
   font-style: italic;
-  color: rgba(247, 247, 244, 0.7);
+  color: rgba(250, 247, 242, 0.7);
   font-size: 1rem;
   line-height: 1.5;
 }
@@ -1754,7 +1643,7 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
 }
 .anim-card.selected .anim-icon { color: var(--accent-soft); }
 .anim-card.selected .anim-name { color: var(--paper); }
-.anim-card.selected .anim-desc { color: rgba(247, 247, 244, 0.7); }
+.anim-card.selected .anim-desc { color: rgba(250, 247, 242, 0.7); }
 .anim-card.selected .anim-price { color: var(--accent-soft); }
 .anim-icon {
   font-size: 1.5rem;
@@ -1823,47 +1712,11 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
 }
 .btn-toggle-pwd:hover { color: var(--ink); }
 
-/* ===== Ticker bandeau défilant ===== */
-.ticker-wrap {
-  position: relative; z-index: 110;
-  background: var(--accent-2);
-  height: 22px;
-  overflow: hidden;
-  display: flex; align-items: center;
-}
-.ticker-track {
-  display: flex;
-  white-space: nowrap;
-  animation: ticker 18s linear infinite;
-}
-.ticker-copy {
-  display: flex; align-items: center;
-  flex-shrink: 0;
-  padding-right: 0;
-}
-.ticker-item {
-  font-family: var(--font-mono);
-  font-size: 9px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--ink);
-  padding: 3px 24px;
-  white-space: nowrap;
-}
-@keyframes ticker {
-  0%   { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .ticker-track { animation: none; }
-}
-
 /* ===== Bandeau mode démo ===== */
 #demo-banner {
   position: sticky; top: 0; z-index: 200;
-  background: var(--accent-2); /* jaune carton — palette §7bis-2 */
-  color: var(--ink);
+  background: #d97706; /* ambre — visible, distinct du terracotta du site */
+  color: #fff;
   text-align: center;
   padding: 0.6rem 1rem;
   font-family: var(--font-mono);
@@ -1873,7 +1726,7 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
   line-height: 1.4;
 }
 #demo-banner a {
-  color: var(--ink);
+  color: #fff;
   text-decoration: underline;
   margin-left: 0.5rem;
 }
@@ -1905,7 +1758,7 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
 
 .modal-bg {
   position: fixed; inset: 0;
-  background: rgba(27, 31, 26, 0.55);
+  background: rgba(26, 31, 46, 0.55);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   z-index: 200;
@@ -1950,7 +1803,7 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
    =========================================== */
 .footer {
   background: var(--ink);
-  color: rgba(247, 247, 244, 0.75);
+  color: rgba(250, 247, 242, 0.75);
   padding: 4rem var(--container) 2rem;
   margin-top: auto;
 }
@@ -1990,27 +1843,14 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
 .legal-note { background: var(--paper-soft); border-left: 3px solid var(--accent); border-radius: 4px; padding: 0.85rem 1.1rem; margin: 1rem 0; font-size: 14px; }
 
 .footer-inner { grid-template-columns: 1fr; } }
-.footer-brand .brand-mark { background: var(--accent-2); color: #fff; }
+.footer-brand .brand-mark { background: var(--paper); color: var(--ink); }
 .footer-brand .brand-name { color: var(--paper); }
-/* Bande éditoriale §7ter */
-.site-footer-editorial {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 0.6rem var(--container);
-  background: var(--paper-deep);
-  border-top: 1px solid var(--line);
-  font-family: var(--font-mono);
-  font-size: 9px;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--ink-mute);
-}
 .footer-tag {
   font-family: var(--font-serif);
   font-weight: 300;
   font-style: italic;
   font-size: 1rem;
-  color: rgba(247, 247, 244, 0.65);
+  color: rgba(250, 247, 242, 0.65);
   margin-top: 1.25rem;
   max-width: 320px;
   line-height: 1.55;
@@ -2032,7 +1872,7 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
   display: block;
   padding: 0.35rem 0;
   font-size: 13.5px;
-  color: rgba(247, 247, 244, 0.65);
+  color: rgba(250, 247, 242, 0.65);
   transition: color 0.2s;
   letter-spacing: -0.005em;
 }
@@ -2040,13 +1880,13 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
 .footer-bottom {
   max-width: 1280px; margin: 3rem auto 0;
   padding-top: 1.75rem;
-  border-top: 1px solid rgba(247, 247, 244, 0.1);
+  border-top: 1px solid rgba(250, 247, 242, 0.1);
   display: flex; justify-content: space-between;
   font-family: var(--font-mono);
   font-size: 10px; font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.15em;
-  color: rgba(247, 247, 244, 0.4);
+  color: rgba(250, 247, 242, 0.4);
   flex-wrap: wrap; gap: 0.5rem;
 }
 
@@ -2088,7 +1928,7 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
   min-width: 240px; z-index: 200;
   display: none;
   border-radius: 2px;
-  box-shadow: 0 8px 24px rgba(27, 31, 26, 0.12);
+  box-shadow: 0 8px 24px rgba(26, 31, 46, 0.12);
   overflow: hidden;
 }
 .nav-user-dropdown.open { display: block; }
@@ -2819,7 +2659,7 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
   border: 1px solid rgba(184, 92, 60, 0.25);
 }
 .lt-badge-confirme, .lt-badge-reguliere {
-  background: rgba(27, 31, 26, 0.07);
+  background: rgba(26, 31, 46, 0.07);
   color: var(--ink);
   border: 1px solid var(--line-strong);
 }
@@ -3009,7 +2849,7 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
 
 /* ===== ADMIN ===== */
 .admin-layout { display: flex; min-height: 100vh; background: #0f1117; }
-.admin-side { width: 220px; flex-shrink: 0; background: #1B1F1A; padding: 1.5rem 0; display: flex; flex-direction: column; }
+.admin-side { width: 220px; flex-shrink: 0; background: #1a1f2e; padding: 1.5rem 0; display: flex; flex-direction: column; }
 .admin-logo { font-family: var(--font-serif); font-size: 1.1rem; font-weight: 700; color: var(--paper); padding: 0 1.25rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 1rem; }
 .admin-logo span { color: var(--accent); }
 .admin-nav-btn { display: block; width: 100%; text-align: left; padding: 0.65rem 1.25rem; font-family: var(--font-sans); font-size: 13px; color: rgba(255,255,255,0.6); background: none; border: none; cursor: pointer; transition: all 0.15s; }
@@ -3042,30 +2882,12 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
 .admin-select { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: var(--paper); padding: 0.4rem 0.65rem; border-radius: 4px; font-size: 13px; }
 .admin-quick-actions { display: flex; gap: 0.75rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
 .admin-login-wrap { min-height: 100vh; background: #0f1117; display: flex; align-items: center; justify-content: center; }
-.admin-login-card { background: #1B1F1A; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 2rem; width: 100%; max-width: 360px; }
+.admin-login-card { background: #1a1f2e; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 2rem; width: 100%; max-width: 360px; }
 @media (max-width: 720px) { .admin-side { display: none; } .admin-content { padding: 1rem; } }
 </style>
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231B1F1A'/%3E%3Ctext x='16' y='22' text-anchor='middle' font-family='Arial' font-weight='700' font-size='18' fill='white'%3ET%3C/text%3E%3C/svg%3E">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231A1F2E'/%3E%3Ctext x='16' y='22' text-anchor='middle' font-family='Arial' font-weight='700' font-size='18' fill='white'%3ET%3C/text%3E%3C/svg%3E">
 </head>
 <body>
-
-<!-- Défs SVG réutilisables — motif terrain complet (§7ter, aria-hidden : décoratif) -->
-<svg width="0" height="0" style="position:absolute;" aria-hidden="true">
-  <symbol id="terrain" viewBox="0 0 240 160">
-    <rect x="4" y="4" width="232" height="152" fill="none" stroke="currentColor" stroke-width="1.5"/>
-    <line x1="120" y1="4" x2="120" y2="156" stroke="currentColor" stroke-width="1.5"/>
-    <circle cx="120" cy="80" r="24" fill="none" stroke="currentColor" stroke-width="1.5"/>
-    <circle cx="120" cy="80" r="2" fill="currentColor"/>
-    <rect x="4" y="52" width="24" height="56" fill="none" stroke="currentColor" stroke-width="1.5"/>
-    <rect x="212" y="52" width="24" height="56" fill="none" stroke="currentColor" stroke-width="1.5"/>
-    <rect x="4" y="32" width="48" height="96" fill="none" stroke="currentColor" stroke-width="1.5"/>
-    <rect x="188" y="32" width="48" height="96" fill="none" stroke="currentColor" stroke-width="1.5"/>
-    <circle cx="4" cy="4" r="8" fill="none" stroke="currentColor" stroke-width="1.5"/>
-    <circle cx="236" cy="4" r="8" fill="none" stroke="currentColor" stroke-width="1.5"/>
-    <circle cx="4" cy="156" r="8" fill="none" stroke="currentColor" stroke-width="1.5"/>
-    <circle cx="236" cy="156" r="8" fill="none" stroke="currentColor" stroke-width="1.5"/>
-  </symbol>
-</svg>
 
 <div id="demo-banner" style="display:none;" role="alert" aria-live="polite"></div>
 <nav class="nav" id="nav"></nav>
@@ -4243,7 +4065,6 @@ function render() {
   if (r === '/signup') return renderSignup();
   if (r === '/login') return renderLogin();
   if (r === '/dashboard') return requireAuth(renderDashboard);
-  if (r === '/profile') return requireAuth(renderProfileEdit);
   if (r === '/tournaments') return renderTournaments();
   if (r === '/recover') return renderRecover();
   if (r === '/pending') return renderPendingActivation();
@@ -4275,7 +4096,7 @@ function renderNav() {
   const r = getRoute();
   const label = a?.type === 'club' ? 'ORGANISATEUR' : a?.type === 'team' ? 'ÉQUIPE' : a?.type === 'sponsor' ? 'SPONSOR' : '';
   document.getElementById('nav').innerHTML = `
-    <a href="#/" class="brand"><div class="brand-mark"><svg aria-hidden="true" viewBox="0 0 240 160" style="width:36px;height:36px;color:#fff;opacity:0.9;"><use href="#terrain"/></svg></div><div class="brand-name">Le Tournoi <span class="brand-idf">IDF</span></div></a>
+    <a href="#/" class="brand"><div class="brand-mark"><span>T</span></div><div class="brand-name">Le Tournoi</div></a>
     <div class="nav-links">
       <a href="#/tournaments" class="nav-link ${r.startsWith('/tournaments') && r !== '/tournaments/new' ? 'active' : ''}">Tournois</a>
       <a href="#/teams" class="nav-link ${r.startsWith('/teams') ? 'active' : ''}">Équipes</a>
@@ -4287,7 +4108,7 @@ function renderNav() {
         ${a.type === 'club' ? `<a href="#/tournaments/new" class="btn btn-orange btn-sm">+ Nouveau tournoi</a>` : ''}
         <span class="role-badge">${label}</span>
         <div class="nav-user-menu">
-          <button class="btn btn-ghost btn-sm nav-user-btn" onclick="toggleUserMenu(event)" title="${esc(a.name && a.name !== a.email ? a.name : a.email)}">
+          <button class="btn btn-ghost btn-sm nav-user-btn" onclick="toggleUserMenu(event)" title="${esc(a.name || '')}">
             <span style="display: inline-flex; align-items: center; gap: 0.45rem;">
               <span style="display: inline-flex; width: 26px; height: 26px; background: var(--paper-deep); color: var(--ink); align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 10px; font-weight: 600; border-radius: 2px;">${esc(a.mark || '?')}</span>
               <span style="font-family: var(--font-mono); font-size: 11px;">▾</span>
@@ -4295,13 +4116,12 @@ function renderNav() {
           </button>
           <div class="nav-user-dropdown" id="nav-user-dd">
             <div class="nav-dd-head">
-              <div class="nav-dd-name">${esc(a.name && a.name !== a.email ? a.name : a.email)}</div>
-              <div class="nav-dd-sub">${label}${a.name && a.name !== a.email ? '' : ' · ' + esc(a.email)}</div>
+              <div class="nav-dd-name">${esc(a.name || '')}</div>
+              <div class="nav-dd-sub">${label}</div>
             </div>
             <a href="#/dashboard" class="nav-dd-link" onclick="closeUserMenu()">Mon tableau de bord</a>
-            <a href="#/profile" class="nav-dd-link" onclick="closeUserMenu()">Mon profil</a>
-            ${a.type === 'team' ? `<a href="#/teams/${a.id}" class="nav-dd-link" onclick="closeUserMenu()">Profil public équipe</a>` : ''}
-            ${a.type === 'sponsor' ? `<a href="#/sponsors/${a.id}" class="nav-dd-link" onclick="closeUserMenu()">Profil public sponsor</a>` : ''}
+            ${a.type === 'team' ? `<a href="#/teams/${a.id}" class="nav-dd-link" onclick="closeUserMenu()">Mon profil équipe</a>` : ''}
+            ${a.type === 'sponsor' ? `<a href="#/sponsors/${a.id}" class="nav-dd-link" onclick="closeUserMenu()">Mon profil sponsor</a>` : ''}
             ${a.type === 'club' ? `<a href="#/tournaments/new" class="nav-dd-link" onclick="closeUserMenu()">Créer un tournoi</a>` : ''}
             <a href="#/tournaments" class="nav-dd-link" onclick="closeUserMenu()">Tous les tournois</a>
             <div class="nav-dd-sep"></div>
@@ -4309,8 +4129,8 @@ function renderNav() {
           </div>
         </div>
       ` : `
-        <a href="#/login" class="btn btn-ghost btn-sm" style="color:rgba(247,247,244,0.6);">Connexion</a>
-        <a href="#/tournaments" class="btn btn-outline btn-sm nav-find" style="border-color:rgba(247,247,244,0.25);color:var(--paper);">Trouver un tournoi</a>
+        <a href="#/login" class="btn btn-ghost btn-sm">Connexion</a>
+        <a href="#/tournaments" class="btn btn-outline btn-sm nav-find">Trouver un tournoi</a>
         <a href="#/signup" class="btn btn-orange btn-sm">S'inscrire</a>
       `}
     </div>`;
@@ -4621,7 +4441,7 @@ function renderAdminLogin() {
     <div class="admin-login-wrap">
       <div class="admin-login-card">
         <h1 style="font-family:var(--font-serif);font-size:1.4rem;color:#f5efe4;margin-bottom:1.25rem;text-align:center;">
-          Le Tournoi <span style="color:var(--accent-2);">Admin</span>
+          Le Tournoi <span style="color:#b85c3c;">Admin</span>
         </h1>
         <div class="form-group" style="margin-bottom:1rem;">
           <label style="font-size:12px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:0.4rem;">Mot de passe</label>
@@ -4629,7 +4449,7 @@ function renderAdminLogin() {
             onkeydown="if(event.key==='Enter') handleAdminLogin()"
             style="background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.12);color:#f5efe4;">
         </div>
-        <p id="admin-login-err" style="color:var(--accent-2);font-size:13px;display:none;margin-bottom:0.75rem;"></p>
+        <p id="admin-login-err" style="color:#b85c3c;font-size:13px;display:none;margin-bottom:0.75rem;"></p>
         <button class="btn btn-primary btn-full" onclick="handleAdminLogin()">Accéder</button>
         <p style="margin-top:1rem;text-align:center;"><a href="#/" style="font-size:12px;color:rgba(255,255,255,0.3);">Retour au site</a></p>
       </div>
@@ -4666,11 +4486,9 @@ async function renderAdminDashboard() {
   try {
     const [tRes, reqRes] = await Promise.all([
       supabaseClient.from('tournaments').select('id,name,status,department,date,max_teams'),
-      // Fix 401 : SELECT direct bloqué (INSERT-only pour anon) → RPC SECURITY DEFINER
-      supabaseClient.rpc('admin_get_club_requests', { p_admin_secret: getAdminSecret() })
+      supabaseClient.from('club_registration_requests').select('id,status,club_name,created_at').eq('status','pending')
     ]);
     const tours = tRes.data || [];
-    const pendingCount = (reqRes.data ?? []).filter(r => r.status === 'pending').length;
     const reqs  = reqRes.data || [];
     const draft = tours.filter(t => t.status === 'draft').length;
     const open  = tours.filter(t => t.status === 'open').length;
@@ -4685,11 +4503,11 @@ async function renderAdminDashboard() {
         <div class="admin-stat"><div class="admin-stat-val">${open}</div><div class="admin-stat-lbl">Publiés</div></div>
         <div class="admin-stat"><div class="admin-stat-val">${draft}</div><div class="admin-stat-lbl">Brouillons</div></div>
         <div class="admin-stat"><div class="admin-stat-val" style="color:#ff8c42;">${incomplete}</div><div class="admin-stat-lbl">Incomplets</div></div>
-        <div class="admin-stat"><div class="admin-stat-val" style="color:#ffc107;">${pendingCount}</div><div class="admin-stat-lbl">Demandes club en attente</div></div>
+        <div class="admin-stat"><div class="admin-stat-val" style="color:#ffc107;">${reqs.length}</div><div class="admin-stat-lbl">Demandes club en attente</div></div>
       </div>
       <div class="admin-quick-actions">
         <button class="admin-btn admin-btn-primary" onclick="renderAdminConcierge()">＋ Créer un tournoi (concierge)</button>
-        <button class="admin-btn admin-btn-edit" onclick="renderAdminClubRequests()">Demandes en attente (${pendingCount})</button>
+        <button class="admin-btn admin-btn-edit" onclick="renderAdminClubRequests()">Demandes en attente (${reqs.length})</button>
         <button class="admin-btn admin-btn-edit" onclick="renderAdminTournaments()">Fiches incomplètes (${incomplete})</button>
       </div>
       <h2 style="font-size:0.95rem;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.75rem;">Tournois récents</h2>
@@ -5198,7 +5016,7 @@ function renderFooter() {
   document.getElementById('footer').innerHTML = `
     <div class="footer-inner">
       <div class="footer-brand">
-        <div class="brand"><div class="brand-mark"><svg aria-hidden="true" viewBox="0 0 240 160" style="width:36px;height:36px;color:#fff;opacity:0.9;"><use href="#terrain"/></svg></div><div class="brand-name">Le Tournoi <span class="brand-idf">IDF</span></div></div>
+        <div class="brand"><div class="brand-mark"><span>T</span></div><div class="brand-name">Le Tournoi</div></div>
         <p class="footer-tag">La plateforme de gestion de tournois de foot amateur en Île-de-France.</p>
       </div>
       <div class="footer-cols">
@@ -5231,10 +5049,6 @@ function renderFooter() {
         <a href="#/privacy" class="footer-legal-link">Confidentialité</a>
         <a href="mailto:contact@letournoi.foot" class="footer-legal-link">contact@letournoi.foot</a>
       </span>
-    </div>
-    <div class="site-footer-editorial">
-      <span>75 · 77 · 78 · 91 · 92 · 93 · 94 · 95</span>
-      <span>Saison 2025–26</span>
     </div>`;
 }
 
@@ -5315,29 +5129,23 @@ function renderHome() {
 
     <!-- HERO -->
     <section class="hero">
-      <div class="hero-deco" aria-hidden="true"><svg preserveAspectRatio="xMidYMid slice"><use href="#terrain"/></svg></div>
-      <div class="hero-grid" style="padding-bottom:3rem;">
+      <div class="hero-deco">⚽</div>
+      <div class="hero-grid">
         <div class="hero-content fade-in">
-          <div class="hero-badge-saison">Saison 2025–26 · 8 dép. IDF</div>
-          <h1 class="hero-h1">Le football amateur<br>mérite une<br><span class="underline"><em>vraie vitrine.</em></span></h1>
+          <div class="hero-eyebrow">Foot amateur · Île-de-France</div>
+          <h1 class="hero-h1">Trouvez votre<br><em>prochain</em><br><span class="underline">tournoi.</span></h1>
           <p class="hero-sub">Trouvez un tournoi près de chez vous, ou publiez le vôtre — une plateforme pensée pour le foot amateur en Île-de-France.</p>
           <div class="hero-actions">
-            <a href="#/tournaments" class="hero-cta-primary">Trouver un tournoi →</a>
-            <a href="#/signup" class="hero-cta-secondary" onclick="signupType='club'">Organiser le mien</a>
+            <a href="#/tournaments" class="btn btn-primary btn-lg">Trouver un tournoi <span class="btn-arrow"></span></a>
+            <a href="#/signup" class="btn btn-outline btn-lg" onclick="signupType='club'">Organiser un tournoi</a>
           </div>
         </div>
         <div class="hero-numbers fade-in delay-2">
-          <div><div class="hero-number-val">${state.clubs.length}</div><div class="hero-number-label">Clubs</div></div>
-          <div><div class="hero-number-val">${state.teams.length}</div><div class="hero-number-label">Équipes</div></div>
-          <div><div class="hero-number-val">${openTournaments.length}</div><div class="hero-number-label">Ouverts</div></div>
-          <div><div class="hero-number-val">${state.tournaments.length}</div><div class="hero-number-label">Organisés</div></div>
+          <div><div class="hero-number-val">${state.clubs.length}</div><div class="hero-number-label">Clubs organisateurs</div></div>
+          <div><div class="hero-number-val"><em>${state.teams.length}</em></div><div class="hero-number-label">Équipes inscrites</div></div>
+          <div><div class="hero-number-val">${openTournaments.length}</div><div class="hero-number-label">Tournois ouverts</div></div>
+          <div><div class="hero-number-val">${state.tournaments.length}</div><div class="hero-number-label">Tournois organisés</div></div>
         </div>
-      </div>
-      <div class="hero-stats-band">
-        <div class="hero-stat"><div class="hero-stat-val">${state.clubs.length}</div><div class="hero-stat-lbl">Clubs organisateurs</div></div>
-        <div class="hero-stat"><div class="hero-stat-val">${state.teams.length}</div><div class="hero-stat-lbl">Équipes inscrites</div></div>
-        <div class="hero-stat"><div class="hero-stat-val open">${openTournaments.length}</div><div class="hero-stat-lbl">Tournois ouverts</div></div>
-        <div class="hero-stat"><div class="hero-stat-val">${state.tournaments.length}</div><div class="hero-stat-lbl">Tournois organisés</div></div>
       </div>
     </section>
 
@@ -5528,26 +5336,23 @@ function tournCardHome(t) {
   const club = getClub(t.clubId);
   const approved = t.registrations.filter(r => r.status === 'approved').length;
   const placesLeft = (t.maxTeams || 0) - approved;
-  const isUrgent = placesLeft > 0 && placesLeft < 3 && t.status === 'open';
-  const catLabel = tournCategoriesLabel(t);
-  const formatLabel = t.teamSize ? t.teamSize : '';
-  const locLabel = [t.city ? esc(t.city) : '', t.department ? `(${esc(t.department)})` : ''].filter(Boolean).join(' ');
   return `
     <a class="t-card" href="${tournamentRoute(t.id)}">
       <div class="t-card-img ${club?.logoClass || ''}">
-        <svg class="t-card-pattern" aria-hidden="true"><use href="#terrain"/></svg>
         <span class="t-card-mark">${esc(club?.mark || '')}</span>
-        <div class="t-card-num">#${String(approved).padStart(2,'0')}</div>
+        <div class="t-card-num">${approved}</div>
       </div>
       <div class="t-card-body">
-        <div class="t-card-club">${esc(clubLine(club))}${renderBadge(clubBadge(t.clubId), 'margin-left:0.4rem;font-size:9px;')}</div>
+        <div class="t-card-club">
+          ${esc(clubLine(club))}
+          ${renderBadge(clubBadge(t.clubId), 'margin-left:0.4rem;font-size:9px;')}
+        </div>
         <h3 class="t-card-title">${esc(t.name)}</h3>
-        ${catLabel !== '—' || formatLabel ? `<div class="t-card-category">${esc(catLabel)}${formatLabel ? ' · ' + esc(formatLabel) : ''}</div>` : ''}
-        <p class="t-card-meta">${locLabel ? locLabel + ' · ' : ''}${esc(tournDateRange(t))}</p>
+        <p class="t-card-meta">${esc(tournCategoriesLabel(t))} · ${t.city ? esc(t.city) + ' · ' : ''}${esc(tournDateRange(t))}</p>
         ${urgency ? `<div class="t-card-urgency ${urgency.cls}">${urgency.label}</div>` : ''}
         <div class="t-card-foot">
-          <span class="t-card-status ${isUrgent ? 'urgent' : t.status}">${isUrgent ? 'Dernières places' : t.status === 'open' ? 'Ouvert' : t.status === 'draft' ? 'Brouillon' : 'En cours'}</span>
-          <span class="t-card-count">${approved} / ${t.maxTeams || '?'} éq.</span>
+          <span class="t-card-status ${t.status}">${t.status === 'open' ? 'Ouvert' : t.status === 'draft' ? 'Brouillon' : 'En cours'}</span>
+          <span class="t-card-progress">${placesLeft > 0 ? placesLeft + ' place' + (placesLeft > 1 ? 's' : '') : 'Complet'}</span>
         </div>
       </div>
     </a>`;
@@ -5556,24 +5361,22 @@ function tournCardHome(t) {
 function tournCard(t) {
   const club = getClub(t.clubId);
   const approved = t.registrations.filter(r => r.status !== 'rejected').length;
-  const catLabel = tournCategoriesLabel(t);
-  const formatLabel = t.teamSize ? t.teamSize : '';
-  const locLabel = [t.city ? esc(t.city) : '', t.department ? `(${esc(t.department)})` : ''].filter(Boolean).join(' ');
   return `
     <a class="t-card" href="${tournamentRoute(t.id)}">
       <div class="t-card-img ${club?.logoClass || ''}">
-        <svg class="t-card-pattern" aria-hidden="true"><use href="#terrain"/></svg>
         <span class="t-card-mark">${esc(club?.mark || '')}</span>
-        <div class="t-card-num">#${String(approved).padStart(2,'0')}</div>
+        <div class="t-card-num">${approved}</div>
       </div>
       <div class="t-card-body">
-        <div class="t-card-club">${esc(clubLine(club))}${renderBadge(clubBadge(t.clubId), 'margin-left:0.4rem;font-size:9px;')}</div>
+        <div class="t-card-club">
+          ${esc(clubLine(club))}
+          ${renderBadge(clubBadge(t.clubId), 'margin-left:0.4rem;font-size:9px;')}
+        </div>
         <h3 class="t-card-title">${esc(t.name)}</h3>
-        ${catLabel !== '—' || formatLabel ? `<div class="t-card-category">${esc(catLabel)}${formatLabel ? ' · ' + esc(formatLabel) : ''}</div>` : ''}
-        <p class="t-card-meta">${locLabel ? locLabel + ' · ' : ''}${esc(tournDateRange(t))}</p>
+        <p class="t-card-meta">${esc(tournCategoriesLabel(t))} · ${t.city ? esc(t.city) + ' · ' : ''}${esc(tournDateRange(t))}</p>
         <div class="t-card-foot">
           <span class="t-card-status ${t.status}">${t.status === 'open' ? 'Ouvert' : t.status === 'draft' ? 'Brouillon' : 'En cours'}</span>
-          <span class="t-card-count">${approved} / ${t.maxTeams || '?'} éq.</span>
+          <span class="t-card-progress">${approved}/${t.maxTeams} équipes</span>
         </div>
         ${(() => { const b = clubBadge(t.clubId); return b ? `<div style="padding:0.5rem 1.1rem 0.75rem;"><span class="lt-badge lt-badge-${b.level}" style="font-size:10px;">${b.icon} ${b.label}</span></div>` : ''; })()}
       </div>
@@ -6111,10 +5914,7 @@ function renderClubDashboard(c) {
       <div class="dash-section">
         <div class="dash-section-h">
           <div class="dash-section-title">Mes tournois</div>
-          <div style="display:flex;gap:0.5rem;">
-            <a href="#/profile" class="btn btn-outline btn-sm">Mon profil</a>
-            <a href="#/tournaments/new" class="btn btn-orange btn-sm">+ Nouveau</a>
-          </div>
+          <a href="#/tournaments/new" class="btn btn-orange btn-sm">+ Nouveau</a>
         </div>
         ${myTs.length ? `<div class="grid grid-3">${myTs.map(tournCard).join('')}</div>` : `
           <div class="dash-empty">
@@ -6301,125 +6101,6 @@ function renderSponsorDashboard(s) {
           <div class="grid grid-3">${matching.slice(0, 3).map(tournCard).join('')}</div>
         </div>` : ''}
     </div>`;
-}
-
-// ============================================================
-// PAGE PROFIL — mise à jour des informations du compte
-// Accessible via #/profile pour tous les types (club, team, sponsor)
-// ============================================================
-function renderProfileEdit() {
-  const a = getAccount();
-  if (!a) { navigate('#/login'); return; }
-
-  // Champs communs
-  const commonFields = `
-    <div class="form-group"><label class="form-label">Nom ${a.type === 'club' ? 'de l\'organisateur' : a.type === 'team' ? 'de l\'équipe' : 'de l\'entreprise'}</label>
-      <input class="input" id="p-name" value="${esc(a.name || '')}" required></div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Département</label>
-        <select class="select" id="p-dept" onchange="onDeptChange(this,'p-city')">
-          ${deptOptionsHTML(a.department || '', true)}
-        </select></div>
-      <div class="form-group"><label class="form-label">Ville</label>
-        <div class="city-wrap">
-          <input class="input" id="p-city" value="${esc(a.city || '')}" autocomplete="off"
-            data-dept-input="p-dept"
-            oninput="cityAutocomplete(this)"
-            onkeydown="_cityKeyNav(event, this)"
-            onblur="_closeCityDropdown(this.closest('.city-wrap'))">
-        </div></div>
-    </div>
-    <div class="form-group"><label class="form-label">Téléphone</label>
-      <input class="input" id="p-phone" value="${esc(a.phone || '')}" placeholder="06 12 34 56 78"></div>`;
-
-  // Champs spécifiques par type
-  const specificFields = a.type === 'club' ? `
-    <div class="form-group"><label class="form-label">Responsable / Président·e</label>
-      <input class="input" id="p-pres" value="${esc(a.president || '')}"></div>
-    <div class="form-group"><label class="form-label">Site web</label>
-      <input class="input" id="p-web" type="url" value="${esc(a.website || '')}" placeholder="https://..."></div>`
-  : a.type === 'team' ? `
-    <div class="form-group"><label class="form-label">Club affilié</label>
-      <input class="input" id="p-club" value="${esc(a.club || '')}"></div>
-    <div class="form-group"><label class="form-label">Catégorie</label>
-      <select class="select" id="p-category">
-        ${['u7','u9','u11','u13','u15','u17','u19','seniors','veterans','feminin'].map(c =>
-          `<option value="${c}" ${a.category === c ? 'selected' : ''}>${c.toUpperCase()}</option>`).join('')}
-      </select></div>
-    <div class="form-group"><label class="form-label">Niveau</label>
-      <select class="select" id="p-level">
-        ${['national','regional','departemental','district','loisir'].map(l =>
-          `<option value="${l}" ${a.level === l ? 'selected' : ''}>${l.charAt(0).toUpperCase()+l.slice(1)}</option>`).join('')}
-      </select></div>
-    <div class="form-group"><label class="form-label">Responsable</label>
-      <input class="input" id="p-mgr" value="${esc(a.manager || '')}"></div>
-    <div class="form-group"><label class="form-label">Bio</label>
-      <textarea class="input" id="p-bio" rows="3" placeholder="Présentez votre équipe…">${esc(a.bio || '')}</textarea></div>`
-  : `
-    <div class="form-group"><label class="form-label">Secteur d'activité</label>
-      <input class="input" id="p-sector" value="${esc(a.sector || '')}" required></div>
-    <div class="form-group"><label class="form-label">Contact principal</label>
-      <input class="input" id="p-contact" value="${esc(a.contact || '')}"></div>
-    <div class="form-group"><label class="form-label">Budget de sponsoring</label>
-      <select class="select" id="p-budget">
-        ${['<150€','150-500€','500-1500€','1500-5000€','>5000€'].map(b =>
-          `<option value="${b}" ${a.budgetRange === b ? 'selected' : ''}>${b}</option>`).join('')}
-      </select></div>
-    <div class="form-group"><label class="form-label">Description</label>
-      <textarea class="input" id="p-bio" rows="3" placeholder="Présentez votre entreprise…">${esc(a.description || '')}</textarea></div>`;
-
-  document.getElementById('app').innerHTML = `
-    <div class="container" style="padding-top:2.5rem;padding-bottom:3rem;max-width:640px;">
-      <div style="display:flex;align-items:center;gap:1rem;margin-bottom:2rem;">
-        <a href="#/dashboard" class="btn btn-ghost btn-sm">← Dashboard</a>
-        <h1 style="font-size:1.4rem;font-family:var(--font-serif);font-style:italic;margin:0;">Mon profil</h1>
-      </div>
-      <div id="profile-err" class="form-error" style="margin-bottom:1rem;"></div>
-      <div class="form-section">
-        ${commonFields}
-        ${specificFields}
-      </div>
-      <div style="display:flex;gap:0.75rem;margin-top:1.5rem;">
-        <button class="btn btn-primary" onclick="saveProfile()">Enregistrer</button>
-        <a href="#/dashboard" class="btn btn-ghost">Annuler</a>
-      </div>
-    </div>`;
-}
-
-function saveProfile() {
-  const a = getAccount();
-  if (!a) return;
-  const errEl = document.getElementById('profile-err');
-  const name = document.getElementById('p-name')?.value.trim();
-  if (!name) { errEl.textContent = 'Le nom est obligatoire.'; errEl.classList.add('show'); return; }
-
-  // Champs communs
-  a.name       = name;
-  a.department = document.getElementById('p-dept')?.value || a.department;
-  a.city       = document.getElementById('p-city')?.value.trim() || a.city;
-  a.phone      = document.getElementById('p-phone')?.value.trim() || a.phone;
-  a.mark       = makeMark(name);
-
-  // Champs spécifiques
-  if (a.type === 'club') {
-    a.president = document.getElementById('p-pres')?.value.trim() || a.president;
-    a.website   = document.getElementById('p-web')?.value.trim() || a.website;
-  } else if (a.type === 'team') {
-    a.club      = document.getElementById('p-club')?.value.trim() || a.club;
-    a.category  = document.getElementById('p-category')?.value || a.category;
-    a.level     = document.getElementById('p-level')?.value || a.level;
-    a.manager   = document.getElementById('p-mgr')?.value.trim() || a.manager;
-    a.bio       = document.getElementById('p-bio')?.value.trim() || a.bio;
-  } else {
-    a.sector      = document.getElementById('p-sector')?.value.trim() || a.sector;
-    a.contact     = document.getElementById('p-contact')?.value.trim() || a.contact;
-    a.budgetRange = document.getElementById('p-budget')?.value || a.budgetRange;
-    a.description = document.getElementById('p-bio')?.value.trim() || a.description;
-  }
-
-  saveState();
-  toast('Profil mis à jour', 'success');
-  navigate('#/dashboard');
 }
 
 // PROFILE EDIT MODALS
@@ -7460,6 +7141,7 @@ function renderTournamentDetail(id) {
         <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem;">
           <div class="tourn-hero-club">
           Organisé par ${esc(clubLine(club))}
+          ${renderBadge(clubBadge(t.clubId), 'margin-left:0.6rem;vertical-align:middle;')}
           ${safeUrl(club.website) ? `<a href="${safeUrl(club.website)}" target="_blank" rel="noopener noreferrer" style="margin-left:0.6rem;font-family:var(--font-mono);font-size:10px;color:rgba(245,239,228,0.6);border-bottom:1px solid rgba(245,239,228,0.3);letter-spacing:0.08em;">Site web →</a>` : ''}
         </div>
           ${isOwner ? `
@@ -8642,7 +8324,7 @@ function renderTabFinances(t, isOwner) {
   const totalDepenses = depenses.reduce((s, d) => s + (d.montant || 0), 0);
 
   const solde = totalRecettes - totalDepenses;
-  const soldeColor = solde >= 0 ? 'var(--success, #2d7a4f)' : 'var(--accent-deep, #1F3D28)';
+  const soldeColor = solde >= 0 ? 'var(--success, #2d7a4f)' : 'var(--accent-deep, #97492e)';
   const soldeLabel = solde >= 0 ? 'Bénéfice' : 'Déficit';
 
   return `
@@ -9047,7 +8729,7 @@ function renderTeamsList() {
       <div class="grid grid-3">
         ${state.teams.map(t => `
           <div class="t-card" onclick="navigate('#/teams/${t.id}')">
-            <div class="t-card-img" style="background: var(--paper-soft); border-top: 5px solid var(--olive); height: 110px;">
+            <div class="t-card-img" style="background: linear-gradient(135deg, var(--olive) 0%, var(--grass-light) 100%); height: 110px;">
               <span class="t-card-mark">${esc(t.mark)}</span>
               <div class="t-card-num">${t.players.length}</div>
             </div>
@@ -9215,7 +8897,7 @@ function renderSponsorsList() {
       <div class="grid grid-3">
         ${state.sponsors.map(s => `
           <div class="t-card" onclick="navigate('#/sponsors/${s.id}')">
-            <div class="t-card-img" style="background: var(--paper-soft); border-top: 5px solid var(--bronze); height: 110px;">
+            <div class="t-card-img" style="background: linear-gradient(135deg, var(--bronze) 0%, #6e5532 100%); height: 110px;">
               <span class="t-card-mark">${esc(s.mark)}</span>
             </div>
             <div class="t-card-body">
