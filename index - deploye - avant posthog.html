@@ -5,30 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- RSSI : Content-Security-Policy — restreint les sources autorisées -->
 <!-- Note : frame-ancestors retiré du meta (invalide ici, honoré uniquement via en-tête HTTP) -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://eu-assets.i.posthog.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co https://geo.api.gouv.fr https://api-adresse.data.gouv.fr https://cdn.jsdelivr.net https://eu.posthog.com https://eu-assets.i.posthog.com; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co https://geo.api.gouv.fr https://api-adresse.data.gouv.fr https://cdn.jsdelivr.net; base-uri 'self'; form-action 'self'">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>Le Tournoi : la plateforme des tournois de foot amateur</title>
-
-<!-- ═══ POSTHOG — Analytics EU (eu.posthog.com, plan gratuit, no session replay) ═══
-     Remplacer PHC_PROJECT_API_KEY par la clé phc_... du projet letournoi-prod
-     §5 : aucune PII ne doit transiter dans les propriétés d'events (email, tel, nom, hash)
-     disable_session_recording: true = garde explicite J0 (spec §3.1)
-─────────────────────────────────────────────────────────────────────────────────────── -->
-<script>
-if (!window.__posthogInitialized) {
-  window.__posthogInitialized = true;
-  !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister unregister_for_session getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException loadToolbar get_property getSessionProperty createPersonProfile opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing debug".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
-  posthog.init('PHC_PROJECT_API_KEY', {
-    api_host: 'https://eu.posthog.com',
-    autocapture: true,
-    capture_pageview: false,          // SPA sans rechargement — $pageview géré manuellement dans le router (spec §3.4)
-    disable_session_recording: true,  // garde explicite J0 — pas de replay (spec §3.1)
-    mask_all_element_attributes: false,
-    person_profiles: 'identified_only'
-  });
-}
-</script>
 <script id="lt-share-redirect-early">
 // Redirection très tôt des liens de partage sans hash.
 // Exemple : /TheTournament/?tournoi=id-xxx → /TheTournament/#/tournaments/id-xxx
@@ -3068,14 +3048,6 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
 @media (max-width: 720px) { .admin-side { display: none; } .admin-content { padding: 1rem; } }
 </style>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231B1F1A'/%3E%3Ctext x='16' y='22' text-anchor='middle' font-family='Arial' font-weight='700' font-size='18' fill='white'%3ET%3C/text%3E%3C/svg%3E">
-  <script>
-!function(t,e){var o,n,p,r;e.__SV||(window.posthog && window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister unregister_for_session getFeatureFlag getFeatureFlagResult isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException loadToolbar get_property getSessionProperty createPersonProfile opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing debug".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
-
-posthog.init("phc_zsmtdS9iLevRzbJvqmD2ZvxdiqA7LBpcZMxN7QnQuA88", {
-    api_host: "https://eu.i.posthog.com",
-    defaults: "2026-05-30"
-});
-</script>
 </head>
 <body>
 
@@ -4209,34 +4181,7 @@ function normalizeSharedTournamentUrl() {
 }
 
 window.addEventListener('hashchange', () => { activeTab = 'overview'; render(); });
-window.addEventListener('load', () => {
-  // PostHog : enregistrer les propriétés globales au chargement
-  phRegisterGlobals();
-  if (!normalizeSharedTournamentUrl()) render();
-});
-
-// PostHog §4.2 : inscription_abandoned — détection via visibilitychange
-// Armé seulement si le formulaire d'inscription est visible depuis ≥5s
-var _inscriptionTimer = null;
-var _inscriptionArmed = false;
-var _currentTournoisId = null;
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'hidden' && _inscriptionArmed && _currentTournoisId) {
-    ph('inscription_abandoned', { last_step: 'formulaire', tournoi_id: _currentTournoisId });
-    _inscriptionArmed = false;
-  }
-});
-function armInscriptionAbandoned(tid) {
-  _currentTournoisId = tid;
-  _inscriptionArmed = false;
-  clearTimeout(_inscriptionTimer);
-  _inscriptionTimer = setTimeout(() => { _inscriptionArmed = true; }, 5000);
-}
-function disarmInscriptionAbandoned() {
-  _inscriptionArmed = false;
-  _currentTournoisId = null;
-  clearTimeout(_inscriptionTimer);
-}
+window.addEventListener('load', () => { if (!normalizeSharedTournamentUrl()) render(); });
 
 // AUTH
 // Mots simples pour code de récupération mémorisable
@@ -4364,30 +4309,6 @@ function render() {
   // Ticker : mise à jour dynamique à chaque rendu (mode réel et démo)
   initTicker();
   const r = getRoute();
-
-  // PostHog §3.4 : $pageview natif — déclenché manuellement à chaque changement de section SPA
-  // (capture_pageview: false dans le snippet évite le double-fire au chargement initial)
-  // L'event natif $pageview active les funnels, paths et KPI d'activation PostHog sans config supplémentaire
-  const sectionMap = {
-    '/': 'accueil', '/tournaments': 'catalogue', '/signup': 'inscription',
-    '/login': 'connexion', '/dashboard': 'dashboard', '/profile': 'profil',
-    '/join': 'rejoindre', '/legal': 'mentions_legales', '/privacy': 'confidentialite',
-    '/recover': 'recuperation', '/pending': 'activation_en_attente',
-    '/teams': 'equipes', '/sponsors': 'sponsors',
-    '/tournaments/new': 'creation_tournoi',
-  };
-  const sectionName = sectionMap[r]
-    || (r.startsWith('/tournaments/') && r.endsWith('/edit') ? 'edition_tournoi'
-    : r.startsWith('/tournaments/') ? 'fiche_tournoi'
-    : r.startsWith('/teams/') ? 'profil_equipe'
-    : r.startsWith('/sponsors/') ? 'profil_sponsor'
-    : 'autre');
-  try {
-    if (window.posthog && typeof posthog.capture === 'function') {
-      posthog.capture('$pageview', { section_name: sectionName, mode: getCurrentMode() });
-    }
-  } catch(e) { /* silencieux */ }
-
   if (r === '/') return renderHome();
   if (r === '/admin') return renderAdmin();
   if (r === '/signup') return renderSignup();
@@ -4634,8 +4555,6 @@ async function submitJoinRequest() {
       }]);
     if (error) {
       console.error('[Le Tournoi] club_registration_requests INSERT:', error);
-      // PostHog §4.3 : club_request_error
-      ph('club_request_error', { error_type: error.code || 'unknown' });
       errEl.textContent = 'Erreur lors de l\'envoi. Réessayez ou contactez contact@letournoi.foot.';
       errEl.classList.add('show');
       if (btn) { btn.disabled = false; btn.textContent = 'Envoyer ma demande →'; }
@@ -4654,9 +4573,6 @@ async function submitJoinRequest() {
     state.joinRequests.push({ clubName, contactName, email, phone, department, city, message, status: 'pending', createdAt: new Date().toISOString() });
     saveState();
   }
-
-  // PostHog §4.3 : club_request_submitted — pas de PII
-  ph('club_request_submitted', { departement: department || null, mode: getCurrentMode() });
 
   // Confirmation UI — pas de redirection automatique
   document.getElementById('app').innerHTML = `
@@ -4696,34 +4612,6 @@ function isTournamentComplete(t) {
 
 // ---- SESSION ----
 function isAdminLoggedIn() { return sessionStorage.getItem('lt_admin') === '1'; }
-
-// ═══ POSTHOG HELPERS ═══════════════════════════════════════════════════════════
-// ph(event, props) : wrapper sécurisé — silencieux si posthog non chargé
-// §5 : jamais d'email, tel, nom, hash, UUID Supabase dans les props
-function ph(event, props) {
-  try {
-    if (window.posthog && typeof posthog.capture === 'function') {
-      posthog.capture(event, props || {});
-    }
-  } catch(e) { /* silencieux — ne jamais bloquer l'UX pour le tracking */ }
-}
-
-// Mode courant : 'real' | 'demo'
-function getCurrentMode() { return signupMode || 'real'; }
-
-// Enregistrement des propriétés globales (appelé au chargement + à chaque bascule de mode)
-function phRegisterGlobals() {
-  try {
-    if (window.posthog && typeof posthog.register === 'function') {
-      posthog.register({
-        app_mode: getCurrentMode(),
-        app_version: '1.0.0',
-        viewport: window.innerWidth < 768 ? 'mobile' : 'desktop'
-      });
-    }
-  } catch(e) {}
-}
-// ═══════════════════════════════════════════════════════════════════════════════
 
 // Toggle affichage mot de passe — ne pas appliquer sur admin-pwd
 function togglePassword(inputId, btn) {
@@ -4830,8 +4718,6 @@ async function handleAdminLogin() {
     const ok = await bcrypt.compare(pwd, ADMIN_HASH);
     if (ok) {
       sessionStorage.setItem('lt_admin', '1');
-      // PostHog §4.7 : admin_login_success — aucune PII, aucun hash, aucun détail d'action
-      ph('admin_login_success');
       renderAdminDashboard();
     } else {
       errEl.textContent = 'Mot de passe incorrect.'; errEl.style.display = 'block';
@@ -5727,7 +5613,7 @@ function tournCardHome(t) {
         <div class="t-card-num">#${String(approved).padStart(2,'0')}</div>
       </div>
       <div class="t-card-body">
-        <div class="t-card-club">${esc(clubLine(club))}</div>
+        <div class="t-card-club">${esc(clubLine(club))}${renderBadge(clubBadge(t.clubId), 'margin-left:0.4rem;font-size:9px;')}</div>
         <h3 class="t-card-title">${esc(t.name)}</h3>
         ${catLabel !== '—' || formatLabel ? `<div class="t-card-category">${esc(catLabel)}${formatLabel ? ' · ' + esc(formatLabel) : ''}</div>` : ''}
         <p class="t-card-meta">${locLabel ? locLabel + ' · ' : ''}${esc(tournDateRange(t))}</p>
@@ -5754,7 +5640,7 @@ function tournCard(t) {
         <div class="t-card-num">#${String(approved).padStart(2,'0')}</div>
       </div>
       <div class="t-card-body">
-        <div class="t-card-club">${esc(clubLine(club))}</div>
+        <div class="t-card-club">${esc(clubLine(club))}${renderBadge(clubBadge(t.clubId), 'margin-left:0.4rem;font-size:9px;')}</div>
         <h3 class="t-card-title">${esc(t.name)}</h3>
         ${catLabel !== '—' || formatLabel ? `<div class="t-card-category">${esc(catLabel)}${formatLabel ? ' · ' + esc(formatLabel) : ''}</div>` : ''}
         <p class="t-card-meta">${locLabel ? locLabel + ' · ' : ''}${esc(tournDateRange(t))}</p>
@@ -5762,6 +5648,7 @@ function tournCard(t) {
           <span class="t-card-status ${t.status}">${t.status === 'open' ? 'Ouvert' : t.status === 'draft' ? 'Brouillon' : 'En cours'}</span>
           <span class="t-card-count">${approved} / ${t.maxTeams || '?'} éq.</span>
         </div>
+        ${(() => { const b = clubBadge(t.clubId); return b ? `<div style="padding:0.5rem 1.1rem 0.75rem;"><span class="lt-badge lt-badge-${b.level}" style="font-size:10px;">${b.icon} ${b.label}</span></div>` : ''; })()}
       </div>
     </a>`;
 }
@@ -5779,13 +5666,13 @@ function renderSignup() {
           <label class="signup-radio-opt opt-real ${signupMode === 'real' ? 'selected' : ''}">
             <input type="radio" name="signup-mode" value="real"
               ${signupMode === 'real' ? 'checked' : ''}
-              onchange="signupMode='real'; phRegisterGlobals(); ph('real_mode_activated'); renderSignup();">
+              onchange="signupMode='real'; renderSignup();">
             <span class="signup-radio-name">Inscription réelle</span>
           </label>
           <label class="signup-radio-opt opt-demo ${signupMode === 'demo' ? 'selected' : ''}">
             <input type="radio" name="signup-mode" value="demo"
               ${signupMode === 'demo' ? 'checked' : ''}
-              onchange="signupMode='demo'; phRegisterGlobals(); ph('demo_mode_activated'); renderSignup();">
+              onchange="signupMode='demo'; renderSignup();">
             <span class="signup-radio-name">Mode démo</span>
           </label>
         </div>
@@ -5920,8 +5807,6 @@ async function handleSignup(e, type) {
   }
 
   const name = document.getElementById('f-name').value.trim();
-  // PostHog §4.3 : account_creation_started — pas de PII, account_type explicite
-  ph('account_creation_started', { mode: getCurrentMode(), account_type: type });
   let d;
   if (type === 'club') {
     d = { name, email: document.getElementById('f-email').value.trim().toLowerCase(),
@@ -6006,9 +5891,6 @@ async function handleSignup(e, type) {
       // Rattacher d'éventuelles candidatures faites sans compte (même email)
       if (type === 'team') linkPastRegistrations(localAccount.email, localAccount.id);
 
-      // PostHog §4.3 : account_creation_completed (mode réel)
-      ph('account_creation_completed', { mode: 'real', account_type: type, departement: d.department || null });
-
       // Afficher le code de récupération puis rediriger vers l'écran d'attente
       navigate('#/pending');
       setTimeout(() => showRecoveryCodeModal(recoveryCode), 400);
@@ -6020,8 +5902,6 @@ async function handleSignup(e, type) {
   if (r.error) { errEl.textContent = r.error; errEl.classList.add('show'); return; }
   if (r.pending) { navigate('#/pending'); return; }
   if (type === 'team') linkPastRegistrations(r.account.email, r.account.id);
-  // PostHog §4.3 : account_creation_completed (mode démo)
-  ph('account_creation_completed', { mode: 'demo', account_type: type });
   navigate('#/dashboard');
   // D06 fix : avertir explicitement que le compte est local uniquement
   showDemoBanner();
@@ -6240,9 +6120,6 @@ async function handleLogin(e) {
   const errEl = document.getElementById('login-err');
   errEl.classList.remove('show');
 
-  // PostHog §4.4 : login_attempted — pas de PII (pas d'email)
-  ph('login_attempted', { mode: getCurrentMode() });
-
   // Tentative 1 : localStorage
   let r = loginAccount(loginType, email, pwd);
 
@@ -6254,17 +6131,8 @@ async function handleLogin(e) {
     if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Se connecter →'; }
   }
 
-  if (r.error) {
-    // PostHog §4.4 : login_failed — reason générique sans détail PII
-    const reason = r.error.toLowerCase().includes('mot de passe') ? 'wrong_password' : 'not_found';
-    ph('login_failed', { reason, mode: getCurrentMode() });
-    errEl.textContent = r.error; errEl.classList.add('show'); return;
-  }
+  if (r.error) { errEl.textContent = r.error; errEl.classList.add('show'); return; }
   if (r.pending) { navigate('#/pending'); return; }
-
-  // PostHog §4.4 : login_success
-  ph('login_success', { account_type: loginType });
-
   toast('Bienvenue !', 'success');
   navigate('#/dashboard');
   // Récupérer d'éventuelles candidatures faites sans compte (même email),
@@ -6515,8 +6383,6 @@ function renderSponsorDashboard(s) {
 function renderProfileEdit() {
   const a = getAccount();
   if (!a) { navigate('#/login'); return; }
-  // PostHog §4.6 : profile_viewed
-  ph('profile_viewed', { account_type: a.type });
 
   // Champs communs
   const commonFields = `
@@ -6625,8 +6491,6 @@ function saveProfile() {
   }
 
   saveState();
-  // PostHog §4.6 : profile_edit_saved
-  ph('profile_edit_saved', { account_type: a.type });
   toast('Profil mis à jour', 'success');
   navigate('#/dashboard');
 }
@@ -6919,20 +6783,6 @@ function renderTournaments() {
   const filtered = filterTournaments(tournamentSearchQuery, tournamentSearchCategory, tournamentSearchStatus);
   const totalCount = state.tournaments.length;
   const hasActiveFilters = !!(tournamentSearchQuery || tournamentSearchDepts.length || tournamentSearchCategory || tournamentSearchStatus || tournamentSearchSurface || tournamentSearchFormat || tournamentSearchMaxFee);
-
-  // PostHog §4.1 : tournoi_searched si des filtres actifs
-  if (hasActiveFilters) {
-    ph('tournoi_searched', {
-      departement_filtre: tournamentSearchDepts.length ? tournamentSearchDepts.join(',') : null,
-      resultats_count: filtered.length,
-      mode: getCurrentMode()
-    });
-    if (filtered.length === 0) {
-      ph('search_zero_results', {
-        departement_filtre: tournamentSearchDepts.length ? tournamentSearchDepts.join(',') : null
-      });
-    }
-  }
 
   document.getElementById('app').innerHTML = `
     <div class="page-head">
@@ -7640,8 +7490,6 @@ async function ensureTournamentLoaded(id) {
 
 function renderTournamentDetail(id) {
   const t = getTournament(id);
-  // PostHog §4.1 : tournoi_viewed — après récupération du tournoi (id fonctionnel, non PII)
-  if (t) ph('tournoi_viewed', { tournoi_id: id, departement: t.department || null, mode: getCurrentMode() });
 
   // Tournoi absent du state local : tenter un chargement direct depuis Supabase
   // avant de conclure qu'il est introuvable (corrige les liens partagés WhatsApp/Facebook
@@ -8231,8 +8079,6 @@ function renderAside(t, isOwner, a) {
 
 // APPLICATION MODALS
 function applyTournamentModal(tid) {
-  // PostHog §4.2 : inscription_started — ouverture du formulaire compte connecté
-  ph('inscription_started', { tournoi_id: tid, mode: getCurrentMode() });
   const a = getAccount();
   if (!a || a.type !== 'team') { toast('Connecte-toi avec un compte équipe', 'error'); return; }
   const t = getTournament(tid);
@@ -8264,9 +8110,6 @@ function confirmApply(tid) {
 // Brief BA Formulaires IDF — friction minimale, tournamentId porté par le contexte
 // ===========================================
 function applyTournamentVisitorModal(tid) {
-  // PostHog §4.2 : inscription_started + armement abandoned
-  ph('inscription_started', { tournoi_id: tid, mode: getCurrentMode() });
-  armInscriptionAbandoned(tid);
   const t = getTournament(tid);
   if (!t) return;
   const modeNotice = supabaseClient
@@ -8341,12 +8184,9 @@ async function confirmApplyVisitor(tid) {
   const okEmail = vaCheckEmail();
   const consent = document.getElementById('va-consent-data');
   if (!okTeam || !okEmail) {
-    // PostHog §4.2 : inscription_error sur validation échouée
-    ph('inscription_error', { error_type: 'validation', step_name: 'formulaire_visiteur', tournoi_id: tid });
     errEl.textContent = 'Corrige les champs en rouge ci-dessus.'; errEl.classList.add('show'); return;
   }
   if (!consent || !consent.checked) {
-    ph('inscription_error', { error_type: 'rgpd_missing', step_name: 'formulaire_visiteur', tournoi_id: tid });
     errEl.textContent = 'Le consentement RGPD est obligatoire pour continuer.'; errEl.classList.add('show'); return;
   }
 
@@ -8356,9 +8196,6 @@ async function confirmApplyVisitor(tid) {
 
   const submitBtn = document.getElementById('va-submit-btn');
   if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Envoi…'; }
-
-  // PostHog §4.2 : step validation passée — formulaire valide, prêt à l'envoi
-  ph('inscription_step_completed', { step_name: 'formulaire_visiteur_valide', tournoi_id: tid });
 
   // Club, responsable, téléphone, département, ville : laissés vides ici,
   // à compléter depuis le profil équipe une fois un compte créé.
@@ -8372,10 +8209,6 @@ async function confirmApplyVisitor(tid) {
   saveState();
   syncTournament(t, false);
   await syncRegistration(t.id, registration);
-
-  // PostHog §4.2 : inscription_completed — soumission réussie (pas de PII, pas de teamName)
-  ph('inscription_completed', { tournoi_id: tid, departement: t.department || null, mode: getCurrentMode() });
-  disarmInscriptionAbandoned();
 
   // Consentement RGPD tracé dans la table consents existante (non bloquant)
   if (supabaseClient && signupMode === 'real') {
