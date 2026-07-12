@@ -4721,9 +4721,6 @@ function phRegisterGlobals() {
         viewport:    window.innerWidth < 768 ? 'mobile' : 'desktop',
         is_internal: isInternalUser   // filtrer les sessions DEV/QA dans PostHog Activity
       });
-      // Propager is_internal comme person property (requis pour les cohorts PostHog)
-      // posthog.register() attache aux events uniquement — setPersonProperties() attache à la fiche Person
-      posthog.setPersonProperties({ is_internal: isInternalUser });
     }
   } catch(e) {}
 }
