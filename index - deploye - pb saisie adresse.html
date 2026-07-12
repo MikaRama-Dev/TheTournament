@@ -4557,7 +4557,7 @@ function renderJoinRequest() {
                 placeholder="Choisis d'abord un département" data-dept-input="jr-dept"
                 oninput="cityAutocomplete(this)"
                 onkeydown="_cityKeyNav(event, this)"
-                onblur="setTimeout(()=>_closeCityDropdown(this.closest('.city-wrap')),200)">
+                onblur="_closeCityDropdown(this.closest('.city-wrap'))">
             </div></div>
         </div>
         <div class="form-group"><label class="form-label">Message / motivation <span style="font-weight:400;color:var(--ink-mute);text-transform:none;letter-spacing:0;">(optionnel)</span></label>
@@ -6537,7 +6537,7 @@ function renderProfileEdit() {
             data-dept-input="p-dept"
             oninput="cityAutocomplete(this)"
             onkeydown="_cityKeyNav(event, this)"
-            onblur="setTimeout(()=>_closeCityDropdown(this.closest('.city-wrap')),200)">
+            onblur="_closeCityDropdown(this.closest('.city-wrap'))">
         </div></div>
     </div>
     <div class="form-group"><label class="form-label">Téléphone</label>
@@ -6678,7 +6678,7 @@ function editTeamProfileModal() {
             data-dept-input="ed-dept"
             oninput="cityAutocomplete(this)"
             onkeydown="_cityKeyNav(event, this)"
-            onblur="setTimeout(()=>_closeCityDropdown(this.closest('.city-wrap')),200)">
+            onblur="_closeCityDropdown(this.closest('.city-wrap'))">
         </div>
         <p class="form-help">Ville de référence pour trouver des tournois près de chez toi.</p>
       </div>
@@ -7171,7 +7171,7 @@ function renderCreateTournament() {
                   placeholder="Choisis d'abord un département" data-dept-input="t-dept"
                   oninput="addressAutocomplete(this, 't-dept', 't-city')"
                   onkeydown="_cityKeyNav(event, this)"
-                  onblur="setTimeout(()=>_closeCityDropdown(this.closest('.city-wrap')),200)">
+                  onblur="_closeCityDropdown(this.closest('.city-wrap'))">
               </div>
               <p class="form-help">Tape et choisis l'adresse dans la liste pour un format normalisé (officiel).</p>
             </div>
@@ -7438,10 +7438,10 @@ function renderEditTournament(tid) {
             <div class="form-group" style="flex:2;"><label class="form-label">Adresse complète</label>
               <div class="city-wrap">
                 <input class="input" id="t-venue-addr" required autocomplete="nope" value="${esc(t.venueAddress || '')}" ${t.department ? '' : 'disabled'}
-                  placeholder="${t.department ? 'Tape pour chercher une adresse...' : 'Choisis un departement en premier'}" data-dept-input="t-dept"
+                  placeholder="${t.department ? 'Tape pour chercher l\'adresse…' : 'Choisis d\'abord un département'}" data-dept-input="t-dept"
                   oninput="addressAutocomplete(this, 't-dept', 't-city')"
                   onkeydown="_cityKeyNav(event, this)"
-                  onblur="setTimeout(()=>_closeCityDropdown(this.closest('.city-wrap')),200)">
+                  onblur="_closeCityDropdown(this.closest('.city-wrap'))">
               </div>
               <p class="form-help">Tape et choisis l'adresse dans la liste pour un format normalisé (officiel).</p>
             </div>
