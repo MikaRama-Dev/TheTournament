@@ -4292,8 +4292,7 @@ async function loginAccountFromSupabase(type, email, pwd) {
       // GRANT SELECT restreint côté DBA — colonnes credentials uniquement, pas de PII
       // RSSI/DBA bcrypt : recovery_code retiré du select — valeur hashée en base,
       // non exploitable côté client. L'utilisateur doit conserver son code à la création.
-      // id ajouté : clé technique non-PII, nécessaire pour retrouver les tournois liés (club_id)
-      .select('id, email, status, activation_code, password')
+      .select('email, status, activation_code, password')
       .eq('email', email)
       .single();
     if (error || !data) return { error: 'Email ou mot de passe incorrect.' };
@@ -4303,8 +4302,7 @@ async function loginAccountFromSupabase(type, email, pwd) {
     const existing = state[coll].find(a => a.email === email);
     if (!existing) {
       const rebuilt = {
-        id: data.id || uid(), // utiliser l'id Supabase réel pour retrouver les tournois liés (club_id)
-        type,
+        id: uid(), type,
         name: data.email, // nom non disponible sans PII — sera mis à jour à la prochaine session normale
         email: data.email,
         city: '', president: '', phone: '',
