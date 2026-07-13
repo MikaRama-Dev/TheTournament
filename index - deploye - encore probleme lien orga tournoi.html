@@ -6390,63 +6390,8 @@ function renderDashboard() {
   if (a.type === 'team') return renderTeamDashboard(a);
   return renderSponsorDashboard(a);
 }
-let _clubTournamentLoadInProgress = false;
-let _clubTournamentLoadAttemptedFor = '';
 
 function renderClubDashboard(c) {
-  // En mode réel, owner_email n'est pas chargé publiquement.
-  // Le dashboard doit donc déclencher lui-même la RPC privée get_my_tournaments
-  // si les tournois de l'organisateur ne sont pas encore présents dans state.
-  if (signupMode === 'real' && supabaseClient && c && c.email) {
-    const emailKey = c.email.toLowerCase();
-
-    const hasLinkedTournaments = state.tournaments.some(t =>
-      t.ownerEmail &&
-      t.ownerEmail.toLowerCase() === emailKey
-    );
-
-    if (!hasLinkedTournaments) {
-      if (!c.recoveryCode) {
-        document.getElementById('app').innerHTML = `
-          <div class="container" style="padding-top: 2.5rem; padding-bottom: 3rem;">
-            <h1 class="dash-greeting"><em>${esc(c.name || c.email)}</em></h1>
-            <p class="dash-sub">Tableau de bord organisateur.</p>
-
-            <div class="dash-empty">
-              <div class="dash-empty-title">Session organisateur incomplète</div>
-              <p class="dash-empty-text">
-                Reconnectez-vous avec votre code de récupération organisateur pour charger vos tournois.
-              </p>
-              <button class="btn btn-primary btn-sm" onclick="logout()">Se reconnecter</button>
-            </div>
-          </div>`;
-        return;
-      }
-
-      const loadKey = emailKey + ':' + c.recoveryCode;
-
-      if (!_clubTournamentLoadInProgress && _clubTournamentLoadAttemptedFor !== loadKey) {
-        _clubTournamentLoadInProgress = true;
-        _clubTournamentLoadAttemptedFor = loadKey;
-
-        document.getElementById('app').innerHTML = `
-          <div class="container" style="padding-top: 2.5rem; padding-bottom: 3rem;">
-            <h1 class="dash-greeting"><em>${esc(c.name || c.email)}</em></h1>
-            <p class="dash-sub">Chargement de vos tournois organisateur…</p>
-          </div>`;
-
-        loadMyTournaments(c.email, c.recoveryCode)
-          .catch(e => console.warn('[Le Tournoi] Chargement tournois organisateur impossible:', e))
-          .finally(() => {
-            _clubTournamentLoadInProgress = false;
-            if (getRoute() === '/dashboard') render();
-          });
-
-        return;
-      }
-    }
-  }
-
   // En mode réel : les tournois peuvent être liés par clubId (local) OU par ownerEmail (Supabase)
   const myTs = state.tournaments.filter(t =>
     t.clubId === c.id ||
