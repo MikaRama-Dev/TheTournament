@@ -6285,11 +6285,7 @@ function renderDashboard() {
 }
 
 function renderClubDashboard(c) {
-  // En mode réel : les tournois peuvent être liés par clubId (local) OU par ownerEmail (Supabase)
-  const myTs = state.tournaments.filter(t =>
-    t.clubId === c.id ||
-    (c.email && t.ownerEmail && t.ownerEmail.toLowerCase() === c.email.toLowerCase())
-  );
+  const myTs = state.tournaments.filter(t => t.clubId === c.id);
   const cb = clubBadge(c.id);
   const totTeams = myTs.reduce((s, t) => s + t.registrations.filter(r => r.status === 'approved').length, 0);
   const totSp = myTs.reduce((s, t) => s + t.sponsorProposals.reduce((sum, sp) => sum + (sp.status === 'confirme' ? sp.amount : 0), 0), 0);
@@ -7226,7 +7222,7 @@ function renderCreateTournament() {
           <div style="background: var(--paper-soft); border: 1px solid var(--line); padding: 1rem 1.25rem; border-radius: 2px; margin-bottom: 1rem;">
             <p style="font-family: var(--font-serif); font-style: italic; font-size: 0.92rem; color: var(--ink-mute); margin-bottom: 0.85rem;">Les informations de votre compte sont pré-remplies ci-dessous. Modifiez-les si ce tournoi a un contact différent.</p>
             <div class="form-row">
-              <div class="form-group"><label class="form-label">Nom du contact</label><input class="input" id="t-contact-name" value="${esc(a?.president || (a?.name && a.name !== a?.email ? a.name : '') || '')}"></div>
+              <div class="form-group"><label class="form-label">Nom du contact</label><input class="input" id="t-contact-name" value="${esc(a?.president || a?.name || '')}"></div>
               <div class="form-group"><label class="form-label">Téléphone</label><input class="input" id="t-contact-phone" value="${esc(a?.phone || '')}"></div>
             </div>
             <div class="form-group"><label class="form-label">Email de contact</label><input type="email" class="input" id="t-contact-email" value="${esc(a?.email || '')}"></div>
@@ -7378,7 +7374,7 @@ function renderEditTournament(tid) {
   const t = getTournament(tid);
   const a = getAccount();
   if (!t) { navigate('#/tournaments'); return; }
-  if (!a || a.type !== 'club' || (a.id !== t.clubId && !(a.email && t.ownerEmail && a.email.toLowerCase() === t.ownerEmail.toLowerCase()))) {
+  if (!a || a.type !== 'club' || a.id !== t.clubId) {
     toast('Accès réservé à l\'organisateur du tournoi', 'error');
     navigate('#/tournaments/' + tid); return;
   }
@@ -7681,10 +7677,7 @@ function renderTournamentDetail(id) {
   t.viewCount = (t.viewCount||0) + 1; saveState();
   const club = getClub(t.clubId);
   const a = getAccount();
-  const isOwner = a?.type === 'club' && (
-    a.id === t.clubId ||
-    (a.email && t.ownerEmail && a.email.toLowerCase() === t.ownerEmail.toLowerCase())
-  );
+  const isOwner = a?.type === 'club' && a.id === t.clubId;
   const pendT = t.registrations.filter(r => r.status === 'pending').length;
   // Active count = approved only
   const activeTeams = t.registrations.filter(r => r.status === 'approved').length;
@@ -8705,8 +8698,6 @@ function rot13(s) {
     return String.fromCharCode(((c.charCodeAt(0) - base + 13) % 26) + base);
   });
 }
-// Alias anti-scraping — même fonction, nom explicite pour les champs contact
-const encodeContact = rot13;
 
 // revealContact (ancienne version) remplacée par revealContact anti-scraper ci-dessus
 
