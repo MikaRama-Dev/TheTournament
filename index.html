@@ -4317,7 +4317,7 @@ function loginAccount(type, email, pwd) {
 }
 
 // Fallback Supabase : si le compte n'est pas dans le localStorage (cache vidé, autre appareil)
-async function loginAccountFromSupabase(type, email, pwd) {
+async function loginAccountFromSupabase(type, email, pwd, recoveryCodeInput = '') {
   // RSSI audit (note dev v2, P0-2) :
   // Cette fonction fait un SELECT sur clubs/teams/sponsors — tables qui disposent
   // d'un GRANT SELECT restreint aux colonnes de credentials uniquement
@@ -4353,7 +4353,7 @@ async function loginAccountFromSupabase(type, email, pwd) {
         password: pwd,
         status: data.status || 'pending',
         activationCode: data.activation_code,
-        recoveryCode: '', // non disponible après hachage bcrypt — l'utilisateur doit le noter à la création
+        recoveryCode: type === 'club' ? recoveryCodeInput : '',
         mark: makeMark(data.email),
         logoClass: '',
         // Tableaux requis par les dashboards — vides au premier login cross-device
@@ -4375,8 +4375,15 @@ async function loginAccountFromSupabase(type, email, pwd) {
       if (rebuilt.status === 'pending') return { account: rebuilt, pending: true };
       return { account: rebuilt };
     }
-    state.currentType = type; state.currentId = existing.id;
+    state.currentType = type;
+    state.currentId = existing.id;
+
+    if (type === 'club' && recoveryCodeInput) {
+      existing.recoveryCode = recoveryCodeInput;
+    }
+
     saveState();
+
     if (existing.status === 'pending') return { account: existing, pending: true };
     return { account: existing };
   } catch(e) {
@@ -6264,8 +6271,29 @@ function renderLogin() {
         </div>
         <div id="login-err" class="form-error"></div>
         <form onsubmit="handleLogin(event)">
-          <div class="form-group"><label class="form-label">Email</label><input type="email" class="input" id="l-email" required></div>
-          <div class="form-group"><label class="form-label">Mot de passe</label><div class="input-pwd-wrap"><input type="password" class="input" id="l-pwd" required><button type="button" class="btn-toggle-pwd" aria-label="Afficher le mot de passe" onclick="togglePassword('l-pwd',this)">👁</button></div></div>
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" class="input" id="l-email" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Mot de passe</label>
+            <div class="input-pwd-wrap">
+              <input type="password" class="input" id="l-pwd" required>
+              <button type="button" class="btn-toggle-pwd" aria-label="Afficher le mot de passe" onclick="togglePassword('l-pwd',this)">👁</button>
+            </div>
+          </div>
+
+          ${loginType === 'club' && signupMode === 'real' ? `
+            <div class="form-group">
+              <label class="form-label">Code de récupération organisateur</label>
+              <input type="text" class="input" id="l-recovery" autocomplete="one-time-code" required>
+              <div class="form-help">
+                Nécessaire pour rattacher vos tournois Supabase à votre tableau de bord organisateur.
+              </div>
+            </div>
+          ` : ''}
+
           <button type="submit" class="btn btn-primary btn-full btn-lg">Se connecter <span class="btn-arrow"></span></button>
         </form>
         <div class="auth-demo">
@@ -6282,12 +6310,20 @@ function renderLogin() {
     </div>`;
 }
 async function handleLogin(e) {
-  e.preventDefault();
+e.preventDefault();
+
   const email = document.getElementById('l-email').value.trim().toLowerCase();
   const pwd   = document.getElementById('l-pwd').value;
+  const recoveryCodeInput = (document.getElementById('l-recovery')?.value || '').trim();
+
   const errEl = document.getElementById('login-err');
   errEl.classList.remove('show');
 
+  if (signupMode === 'real' && loginType === 'club' && !recoveryCodeInput) {
+    errEl.textContent = 'Saisissez le code de récupération organisateur pour charger vos tournois.';
+    errEl.classList.add('show');
+    return;
+  }
   // PostHog §4.4 : login_attempted — pas de PII (pas d'email)
   ph('login_attempted', { mode: getCurrentMode() });
 
@@ -6298,7 +6334,7 @@ async function handleLogin(e) {
   if (r.trySupabase && supabaseClient) {
     const submitBtn = e.target.querySelector('button[type="submit"]');
     if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Vérification…'; }
-    r = await loginAccountFromSupabase(loginType, email, pwd);
+    r = await loginAccountFromSupabase(loginType, email, pwd, recoveryCodeInput);
     if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Se connecter →'; }
   }
 
@@ -6309,7 +6345,12 @@ async function handleLogin(e) {
     errEl.textContent = r.error; errEl.classList.add('show'); return;
   }
   if (r.pending) { navigate('#/pending'); return; }
-
+// Option A : conserver le code de récupération saisi pour pouvoir charger
+// les tournois organisateur via la RPC get_my_tournaments.
+if (loginType === 'club' && recoveryCodeInput && r.account) {
+  r.account.recoveryCode = recoveryCodeInput;
+  saveState();
+}
   // PostHog §4.4 : login_success
   ph('login_success', { account_type: loginType });
 
@@ -6320,7 +6361,7 @@ async function handleLogin(e) {
   if (loginType === 'team') mergeRegistrationsByEmail(email, r.account.id);
   // Charger les tournois de l'organisateur (owner_email non exposé en SELECT public)
   if (loginType === 'club' && r.account.email && r.account.recoveryCode) {
-    loadMyTournaments(r.account.email, r.account.recoveryCode);
+    await loadMyTournaments(r.account.email, r.account.recoveryCode);
   }
 }
 
