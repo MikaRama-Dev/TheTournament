@@ -3749,48 +3749,6 @@ async function initRemoteData() {
   await loadTournamentsFromSupabase();
   await loadRegistrationsFromSupabase();
   await loadSponsorProposalsFromSupabase();
-
-  // Charger les tournois de l'organisateur connecté (owner_email non exposé en SELECT public)
-  const a = getAccount();
-  if (a && a.type === 'club' && a.email && a.recoveryCode) {
-    await loadMyTournaments(a.email, a.recoveryCode);
-  }
-}
-
-// ────────────────────────────────────────────────────────────
-// RPC get_my_tournaments — enrichit state.tournaments avec ownerEmail
-// pour l'organisateur connecté, sans exposer owner_email au catalogue public
-// ────────────────────────────────────────────────────────────
-async function loadMyTournaments(ownerEmail, recoveryCode) {
-  if (!supabaseClient || !ownerEmail || !recoveryCode) return;
-  try {
-    const { data, error } = await supabaseClient.rpc('get_my_tournaments', {
-      p_owner_email:   ownerEmail,
-      p_recovery_code: recoveryCode
-    });
-    if (error) { console.warn('[Le Tournoi] get_my_tournaments:', error.message); return; }
-
-    const existingIds = new Set(state.tournaments.map(t => t.id));
-    (data || []).forEach(row => {
-      const t = rowToTournament(row);
-      t.ownerEmail = ownerEmail; // réinjecter localement — non exposé en SELECT public (RSSI)
-      if (!existingIds.has(t.id)) {
-        state.tournaments.push(t);
-        existingIds.add(t.id);
-      } else {
-        // Mettre à jour ownerEmail sur le tournoi déjà présent dans state
-        const existing = state.tournaments.find(x => x.id === t.id);
-        if (existing) existing.ownerEmail = ownerEmail;
-      }
-    });
-
-    // Re-render si le dashboard est déjà affiché (chargement async après render initial)
-    if (typeof getRoute === 'function' && getRoute() === '/dashboard') render();
-
-    console.log('[Le Tournoi] get_my_tournaments : ' + (data || []).length + ' tournoi(s) organisateur chargé(s)');
-  } catch(e) {
-    console.warn('[Le Tournoi] get_my_tournaments exception:', e.message);
-  }
 }
 
 // ===========================================
@@ -6318,10 +6276,6 @@ async function handleLogin(e) {
   // Récupérer d'éventuelles candidatures faites sans compte (même email),
   // y compris celles rattachées depuis un autre appareil
   if (loginType === 'team') mergeRegistrationsByEmail(email, r.account.id);
-  // Charger les tournois de l'organisateur (owner_email non exposé en SELECT public)
-  if (loginType === 'club' && r.account.email && r.account.recoveryCode) {
-    loadMyTournaments(r.account.email, r.account.recoveryCode);
-  }
 }
 
 // DASHBOARD - branches by account type
