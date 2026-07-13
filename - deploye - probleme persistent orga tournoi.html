@@ -6339,48 +6339,30 @@ e.preventDefault();
   }
 
   if (r.error) {
-  // PostHog §4.4 : login_failed — reason générique sans détail PII
-  const reason = r.error.toLowerCase().includes('mot de passe') ? 'wrong_password' : 'not_found';
-  ph('login_failed', { reason, mode: getCurrentMode() });
-  errEl.textContent = r.error;
-  errEl.classList.add('show');
-  return;
-}
-
-if (r.pending) { navigate('#/pending'); return; }
-
-// Option A : rattacher le code de récupération saisi au compte club local
-// pour permettre le chargement privé des tournois organisateur.
+    // PostHog §4.4 : login_failed — reason générique sans détail PII
+    const reason = r.error.toLowerCase().includes('mot de passe') ? 'wrong_password' : 'not_found';
+    ph('login_failed', { reason, mode: getCurrentMode() });
+    errEl.textContent = r.error; errEl.classList.add('show'); return;
+  }
+  if (r.pending) { navigate('#/pending'); return; }
+// Option A : conserver le code de récupération saisi pour pouvoir charger
+// les tournois organisateur via la RPC get_my_tournaments.
 if (loginType === 'club' && recoveryCodeInput && r.account) {
   r.account.recoveryCode = recoveryCodeInput;
-
-  const localClub = state.clubs.find(x =>
-    x.id === r.account.id ||
-    (x.email && r.account.email && x.email.toLowerCase() === r.account.email.toLowerCase())
-  );
-
-  if (localClub) {
-    localClub.recoveryCode = recoveryCodeInput;
-  }
-
   saveState();
 }
+  // PostHog §4.4 : login_success
+  ph('login_success', { account_type: loginType });
 
-// Charger les tournois de l'organisateur AVANT le rendu final du dashboard.
-// La RPC est déjà validée côté Supabase : elle retourne tes 4 tournois.
-if (loginType === 'club' && r.account.email && r.account.recoveryCode) {
-  await loadMyTournaments(r.account.email, r.account.recoveryCode);
-}
-
-// PostHog §4.4 : login_success
-ph('login_success', { account_type: loginType });
-
-toast('Bienvenue !', 'success');
-navigate('#/dashboard');
-
-// Récupérer d'éventuelles candidatures faites sans compte (même email),
-// y compris celles rattachées depuis un autre appareil
-if (loginType === 'team') mergeRegistrationsByEmail(email, r.account.id);
+  toast('Bienvenue !', 'success');
+  navigate('#/dashboard');
+  // Récupérer d'éventuelles candidatures faites sans compte (même email),
+  // y compris celles rattachées depuis un autre appareil
+  if (loginType === 'team') mergeRegistrationsByEmail(email, r.account.id);
+  // Charger les tournois de l'organisateur (owner_email non exposé en SELECT public)
+  if (loginType === 'club' && r.account.email && r.account.recoveryCode) {
+    await loadMyTournaments(r.account.email, r.account.recoveryCode);
+  }
 }
 
 // DASHBOARD - branches by account type
