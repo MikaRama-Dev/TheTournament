@@ -741,7 +741,6 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
 .t-card-status.draft { background: transparent; color: var(--ink-mute); }
 .t-card-status.live { background: var(--olive); color: var(--paper); border-color: var(--olive); }
 .t-card-status.urgent { background: var(--accent-2); color: var(--ink); border-color: var(--accent-2); }
-.t-card-status.cancelled { background: transparent; color: var(--ink-mute); border-color: var(--ink-mute); text-decoration: line-through; }
 /* Ligne catégorie+format §7ter */
 .t-card-category {
   font-family: var(--font-mono);
@@ -3250,8 +3249,6 @@ async function submitRealSignup(type, data, consents) {
       email:           data.email      || null,
       president:       data.president  || null,
       phone:           data.phone      || null,
-      department:      data.department || null,
-      city:            data.city       || null,
       status:          'pending',
       activation_code: data._activationCode || null,
       password:        data.password   || null,
@@ -3349,7 +3346,7 @@ async function submitRealSignup(type, data, consents) {
 
 // Convertit un tournoi local (camelCase) vers une ligne Supabase (snake_case)
 function tournamentToRow(t, ownerEmail) {
-  const row = {
+  return {
     id: t.id,
     owner_email: ownerEmail || t.ownerEmail || '',
     club_id: t.clubId || null,
@@ -3377,12 +3374,6 @@ function tournamentToRow(t, ownerEmail) {
     animations: t.animations || [],
     matches: t.matches || []
   };
-  // organizer_name — dénormalisé sur le tournoi pour affichage public sans exposer owner_email
-  // Conditionnel : n'est inclus que si la colonne existe en base (DBA Note-Dev-OrganizerName §Étape 1)
-  if (t.organizerName !== undefined) {
-    row.organizer_name = t.organizerName || '';
-  }
-  return row;
 }
 
 // Convertit une ligne Supabase vers un tournoi local
@@ -3443,7 +3434,6 @@ function rowToTournament(row) {
     matches: safeJsonArray(row.matches),
     registrations: [],      // rempli ensuite par loadRegistrationsFromSupabase()
     sponsorProposals: [],   // rempli ensuite par loadSponsorProposalsFromSupabase()
-    organizerName: row.organizer_name || '', // dénormalisé sur le tournoi (Note-Dev-OrganizerName §Étape 3)
     _remote: true
   };
 }
@@ -3646,13 +3636,8 @@ async function deleteTournamentRemote(id) {
     });
     if (error) {
       console.error('[Le Tournoi] delete_tournament RPC:', error);
-      if (error.code === '23000') {
-        toast("Impossible d'annuler : des équipes ont déjà été approuvées pour ce tournoi.", 'warning');
-      } else if (error.code === '28000') {
-        toast("Vérification d'autorisation échouée — impossible d'annuler ce tournoi.", 'error');
-      } else {
-        toast("Erreur lors de l'annulation — réessayez ou contactez l'administrateur.", 'error');
-      }
+      // Message générique — pas de détail technique côté UI
+      toast("Tournoi supprimé localement (vérification autorisation échouée)", 'error');
     }
   } catch (e) {
     console.error('[Le Tournoi] deleteTournamentRemote exception:', e);
@@ -4077,7 +4062,7 @@ function getAccount() {
 }
 function getTournament(id) { return state.tournaments.find(t => t.id === id); }
 function getAnim(id) { return state.catalog.animations.find(a => a.id === id); }
-function getClub(id, tournament) {
+function getClub(id) {
   const found = state.clubs.find(c => c.id === id);
   if (found) return found;
 
@@ -4085,17 +4070,15 @@ function getClub(id, tournament) {
   // n'existe pas dans le localStorage du navigateur courant.
   // Sans ce fallback, la fiche tournoi plantait sur club.name / club.city :
   // les tournois "en dur" étaient cliquables, ceux de la BDD non.
-  // organizerName : dénormalisé sur le tournoi (Note-Dev-OrganizerName) — priorité sur "Organisateur"
-  const displayName = tournament?.organizerName || 'Organisateur';
   return {
     id: id || 'remote-club',
     type: 'club',
-    name: displayName,
-    city: tournament?.city || '',
+    name: 'Organisateur',
+    city: '',
     president: '',
     phone: '',
     website: '',
-    mark: makeMark(displayName),
+    mark: 'T',
     logoClass: ''
   };
 }
@@ -5784,7 +5767,7 @@ function renderHome() {
 // Carte enrichie pour la page d'accueil (avec badge urgence/contexte)
 function tournCardHome(t) {
   const urgency = tournUrgencyLabel(t);
-  const club = getClub(t.clubId, t);
+  const club = getClub(t.clubId);
   const approved = t.registrations.filter(r => r.status === 'approved').length;
   const placesLeft = (t.maxTeams || 0) - approved;
   const isUrgent = placesLeft > 0 && placesLeft < 3 && t.status === 'open';
@@ -5813,7 +5796,7 @@ function tournCardHome(t) {
 }
 
 function tournCard(t) {
-  const club = getClub(t.clubId, t);
+  const club = getClub(t.clubId);
   const approved = t.registrations.filter(r => r.status !== 'rejected').length;
   const catLabel = tournCategoriesLabel(t);
   const formatLabel = t.teamSize ? t.teamSize : '';
@@ -6000,8 +5983,6 @@ async function handleSignup(e, type) {
       password: document.getElementById('f-pwd').value,
       president: document.getElementById('f-pres').value.trim(),
       phone: document.getElementById('f-phone').value.trim(),
-      department: document.getElementById('f-dept')?.value || '',
-      city: document.getElementById('f-city')?.value.trim() || '',
       mark: makeMark(name),
       logoClass: ['alt-1','alt-2','alt-3','alt-4',''][state.clubs.length % 5] };
   } else if (type === 'team') {
@@ -7534,7 +7515,6 @@ function handleCreateT(e) {
     contactSharePhone:   document.getElementById('t-contact-visible')?.checked !== false,
     // System
     status: 'open',
-    organizerName: club.name || '',  // dénormalisé pour affichage public (Note-Dev-OrganizerName)
     registrations: [],
     sponsorProposals: [],
     animations: [],
@@ -7556,49 +7536,6 @@ function handleCreateT(e) {
 function selFormatLegacy() {}
 
 // ===== EDIT TOURNAMENT =====
-// ────────────────────────────────────────────────────────────────────────────
-// ANNULATION DE TOURNOI (Note-Dev-Annulation-Tournoi-J1-v2)
-// Soft-delete : status → 'cancelled'. Jamais de DELETE physique côté organisateur.
-// La suppression physique reste réservée à l'admin (RPC admin_delete_tournament).
-// ────────────────────────────────────────────────────────────────────────────
-async function handleCancelTournament(tid) {
-  const t = getTournament(tid);
-  if (!t) return;
-  const a = getAccount();
-  if (!a || a.type !== 'club') return;
-
-  if (!confirm(`Annuler le tournoi "${t.name}" ?\n\nLe tournoi sera masqué du catalogue public. Les équipes déjà inscrites recevront un message d'annulation. Cette action peut être corrigée par l'administrateur si nécessaire.`)) return;
-  if (!confirm(`Confirmation finale : annuler "${t.name}" ?`)) return;
-
-  const recoveryCode = a.recoveryCode || '';
-
-  if (signupMode === 'real' && supabaseClient && recoveryCode) {
-    // RPC delete_tournament — seule RPC qui vérifie les inscriptions approuvées (ERRCODE 23514)
-    // update_tournament ne fait pas ce contrôle — DBA confirmé le 2026-07-13
-    const { error } = await supabaseClient.rpc('delete_tournament', {
-      p_id:            tid,
-      p_owner_email:   a.email,
-      p_recovery_code: recoveryCode
-    });
-    if (error) {
-      if (error.code === '23514' || error.code === '23000') {
-        toast("Impossible d'annuler : des équipes ont déjà été approuvées. Retirez-les avant d'annuler.", 'warning');
-      } else if (error.code === '28000') {
-        toast("Vérification d'autorisation échouée. Utilisez votre code de récupération.", 'error');
-      } else {
-        toast("Erreur lors de l'annulation : " + error.message, 'error');
-      }
-      return;
-    }
-  }
-
-  // Mise à jour locale
-  t.status = 'cancelled';
-  saveState();
-  toast('Tournoi annulé. Il ne sera plus visible dans le catalogue.', 'success');
-  render();
-}
-
 function renderEditTournament(tid) {
   const t = getTournament(tid);
   const a = getAccount();
@@ -7904,7 +7841,7 @@ function renderTournamentDetail(id) {
 
   // Increment view count once per render (not per session — MVP simplification)
   t.viewCount = (t.viewCount||0) + 1; saveState();
-  const club = getClub(t.clubId, t);
+  const club = getClub(t.clubId);
   const a = getAccount();
   const isOwner = a?.type === 'club' && (
     a.id === t.clubId ||
@@ -7926,7 +7863,6 @@ function renderTournamentDetail(id) {
           ${isOwner ? `
           <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
             <button class="btn btn-outline btn-sm" style="border-color:rgba(245,239,228,0.4);color:var(--paper);" onclick="navigate('#/tournaments/${t.id}/edit')">Modifier le tournoi</button>
-            ${t.status !== 'cancelled' ? `<button class="btn btn-outline btn-sm" style="border-color:rgba(200,80,80,0.5);color:rgba(245,180,180,0.9);" onclick="handleCancelTournament('${t.id}')">Annuler ce tournoi</button>` : `<span style="font-family:var(--font-mono);font-size:11px;color:rgba(245,239,228,0.4);letter-spacing:0.06em;">TOURNOI ANNULÉ</span>`}
             ${t.viewCount > 0 ? `<span class="view-count" style="color:rgba(245,239,228,0.55);">👁 ${t.viewCount} consultation${t.viewCount > 1 ? 's' : ''}</span>` : ''}
           </div>` : ''}
         </div>
@@ -9242,7 +9178,7 @@ function exportBilanExcel(tid) {
   }
 
   const t = getTournament(tid);
-  const club = getClub(t.clubId, t);
+  const club = getClub(t.clubId);
   const equipes = t.registrations.filter(r => r.status === 'approved').length;
   const recInscriptions = equipes * (t.entryFee || 0);
   const recSponsors = (t.sponsorProposals || [])
