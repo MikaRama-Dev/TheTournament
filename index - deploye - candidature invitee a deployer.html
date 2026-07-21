@@ -3547,11 +3547,9 @@ async function mergeRegistrationsByEmail(email, teamId) {
     const { data, error } = await supabaseClient.rpc('get_my_registrations_by_email', { p_email: email });
     if (error || !data) return;
     let added = false;
-    let pendingRows = []; // T-06 : tournois pas encore chargés au moment du merge
-
     data.forEach(row => {
       const t = state.tournaments.find(t => t.id === row.tournament_id);
-      if (!t) { pendingRows.push(row); return; }
+      if (!t) return; // tournoi pas encore chargé localement — ignoré pour cette passe
       const exists = t.registrations.some(r => r.id === row.id);
       if (!exists) {
         t.registrations.push({
@@ -3561,34 +3559,7 @@ async function mergeRegistrationsByEmail(email, teamId) {
         added = true;
       }
     });
-
     if (added) { saveState(); render(); }
-
-    // T-06 : si des registrations pointent vers des tournois non encore chargés,
-    // relancer le merge une fois la synchronisation Supabase terminée
-    if (pendingRows.length > 0 && !_tournamentsSyncDone) {
-      const retryMerge = async () => {
-        if (!_tournamentsSyncDone) {
-          setTimeout(retryMerge, 500); // attendre la fin du chargement
-          return;
-        }
-        let addedRetry = false;
-        pendingRows.forEach(row => {
-          const t = state.tournaments.find(t => t.id === row.tournament_id);
-          if (!t) return;
-          const exists = t.registrations.some(r => r.id === row.id);
-          if (!exists) {
-            t.registrations.push({
-              id: row.id, teamId: teamId, teamName: row.team_name, clubName: '',
-              captainEmail: email, status: row.status, message: '', registeredAt: row.registered_at
-            });
-            addedRetry = true;
-          }
-        });
-        if (addedRetry) { saveState(); render(); }
-      };
-      setTimeout(retryMerge, 500);
-    }
   } catch(e) { /* non bloquant */ }
 }
 
@@ -8636,8 +8607,7 @@ async function confirmApplyVisitor(tid) {
   };
   t.registrations.push(registration);
   saveState();
-  // syncTournament retiré ici : la candidature n'impacte pas les données du tournoi lui-même.
-  // Un appel update_tournament sans recovery_code valide (visiteur sans compte) échouerait.
+  syncTournament(t, false);
   await syncRegistration(t.id, registration);
 
   // PostHog §4.2 : inscription_completed — soumission réussie (pas de PII, pas de teamName)
