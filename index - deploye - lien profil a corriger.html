@@ -4384,33 +4384,8 @@ async function loginAccountFromSupabase(type, email, pwd, recoveryCodeInput = ''
       .select('id, email, status, activation_code, password')
       .eq('email', email)
       .single();
-    if (error) {
-      // 406 = aucune ligne trouvée (.single() sur 0 résultat) — pas une erreur réseau
-      if (error.code === 'PGRST116' || error.status === 406) {
-        return { error: 'Identifiants incorrects.' };
-      }
-      return { error: 'Erreur de connexion. Réessayez.' };
-    }
-    if (!data) return { error: 'Identifiants incorrects.' };
-
-    // Fix login (Note-Dev-Login-Equipe-Recover) :
-    // Le mot de passe est hashé bcrypt en base depuis la correction du payload d'inscription.
-    // La comparaison === échoue toujours sur un hash. On utilise bcrypt.compare().
-    // Fallback === conservé pour les comptes démo (password = 'demo', non hashé en base).
-    let passwordOk = false;
-    try {
-      if (window.bcrypt && data.password && data.password.startsWith('$2')) {
-        // Mot de passe hashé bcrypt en base
-        passwordOk = await bcrypt.compare(pwd, data.password);
-      } else {
-        // Compte démo ou mot de passe en clair (migration progressive)
-        passwordOk = data.password === pwd;
-      }
-    } catch(e) {
-      console.error('[Le Tournoi] bcrypt.compare error:', e);
-      passwordOk = data.password === pwd; // fallback sûr
-    }
-    if (!passwordOk) return { error: 'Identifiants incorrects.' };
+    if (error || !data) return { error: 'Email ou mot de passe incorrect.' };
+    if (data.password !== pwd) return { error: 'Email ou mot de passe incorrect.' };
     // Reconstruire le compte local depuis les données Supabase (données minimales)
     const coll = type === 'club' ? 'clubs' : type === 'team' ? 'teams' : 'sponsors';
     const existing = state[coll].find(a => a.email === email);
@@ -4424,7 +4399,7 @@ async function loginAccountFromSupabase(type, email, pwd, recoveryCodeInput = ''
         password: pwd,
         status: data.status || 'pending',
         activationCode: data.activation_code,
-        recoveryCode: recoveryCodeInput || '', // conservé pour club (get_my_tournaments) et team (get_my_registrations)
+        recoveryCode: type === 'club' ? recoveryCodeInput : '',
         mark: makeMark(data.email),
         logoClass: '',
         // Tableaux requis par les dashboards — vides au premier login cross-device
@@ -6357,14 +6332,12 @@ function renderLogin() {
             </div>
           </div>
 
-          ${signupMode === 'real' && (loginType === 'club' || loginType === 'team') ? `
+          ${loginType === 'club' && signupMode === 'real' ? `
             <div class="form-group">
-              <label class="form-label">Code de récupération${loginType === 'club' ? ' organisateur' : ' équipe'}</label>
-              <input type="text" class="input" id="l-recovery" autocomplete="one-time-code" ${loginType === 'club' ? 'required' : ''}>
+              <label class="form-label">Code de récupération organisateur</label>
+              <input type="text" class="input" id="l-recovery" autocomplete="one-time-code" required>
               <div class="form-help">
-                ${loginType === 'club'
-                  ? 'Nécessaire pour rattacher vos tournois à votre tableau de bord. Noté à la création du compte.'
-                  : 'Optionnel — permet de retrouver vos candidatures depuis un autre appareil.'}
+                Nécessaire pour rattacher vos tournois Supabase à votre tableau de bord organisateur.
               </div>
             </div>
           ` : ''}
@@ -8196,7 +8169,7 @@ function renderTabTeams(t, isOwner, a) {
             <div class="app-card">
               <div>
                 <div class="app-card-title">${esc(r.teamName)}</div>
-                <div class="app-card-meta">${esc(r.clubName)} · inscription ${fmtDate(r.registeredAt)}${r.teamId && state.teams.find(t => t.id === r.teamId && t.status === 'active') ? ' · <a href="#/teams/' + r.teamId + '" style="color: var(--accent); border-bottom: 1px solid;">Voir profil</a>' : ''}</div>
+                <div class="app-card-meta">${esc(r.clubName)} · inscription ${fmtDate(r.registeredAt)}${r.teamId ? ' · <a href="#/teams/' + r.teamId + '" style="color: var(--accent); border-bottom: 1px solid;">Voir profil</a>' : ''}</div>
                 ${!r.teamId && r.captainEmail ? `<div class="app-card-meta" style="margin-top:0.25rem;">Contact : <strong>${esc(r.captainEmail)}</strong>${r.captainPhone ? ' · ' + esc(r.captainPhone) : ''}</div>` : ''}
                 ${r.message ? `<div class="app-card-msg">"${esc(r.message)}"</div>` : ''}
               </div>
@@ -8227,7 +8200,7 @@ function renderTabTeams(t, isOwner, a) {
               <div class="list-num">${String(i + 1).padStart(2, '0')}</div>
               <div class="list-info">
                 <div class="list-name">${esc(r.teamName)}</div>
-                <div class="list-sub">${esc(r.clubName)}${r.teamId && state.teams.find(t => t.id === r.teamId && t.status === 'active') ? ' · <a href="#/teams/' + r.teamId + '" style="color: var(--accent); border-bottom: 1px solid;">Profil</a>' : ''} · inscrite le ${fmtDate(r.registeredAt)}</div>
+                <div class="list-sub">${esc(r.clubName)}${r.teamId ? ' · <a href="#/teams/' + r.teamId + '" style="color: var(--accent); border-bottom: 1px solid;">Profil</a>' : ''} · inscrite le ${fmtDate(r.registeredAt)}</div>
               </div>
               <span class="list-status approved">✓ Confirmée</span>
               ${isOwner ? `<button class="btn btn-danger btn-sm" onclick="withdrawTeam('${t.id}', '${r.id}')" title="Retirer et libérer la place">Retirer</button>` : ''}
