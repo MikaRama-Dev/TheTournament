@@ -3817,89 +3817,24 @@ async function loadMyTournaments(ownerEmail, recoveryCode) {
     const existingIds = new Set(state.tournaments.map(t => t.id));
     (data || []).forEach(row => {
       const t = rowToTournament(row);
-      t.ownerEmail = ownerEmail;
+      t.ownerEmail = ownerEmail; // réinjecter localement — non exposé en SELECT public (RSSI)
       if (!existingIds.has(t.id)) {
         state.tournaments.push(t);
         existingIds.add(t.id);
       } else {
+        // Mettre à jour ownerEmail sur le tournoi déjà présent dans state
         const existing = state.tournaments.find(x => x.id === t.id);
         if (existing) existing.ownerEmail = ownerEmail;
       }
     });
 
-    console.log('[Le Tournoi] get_my_tournaments : ' + (data || []).length + ' tournoi(s) organisateur chargé(s)');
-
-    // Étape 5 B2 : charger les inscriptions de chaque tournoi organisateur
-    const myTournamentIds = (data || []).map(row => row.id);
-    if (myTournamentIds.length > 0) {
-      await loadMyRegistrations(myTournamentIds, ownerEmail, recoveryCode);
-    }
-
-    // Re-render après chargement complet (tournois + registrations)
+    // Re-render si le dashboard est déjà affiché (chargement async après render initial)
     if (typeof getRoute === 'function' && getRoute() === '/dashboard') render();
 
+    console.log('[Le Tournoi] get_my_tournaments : ' + (data || []).length + ' tournoi(s) organisateur chargé(s)');
   } catch(e) {
     console.warn('[Le Tournoi] get_my_tournaments exception:', e.message);
   }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Étape 5 B2 — Chargement des inscriptions des tournois organisateur
-// RPC get_my_registrations (text, text, text) — captain_email/phone dans scope RSSI strict
-// ─────────────────────────────────────────────────────────────────────────────
-async function loadMyRegistrations(tournamentIds, ownerEmail, recoveryCode) {
-  if (!supabaseClient || !ownerEmail || !recoveryCode) return;
-  let loaded = 0;
-  for (const tid of tournamentIds) {
-    try {
-      const { data, error } = await supabaseClient.rpc('get_my_registrations', {
-        p_tournament_id: tid,       // text (pas uuid — cf. note DBA)
-        p_owner_email:   ownerEmail,
-        p_recovery_code: recoveryCode
-      });
-      if (error) {
-        if (error.code === '28000') {
-          console.warn('[Le Tournoi] get_my_registrations unauthorized sur ' + tid);
-        } else {
-          console.warn('[Le Tournoi] get_my_registrations (' + tid + '):', error.message);
-        }
-        continue;
-      }
-      const t = state.tournaments.find(x => x.id === tid);
-      if (!t) continue;
-      // Fusionner sans écraser les modifications locales non encore persistées
-      const existingIds = new Set(t.registrations.map(r => r.id));
-      (data || []).forEach(row => {
-        const reg = {
-          id:           row.id,
-          teamId:       row.team_id   || null,
-          teamName:     row.team_name || '',
-          clubName:     row.club_name || '',
-          captainName:  row.captain_name  || '',
-          captainEmail: row.captain_email || '', // PII — scope RSSI strict (tournois de l'organisateur uniquement)
-          captainPhone: row.captain_phone || '',
-          department:   row.department    || '',
-          city:         row.city          || '',
-          status:       row.status        || 'pending',
-          message:      row.message       || '',
-          registeredAt: row.registered_at || ''
-        };
-        if (!existingIds.has(reg.id)) {
-          t.registrations.push(reg);
-          existingIds.add(reg.id);
-        } else {
-          // Mettre à jour le statut depuis la base (source de vérité)
-          const existing = t.registrations.find(r => r.id === reg.id);
-          if (existing) Object.assign(existing, reg);
-        }
-      });
-      loaded++;
-    } catch(e) {
-      console.warn('[Le Tournoi] get_my_registrations exception (' + tid + '):', e.message);
-    }
-  }
-  console.log('[Le Tournoi] get_my_registrations : ' + loaded + '/' + tournamentIds.length + ' tournoi(s) chargé(s)');
-  saveState();
 }
 
 // ===========================================
@@ -6655,29 +6590,10 @@ function renderTeamDashboard(team) {
       <h1 class="dash-greeting"><em>${esc(team.name)}</em></h1>
       <p class="dash-sub">Tableau de bord équipe participante.</p>
       <div class="dash-stats">
-        <div class="dash-stat" style="cursor:${players.length > 0 ? 'pointer' : 'default'};"
-          onclick="${players.length > 0 ? `"document.getElementById('team-players-section').scrollIntoView({behavior:'smooth'})"` : '""'}">
-          <div class="dash-stat-label">Joueurs</div>
-          <div class="dash-stat-val" style="${players.length > 0 ? 'text-decoration:underline;text-decoration-style:dotted;' : ''}">${players.length}</div>
-        </div>
-        <div class="dash-stat" style="cursor:${approved > 0 ? 'pointer' : 'default'};"
-          onclick="${approved === 1
-            ? `"navigate('#/tournaments/' + '${myApps.filter(a => a.r.status === 'approved')[0]?.t.id}')"`
-            : approved > 1 ? `"document.getElementById('team-apps-section').scrollIntoView({behavior:'smooth'})"` : '""'}">
-          <div class="dash-stat-label">Tournois acceptés</div>
-          <div class="dash-stat-val" style="${approved > 0 ? 'text-decoration:underline;text-decoration-style:dotted;' : ''}">${approved}</div>
-        </div>
-        <div class="dash-stat" style="cursor:${pending > 0 ? 'pointer' : 'default'};"
-          onclick="${pending === 1
-            ? `"navigate('#/tournaments/' + '${myApps.filter(a => a.r.status === 'pending')[0]?.t.id}')"`
-            : pending > 1 ? `"document.getElementById('team-apps-section').scrollIntoView({behavior:'smooth'})"` : '""'}">
-          <div class="dash-stat-label">En attente</div>
-          <div class="dash-stat-val" style="${pending > 0 ? 'text-decoration:underline;text-decoration-style:dotted;' : ''}"><em>${pending}</em></div>
-        </div>
-        <div class="dash-stat">
-          <div class="dash-stat-label">Catégorie</div>
-          <div class="dash-stat-val" style="font-size: 1.3rem;">${formatLabel(team.category)}</div>
-        </div>
+        <div class="dash-stat"><div class="dash-stat-label">Joueurs</div><div class="dash-stat-val">${players.length}</div></div>
+        <div class="dash-stat"><div class="dash-stat-label">Tournois acceptés</div><div class="dash-stat-val">${approved}</div></div>
+        <div class="dash-stat"><div class="dash-stat-label">En attente</div><div class="dash-stat-val"><em>${pending}</em></div></div>
+        <div class="dash-stat"><div class="dash-stat-label">Catégorie</div><div class="dash-stat-val" style="font-size: 1.3rem;">${formatLabel(team.category)}</div></div>
       </div>
 
       <div class="dash-section">
@@ -6710,7 +6626,9 @@ function renderTeamDashboard(team) {
         </div>
       </div>
 
-      <div class="dash-section" id="team-players-section">
+      <div class="dash-section">
+        <div class="dash-section-h">
+          <div class="dash-section-title">Mes joueurs (${(team.players || []).length})</div>
           <button class="btn btn-orange btn-sm" onclick="addPlayerModal()">+ Ajouter</button>
         </div>
         ${(team.players || []).length ? `
@@ -6732,7 +6650,9 @@ function renderTeamDashboard(team) {
           </div>`}
       </div>
 
-      <div class="dash-section" id="team-apps-section">
+      <div class="dash-section">
+        <div class="dash-section-h">
+          <div class="dash-section-title">Mes candidatures (${myApps.length})</div>
           <button class="btn btn-outline btn-sm" onclick="navigateToTournamentsWithPrefs()">Parcourir les tournois →</button>
         </div>
         ${myApps.length ? `
@@ -6918,7 +6838,7 @@ function renderProfileEdit() {
     </div>`;
 }
 
-async function saveProfile() {
+function saveProfile() {
   const a = getAccount();
   if (!a) return;
   const errEl = document.getElementById('profile-err');
@@ -6932,61 +6852,27 @@ async function saveProfile() {
   a.phone      = document.getElementById('p-phone')?.value.trim() || a.phone;
   a.mark       = makeMark(name);
 
-  // Champs spécifiques par type
-  const patch = { city: a.city, department: a.department };
+  // Champs spécifiques
   if (a.type === 'club') {
     a.president = document.getElementById('p-pres')?.value.trim() || a.president;
     a.website   = document.getElementById('p-web')?.value.trim() || a.website;
-    patch.website = a.website;
   } else if (a.type === 'team') {
     a.club      = document.getElementById('p-club')?.value.trim() || a.club;
     a.category  = document.getElementById('p-category')?.value || a.category;
     a.level     = document.getElementById('p-level')?.value || a.level;
     a.manager   = document.getElementById('p-mgr')?.value.trim() || a.manager;
     a.bio       = document.getElementById('p-bio')?.value.trim() || a.bio;
-    patch.bio   = a.bio; patch.club = a.club; patch.category = a.category;
   } else {
     a.sector      = document.getElementById('p-sector')?.value.trim() || a.sector;
     a.contact     = document.getElementById('p-contact')?.value.trim() || a.contact;
     a.budgetRange = document.getElementById('p-budget')?.value || a.budgetRange;
     a.description = document.getElementById('p-bio')?.value.trim() || a.description;
-    patch.description = a.description;
   }
 
-  // Persistance locale immédiate
   saveState();
-
-  // B1 — persistance en base via RPC update_profile (Note DEV-B1-B2)
-  if (signupMode === 'real' && supabaseClient && a.email && a.recoveryCode) {
-    try {
-      const { data, error } = await supabaseClient.rpc('update_profile', {
-        p_account_type: a.type,
-        p_email:        a.email,
-        p_recovery_code: a.recoveryCode,
-        p_patch:        patch
-      });
-      if (error) {
-        console.warn('[Le Tournoi] update_profile RPC:', error.message);
-        toast('Profil mis à jour localement (sync base échouée)', 'warning');
-      } else if (data?.ok === false) {
-        if (data.error === 'unauthorized') {
-          toast('Vérification d\'autorisation échouée. Reconnectez-vous avec votre code de récupération.', 'error');
-        } else {
-          toast('Profil mis à jour localement (' + data.error + ')', 'warning');
-        }
-      } else {
-        toast('Profil mis à jour', 'success');
-      }
-    } catch(e) {
-      console.warn('[Le Tournoi] update_profile exception:', e.message);
-      toast('Profil mis à jour localement (erreur réseau)', 'warning');
-    }
-  } else {
-    toast('Profil mis à jour', 'success');
-  }
-
-  // PostHog §4.6
+  // PostHog §4.6 : profile_edit_saved
   ph('profile_edit_saved', { account_type: a.type });
+  toast('Profil mis à jour', 'success');
   navigate('#/dashboard');
 }
 
@@ -8656,18 +8542,13 @@ function applyTournamentModal(tid) {
 function confirmApply(tid) {
   const a = getAccount();
   const t = getTournament(tid);
-  const registration = {
-    id: uid(), teamName: a.name, clubName: a.club || '', teamId: a.id,
-    captainEmail: a.email || '', captainName: a.manager || '',
-    captainPhone: a.phone || '', department: a.department || '', city: a.city || '',
+  t.registrations.push({
+    id: uid(), teamName: a.name, clubName: a.club, teamId: a.id,
     status: 'pending', registeredAt: new Date().toISOString(),
-    message: document.getElementById('apply-msg')?.value.trim() || ''
-  };
-  t.registrations.push(registration);
-  saveState();
-  // syncTournament retiré : l'inscription n'impacte pas le tournoi lui-même.
-  // Un appel update_tournament ici échouerait (pas de recovery_code de l'organisateur côté équipe).
-  syncRegistration(t.id, registration); // RSSI : table dédiée registrations
+    message: document.getElementById('apply-msg').value.trim()
+  });
+  saveState(); syncTournament(t, false);
+  syncRegistration(t.id, t.registrations[t.registrations.length - 1]); // RSSI : table dédiée
   closeModal(); toast('Candidature envoyée !', 'success'); renderTournamentDetail(tid);
 }
 
@@ -8844,9 +8725,21 @@ function confirmQuickReg(tid) {
   syncRegistration(t.id, t.registrations[t.registrations.length - 1]); // RSSI : table dédiée
   closeModal(); toast('Équipe inscrite', 'success'); renderTournamentDetail(tid);
 }
+function approveTeam(tid, rid) {
+  const t = getTournament(tid);
+  const r = t.registrations.find(x => x.id === rid);
+  r.status = 'approved';
+  saveState(); syncTournament(t, false); toast('Équipe acceptée !', 'success'); renderTournamentDetail(tid);
+}
+function rejectTeam(tid, rid) {
+  const t = getTournament(tid);
+  const r = t.registrations.find(x => x.id === rid);
+  r.status = 'rejected';
+  saveState(); syncTournament(t, false); toast('Équipe refusée'); renderTournamentDetail(tid);
+}
 function withdrawTeam(tid, rid) {
   const t = getTournament(tid);
-  const r = t?.registrations.find(x => x.id === rid);
+  const r = t.registrations.find(x => x.id === rid);
   if (!r) return;
   modal('Retirer cette équipe ?',
     `<p>Retirer <strong>${esc(r.teamName)}</strong> du tournoi ?</p>
@@ -8854,70 +8747,12 @@ function withdrawTeam(tid, rid) {
     `<button class="btn btn-ghost" onclick="closeModal()">Annuler</button>
      <button class="btn btn-danger" onclick="confirmWithdraw('${tid}','${rid}')">Retirer et libérer la place</button>`);
 }
-
-// B2 — mise à jour statut inscription via RPC (Note DEV-B1-B2)
-// Utilisée par approveTeam, rejectTeam, confirmWithdraw
-async function updateRegistrationStatus(tid, rid, newStatus, successMsg) {
+function confirmWithdraw(tid, rid) {
   const t = getTournament(tid);
-  if (!t) return;
   const r = t.registrations.find(x => x.id === rid);
-  if (!r) return;
-
-  // Mise à jour locale immédiate (optimiste)
-  r.status = newStatus;
-  if (newStatus === 'withdrawn') r.withdrawnAt = new Date().toISOString();
-  saveState();
-
-  // Persistance en base via RPC (mode réel uniquement)
-  if (signupMode === 'real' && supabaseClient) {
-    const a = getAccount();
-    const recoveryCode = a?.recoveryCode || '';
-    const ownerEmail   = a?.email || '';
-    if (ownerEmail && recoveryCode) {
-      try {
-        const { data, error } = await supabaseClient.rpc('organizer_update_registration_status', {
-          p_registration_id: rid,
-          p_tournament_id:   tid,
-          p_owner_email:     ownerEmail,
-          p_recovery_code:   recoveryCode,
-          p_status:          newStatus
-        });
-        if (error) {
-          console.warn('[Le Tournoi] organizer_update_registration_status:', error.message);
-          toast(successMsg + ' (sync base échouée)', 'warning');
-          return;
-        }
-        if (data?.ok === false) {
-          if (data.error === 'unauthorized') {
-            toast('Vérification d\'autorisation échouée. Reconnectez-vous avec votre code de récupération.', 'error');
-          } else if (data.error === 'registration_not_found') {
-            toast('Inscription introuvable en base.', 'error');
-          } else {
-            toast(successMsg + ' (' + data.error + ')', 'warning');
-          }
-          return;
-        }
-      } catch(e) {
-        console.warn('[Le Tournoi] organizer_update_registration_status exception:', e.message);
-        toast(successMsg + ' (erreur réseau)', 'warning');
-        return;
-      }
-    }
-  }
-  toast(successMsg, 'success');
-}
-
-async function approveTeam(tid, rid) {
-  await updateRegistrationStatus(tid, rid, 'approved', 'Équipe acceptée !');
-  renderTournamentDetail(tid);
-}
-async function rejectTeam(tid, rid) {
-  await updateRegistrationStatus(tid, rid, 'rejected', 'Équipe refusée');
-  renderTournamentDetail(tid);
-}
-async function confirmWithdraw(tid, rid) {
-  closeModal();
-  await updateRegistrationStatus(tid, rid, 'withdrawn', 'Équipe retirée, place libérée');
+  r.status = 'withdrawn';
+  r.withdrawnAt = new Date().toISOString();
+  saveState(); syncTournament(t, false); closeModal(); toast('Équipe retirée, place libérée', 'success');
   renderTournamentDetail(tid);
 }
 function addSponsorManualModal(tid) {
