@@ -3541,6 +3541,55 @@ async function linkPastRegistrations(email, teamId) {
 // Relit les candidatures liées à un email (même non rattachées) et les fusionne
 // dans state.tournaments[].registrations pour qu'elles apparaissent dans
 // "Mes candidatures" — y compris depuis un appareil qui ne les a jamais vues.
+// ─────────────────────────────────────────────────────────────────────────────
+// get_my_participant_view — RPC RSSI validée (LeTournoi-RSSI-ParticipantView-Dev)
+// Retourne en un seul appel les tournois + statuts d'inscription du participant.
+// Remplace le tandem mergeRegistrationsByEmail + loadTournamentsFromSupabase
+// pour les participants avec recoveryCode disponible.
+// ─────────────────────────────────────────────────────────────────────────────
+async function loadParticipantView(email, recoveryCode, accountType) {
+  if (!supabaseClient || !email || !recoveryCode) return false;
+  try {
+    const { data, error } = await supabaseClient.rpc('get_my_participant_view', {
+      p_email:         email,
+      p_recovery_code: recoveryCode,
+      p_account_type:  accountType || 'team'
+    });
+
+    if (error) {
+      if (error.code === '28000') {
+        console.warn('[Le Tournoi] get_my_participant_view unauthorized — fallback merge');
+      } else {
+        console.warn('[Le Tournoi] get_my_participant_view:', error.message);
+      }
+      return false; // fallback vers mergeRegistrationsByEmail
+    }
+
+    // Construire myApps directement depuis la RPC — pas de dépendance à state.tournaments
+    // Les tournois de la vue sont injectés dans state s'ils n'y sont pas déjà
+    const a = getAccount();
+    if (!a) return false;
+    a._participantView = (data || []).map(row => ({
+      registrationId:     row.registration_id,
+      registrationStatus: row.registration_status,
+      registeredAt:       row.registered_at,
+      tournamentId:       row.tournament_id,
+      tournamentName:     row.tournament_name,
+      tournamentDate:     row.tournament_date,
+      tournamentCity:     row.tournament_city,
+      tournamentLocation: row.tournament_location,
+      tournamentStatus:   row.tournament_status,
+    }));
+
+    saveState();
+    console.log('[Le Tournoi] get_my_participant_view : ' + (data || []).length + ' inscription(s) chargée(s)');
+    return true;
+  } catch(e) {
+    console.warn('[Le Tournoi] get_my_participant_view exception:', e.message);
+    return false;
+  }
+}
+
 async function mergeRegistrationsByEmail(email, teamId) {
   if (!supabaseClient || !email) return;
   try {
@@ -3805,12 +3854,15 @@ async function initRemoteData() {
   if (a && a.type === 'club' && a.email && a.recoveryCode) {
     await loadMyTournaments(a.email, a.recoveryCode);
   }
-  // Rafraîchir les inscriptions de l'équipe connectée après chargement des tournois
-  if (a && a.type === 'team' && a.email) {
-    await mergeRegistrationsByEmail(a.email, a.id);
-    // Re-render systématique : les registrations chargées en async peuvent ne pas être reflétées
+  // Charger la vue participant si compte connecté avec recoveryCode (RPC RSSI validée)
+  // Fallback vers mergeRegistrationsByEmail si pas de recoveryCode (visiteur, cross-device sans code)
+  if (a && (a.type === 'team' || a.type === 'sponsor') && a.email) {
+    let ok = false;
+    if (a.recoveryCode) {
+      ok = await loadParticipantView(a.email, a.recoveryCode, a.type);
+    }
+    if (!ok) await mergeRegistrationsByEmail(a.email, a.id);
     if (_isSafeToPollingRender()) render();
-    // Option A : démarrer le polling si pas déjà actif (cas refresh page)
     startRegistrationsPolling();
   }
 }
@@ -4595,9 +4647,13 @@ function startRegistrationsPolling() {
   if (_registrationsPolling) return; // déjà actif
   _registrationsPolling = setInterval(async () => {
     const a = getAccount();
-    if (!a || a.type !== 'team' || !a.email || !supabaseClient || signupMode !== 'real') return;
-    await mergeRegistrationsByEmail(a.email, a.id);
-    // Re-render uniquement si aucun formulaire/modal actif sur le dashboard
+    if (!a || !a.email || !supabaseClient || signupMode !== 'real') return;
+    if (a.type !== 'team' && a.type !== 'sponsor') return;
+    let ok = false;
+    if (a.recoveryCode) {
+      ok = await loadParticipantView(a.email, a.recoveryCode, a.type);
+    }
+    if (!ok) await mergeRegistrationsByEmail(a.email, a.id);
     if (_isSafeToPollingRender()) render();
   }, 30000); // 30 secondes
 }
@@ -6604,27 +6660,25 @@ ph('login_success', { account_type: loginType });
 toast('Bienvenue !', 'success');
 navigate('#/dashboard');
 
-// Récupérer les inscriptions de l'équipe depuis Supabase
-// await : garantit que le dashboard est rendu avec les données à jour
-if (loginType === 'team') {
-  // Si les tournois ne sont pas encore chargés, attendre la fin de initRemoteData
-  if (!_tournamentsSyncDone) {
-    const waitAndMerge = async () => {
+// Charger la vue participant — RPC directe si recoveryCode disponible, fallback sinon
+if (loginType === 'team' || loginType === 'sponsor') {
+  const doLoad = async () => {
+    let ok = false;
+    if (r.account.recoveryCode) {
+      ok = await loadParticipantView(email, r.account.recoveryCode, loginType);
+    }
+    if (!ok) {
+      // Fallback : attendre _tournamentsSyncDone puis merge
       let tries = 0;
       while (!_tournamentsSyncDone && tries < 20) {
-        await new Promise(r => setTimeout(r, 300));
+        await new Promise(res => setTimeout(res, 300));
         tries++;
       }
       await mergeRegistrationsByEmail(email, r.account.id);
-      // Re-render forcé après le premier login — pas de guard ici car pas encore de formulaire actif
-      if (typeof getRoute === 'function' && getRoute() === '/dashboard') render();
-    };
-    waitAndMerge();
-  } else {
-    await mergeRegistrationsByEmail(email, r.account.id);
+    }
     if (typeof getRoute === 'function' && getRoute() === '/dashboard') render();
-  }
-  // Option A : démarrer le polling 30s pour les mises à jour de statut en temps quasi-réel
+  };
+  doLoad();
   startRegistrationsPolling();
 }
 }
@@ -6750,14 +6804,39 @@ function renderClubDashboard(c) {
 function renderTeamDashboard(team) {
   const players      = team.players      || [];
   const availability = team.availability || [];
-  const myApps = [];
   const teamEmail = (team.email || '').toLowerCase();
-  state.tournaments.forEach(t => t.registrations.forEach(r => {
-    // Matcher par teamId local OU par captainEmail (cas cross-device : teamId Supabase ≠ id local)
-    const byId    = r.teamId && r.teamId === team.id;
-    const byEmail = teamEmail && r.captainEmail && r.captainEmail.toLowerCase() === teamEmail;
-    if (byId || byEmail) myApps.push({ t, r });
-  }));
+
+  // Construire myApps depuis _participantView (RPC) si disponible — fiable en cross-device
+  // Fallback vers state.tournaments si pas de _participantView (démo, pas de recoveryCode)
+  let myApps = [];
+  if (team._participantView && team._participantView.length >= 0) {
+    myApps = team._participantView.map(v => ({
+      t: {
+        id:       v.tournamentId,
+        name:     v.tournamentName,
+        date:     v.tournamentDate,
+        city:     v.tournamentCity,
+        location: v.tournamentLocation,
+        status:   v.tournamentStatus,
+        // Compléter depuis state si le tournoi est chargé localement
+        ...(state.tournaments.find(x => x.id === v.tournamentId) || {})
+      },
+      r: {
+        id:          v.registrationId,
+        status:      v.registrationStatus,
+        registeredAt: v.registeredAt,
+        captainEmail: team.email,
+        teamId:       team.id,
+      }
+    }));
+  } else {
+    // Fallback : filtrage local (mode démo ou pas de recoveryCode)
+    state.tournaments.forEach(t => t.registrations.forEach(r => {
+      const byId    = r.teamId && r.teamId === team.id;
+      const byEmail = teamEmail && r.captainEmail && r.captainEmail.toLowerCase() === teamEmail;
+      if (byId || byEmail) myApps.push({ t, r });
+    }));
+  }
   const approved = myApps.filter(a => a.r.status === 'approved').length;
   const pending  = myApps.filter(a => a.r.status === 'pending').length;
   const matching = state.tournaments.filter(t =>
