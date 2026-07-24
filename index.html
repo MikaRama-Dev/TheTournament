@@ -3802,6 +3802,8 @@ async function initRemoteData() {
   // Rafraîchir les inscriptions de l'équipe connectée après chargement des tournois
   if (a && a.type === 'team' && a.email) {
     await mergeRegistrationsByEmail(a.email, a.id);
+    // Re-render systématique : les registrations chargées en async peuvent ne pas être reflétées
+    if (typeof getRoute === 'function' && getRoute() === '/dashboard') render();
   }
 }
 
@@ -4444,13 +4446,15 @@ async function loginAccountFromSupabase(type, email, pwd, recoveryCodeInput = ''
   if (!supabaseClient) return { error: 'Supabase non connecté.' };
   try {
     const table = type === 'club' ? 'clubs' : type === 'team' ? 'teams' : 'sponsors';
+    // SELECT enrichi selon le type pour peupler le rebuilt avec les données réelles (name, category, etc.)
+    const extraCols = type === 'team'
+      ? ', name, category, club, manager, phone, bio, city, department, level'
+      : type === 'club'
+      ? ', name, president, phone, city, department, website'
+      : ', name, sector, contact, city, department';
     const { data, error } = await supabaseClient
       .from(table)
-      // GRANT SELECT restreint côté DBA — colonnes credentials uniquement, pas de PII
-      // RSSI/DBA bcrypt : recovery_code retiré du select — valeur hashée en base,
-      // non exploitable côté client. L'utilisateur doit conserver son code à la création.
-      // id ajouté : clé technique non-PII, nécessaire pour retrouver les tournois liés (club_id)
-      .select('id, email, status, activation_code, password')
+      .select('id, email, status, activation_code, password' + extraCols)
       .eq('email', email)
       .single();
     if (error) {
@@ -4485,27 +4489,39 @@ async function loginAccountFromSupabase(type, email, pwd, recoveryCodeInput = ''
     const existing = state[coll].find(a => a.email === email);
     if (!existing) {
       const rebuilt = {
-        id: data.id || uid(), // utiliser l'id Supabase réel pour retrouver les tournois liés (club_id)
+        id: data.id || uid(),
         type,
-        name: data.email, // nom non disponible sans PII — sera mis à jour à la prochaine session normale
-        email: data.email,
-        city: '', president: '', phone: '',
+        // Utiliser le vrai nom depuis Supabase si disponible (évite email comme fallback)
+        name:     data.name     || data.email,
+        email:    data.email,
+        city:     data.city     || '',
+        phone:    data.phone    || '',
         password: pwd,
-        status: data.status || 'pending',
+        status:   data.status   || 'pending',
         activationCode: data.activation_code,
-        recoveryCode: recoveryCodeInput || '', // conservé pour club (get_my_tournaments) et team (get_my_registrations)
-        mark: makeMark(data.email),
+        recoveryCode:   recoveryCodeInput || '',
+        mark:     makeMark(data.name || data.email),
         logoClass: '',
-        // Tableaux requis par les dashboards — vides au premier login cross-device
+        // Champs spécifiques team
+        category:   type === 'team' ? (data.category || '') : undefined,
+        club:       type === 'team' ? (data.club     || '') : undefined,
+        manager:    type === 'team' ? (data.manager  || '') : undefined,
+        bio:        type === 'team' ? (data.bio      || '') : undefined,
+        level:      type === 'team' ? (data.level    || '') : undefined,
+        // Champs spécifiques club
+        president:  type === 'club' ? (data.president || '') : undefined,
+        department: data.department || '',
+        website:    type === 'club' ? (data.website  || '') : (type === 'sponsor' ? (data.website || '') : undefined),
+        // Champs spécifiques sponsor
+        sector:     type === 'sponsor' ? (data.sector  || '') : undefined,
+        contact:    type === 'sponsor' ? (data.contact || '') : undefined,
+        // Tableaux requis par les dashboards
         registrations:    [],
         sponsorProposals: [],
         tournaments:      [],
-        // Spécifiques team
         players:      type === 'team'    ? [] : undefined,
         availability: type === 'team'    ? [] : undefined,
-        // Spécifiques club
         members:      type === 'club'    ? [] : undefined,
-        // Spécifiques sponsor
         proposals:    type === 'sponsor' ? [] : undefined,
       };
       state[coll].push(rebuilt);
@@ -4515,10 +4531,27 @@ async function loginAccountFromSupabase(type, email, pwd, recoveryCodeInput = ''
       if (rebuilt.status === 'pending') return { account: rebuilt, pending: true };
       return { account: rebuilt };
     }
+    // Synchroniser l'ID Supabase sur le compte existant (local peut avoir id-xxx, Supabase retourne 13)
+    // C'est la correction clé : sans ça, myApps filtre sur id-xxx mais les registrations ont teamId=null
+    if (data.id && existing.id !== data.id) {
+      existing.id = data.id;
+    }
+    // Enrichir les données depuis Supabase si manquantes (name, category, etc.)
+    if (!existing.name || existing.name === existing.email) existing.name = data.name || existing.email;
+    if (data.category && !existing.category) existing.category = data.category;
+    if (data.club     && !existing.club)     existing.club     = data.club;
+    if (data.manager  && !existing.manager)  existing.manager  = data.manager;
+    if (data.president && !existing.president) existing.president = data.president;
+    if (data.city     && !existing.city)     existing.city     = data.city;
+    if (data.department && !existing.department) existing.department = data.department;
+
     state.currentType = type;
     state.currentId = existing.id;
 
     if (type === 'club' && recoveryCodeInput) {
+      existing.recoveryCode = recoveryCodeInput;
+    }
+    if (type === 'team' && recoveryCodeInput) {
       existing.recoveryCode = recoveryCodeInput;
     }
 
