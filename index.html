@@ -4725,6 +4725,7 @@ function render() {
   if (r.startsWith('/tournaments/')) return renderTournamentDetail(routeId(r.split('/')[2]));
   if (r === '/teams') return renderTeamsList();
   if (r.startsWith('/teams/')) return renderTeamProfile(r.split('/')[2]);
+  if (r.startsWith('/clubs/')) return renderClubPublic(r.split('/')[2]);
   if (r === '/sponsors') return renderSponsorsList();
   if (r.startsWith('/sponsors/')) return renderSponsorProfile(r.split('/')[2]);
   document.getElementById('app').innerHTML = `<div class="page-head"><h1 class="page-title">404 : <em>introuvable</em></h1><div class="page-head-actions"><a href="#/" class="btn btn-primary">Retour</a></div></div>`;
@@ -6847,27 +6848,31 @@ function renderTeamDashboard(team) {
     )
   );
 
+  // IDs calculés avant le template pour éviter les undefined dans les onclick
+  const approvedId = myApps.find(a => a.r.status === 'approved')?.t.id || '';
+  const pendingId  = myApps.find(a => a.r.status === 'pending')?.t.id  || '';
+
   document.getElementById('app').innerHTML = `
     <div class="container" style="padding-top: 2.5rem; padding-bottom: 3rem;">
       <h1 class="dash-greeting"><em>${esc(team.name)}</em></h1>
       <p class="dash-sub">Tableau de bord équipe participante.</p>
       <div class="dash-stats">
         <div class="dash-stat" style="cursor:${players.length > 0 ? 'pointer' : 'default'};"
-          onclick="${players.length > 0 ? `"document.getElementById('team-players-section').scrollIntoView({behavior:'smooth'})"` : '""'}">
+          onclick="${players.length > 0 ? 'document.getElementById(\'team-players-section\').scrollIntoView({behavior:\'smooth\'})' : ''}">
           <div class="dash-stat-label">Joueurs</div>
           <div class="dash-stat-val" style="${players.length > 0 ? 'text-decoration:underline;text-decoration-style:dotted;' : ''}">${players.length}</div>
         </div>
         <div class="dash-stat" style="cursor:${approved > 0 ? 'pointer' : 'default'};"
-          onclick="${approved === 1
-            ? `"navigate('#/tournaments/' + '${myApps.filter(a => a.r.status === 'approved')[0]?.t.id}')"`
-            : approved > 1 ? `"document.getElementById('team-apps-section').scrollIntoView({behavior:'smooth'})"` : '""'}">
+          onclick="${approved === 1 && approvedId
+            ? `navigate('#/tournaments/${approvedId}')`
+            : approved > 1 ? 'document.getElementById(\'team-apps-section\').scrollIntoView({behavior:\'smooth\'})' : ''}">
           <div class="dash-stat-label">Tournois acceptés</div>
           <div class="dash-stat-val" style="${approved > 0 ? 'text-decoration:underline;text-decoration-style:dotted;' : ''}">${approved}</div>
         </div>
         <div class="dash-stat" style="cursor:${pending > 0 ? 'pointer' : 'default'};"
-          onclick="${pending === 1
-            ? `"navigate('#/tournaments/' + '${myApps.filter(a => a.r.status === 'pending')[0]?.t.id}')"`
-            : pending > 1 ? `"document.getElementById('team-apps-section').scrollIntoView({behavior:'smooth'})"` : '""'}">
+          onclick="${pending === 1 && pendingId
+            ? `navigate('#/tournaments/${pendingId}')`
+            : pending > 1 ? 'document.getElementById(\'team-apps-section\').scrollIntoView({behavior:\'smooth\'})' : ''}">
           <div class="dash-stat-label">En attente</div>
           <div class="dash-stat-val" style="${pending > 0 ? 'text-decoration:underline;text-decoration-style:dotted;' : ''}"><em>${pending}</em></div>
         </div>
@@ -6941,7 +6946,7 @@ function renderTeamDashboard(team) {
                 <div class="list-num">${a.r.status === 'approved' ? '✓' : a.r.status === 'pending' ? '·' : '×'}</div>
                 <div class="list-info">
                   <div class="list-name">${esc(a.t.name)}</div>
-                  <div class="list-sub">${a.t.edition ? esc(a.t.edition) + ' · ' : ''}${fmtDate(a.t.date)} · ${esc(a.t.location)}</div>
+                  <div class="list-sub">${a.t.edition ? esc(a.t.edition) + ' · ' : ''}${fmtDate(a.t.date)} · ${esc(a.t.location)}${a.t.clubId ? ` · <a href="#/clubs/${a.t.clubId}" style="color:var(--accent);">Voir l'organisateur</a>` : ''}</div>
                   ${a.r.status === 'approved' ? `<div style="font-family:var(--font-mono);font-size:10px;color:var(--accent);margin-top:2px;letter-spacing:0.04em;">Inscription confirmée !</div>` : ''}
                   ${a.r.status === 'rejected' ? `<div style="font-family:var(--font-mono);font-size:10px;color:var(--ink-mute);margin-top:2px;">Candidature refusée par l'organisateur.</div>` : ''}
                 </div>
@@ -8305,7 +8310,7 @@ function renderTournamentDetail(id) {
       <div class="tourn-hero-inner">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem;">
           <div class="tourn-hero-club">
-          Organisé par ${esc(clubLine(club))}
+          Organisé par <a href="#/clubs/${t.clubId}" style="color:rgba(245,239,228,0.85);border-bottom:1px solid rgba(245,239,228,0.3);">${esc(clubLine(club))}</a>
           ${safeUrl(club.website) ? `<a href="${safeUrl(club.website)}" target="_blank" rel="noopener noreferrer" style="margin-left:0.6rem;font-family:var(--font-mono);font-size:10px;color:rgba(245,239,228,0.6);border-bottom:1px solid rgba(245,239,228,0.3);letter-spacing:0.08em;">Site web →</a>` : ''}
         </div>
           ${isOwner ? `
@@ -9994,6 +9999,63 @@ function renderTeamsList() {
             </div>
           </div>`).join('')}
       </div>
+    </div>`;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FICHE PUBLIQUE ORGANISATEUR — #/clubs/:id
+// Visible par les équipes connectées et les visiteurs.
+// Données affichées : nom, ville, département, bio, website — jamais email/phone (PII RSSI).
+// ─────────────────────────────────────────────────────────────────────────────
+function renderClubPublic(id) {
+  // Chercher dans state.clubs (comptes locaux + démo)
+  const club = state.clubs.find(c => c.id === id);
+  // Chercher dans state.tournaments pour enrichir (organisateur de tournois publiés)
+  const clubTournaments = state.tournaments.filter(t => t.clubId === id && t.status !== 'cancelled');
+
+  // Si club non trouvé localement, afficher une fiche minimale depuis les tournois
+  const displayName = club?.name || clubTournaments[0]?.organizerName || 'Organisateur';
+  const displayCity = club?.city || clubTournaments[0]?.city || '';
+  const displayDept = club?.department || clubTournaments[0]?.department || '';
+  const displayBio  = club?.bio || '';
+  const displayWeb  = club?.website ? `<a href="${esc(club.website)}" target="_blank" rel="noopener noreferrer" style="color:var(--accent);border-bottom:1px solid;">${esc(club.website.replace(/^https?:\/\//, ''))}</a>` : '';
+  const mark = club?.mark || makeMark(displayName);
+
+  document.getElementById('app').innerHTML = `
+    <div class="tourn-hero" style="background:var(--ink);">
+      <div class="tourn-hero-inner">
+        <div class="tourn-hero-eyebrow">
+          <a href="#/tournaments" style="color:rgba(245,239,228,0.5);font-size:12px;">← Tournois</a>
+        </div>
+        <div style="display:flex;align-items:center;gap:1.25rem;margin-top:1rem;">
+          <div class="brand-mark" style="width:52px;height:52px;font-size:20px;flex-shrink:0;">${esc(mark)}</div>
+          <div>
+            <h1 style="font-family:var(--font-serif);font-weight:800;font-size:clamp(1.6rem,4vw,2.4rem);color:var(--paper);margin:0;">${esc(displayName)}</h1>
+            ${displayCity || displayDept ? `<div style="font-family:var(--font-mono);font-size:11px;color:rgba(245,239,228,0.5);letter-spacing:0.08em;margin-top:4px;">${[displayCity, displayDept].filter(Boolean).join(' · ')}</div>` : ''}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container" style="padding-top:2rem;padding-bottom:3rem;max-width:720px;">
+      ${displayBio ? `
+        <div style="font-family:var(--font-serif);font-style:italic;font-size:1.05rem;line-height:1.6;color:var(--ink-soft);margin-bottom:2rem;">${esc(displayBio)}</div>` : ''}
+      ${displayWeb ? `<div style="margin-bottom:2rem;">${displayWeb}</div>` : ''}
+
+      ${clubTournaments.length > 0 ? `
+        <h2 style="font-family:var(--font-serif);font-weight:700;font-size:1.3rem;margin-bottom:1rem;">Tournois organisés</h2>
+        <div class="list">
+          ${clubTournaments.map(t => `
+            <div class="list-row">
+              <div class="list-info">
+                <div class="list-name"><a href="#/tournaments/${t.id}" style="color:var(--accent);">${esc(t.name)}</a></div>
+                <div class="list-sub">${fmtDate(t.date)}${t.city ? ' · ' + esc(t.city) : ''}${t.format ? ' · ' + esc(t.format) : ''}</div>
+              </div>
+              <span class="list-status ${t.status}">${t.status === 'open' ? 'Ouvert' : t.status === 'draft' ? 'Brouillon' : 'En cours'}</span>
+              <a href="#/tournaments/${t.id}" class="btn btn-outline btn-sm">Voir</a>
+            </div>`).join('')}
+        </div>` : `
+        <p style="color:var(--ink-mute);font-style:italic;">Aucun tournoi publié pour le moment.</p>`}
     </div>`;
 }
 
