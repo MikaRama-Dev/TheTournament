@@ -3803,7 +3803,9 @@ async function initRemoteData() {
   if (a && a.type === 'team' && a.email) {
     await mergeRegistrationsByEmail(a.email, a.id);
     // Re-render systématique : les registrations chargées en async peuvent ne pas être reflétées
-    if (typeof getRoute === 'function' && getRoute() === '/dashboard') render();
+    if (_isSafeToPollingRender()) render();
+    // Option A : démarrer le polling si pas déjà actif (cas refresh page)
+    startRegistrationsPolling();
   }
 }
 
@@ -4563,7 +4565,48 @@ async function loginAccountFromSupabase(type, email, pwd, recoveryCodeInput = ''
     return { error: 'Erreur réseau : ' + e.message };
   }
 }
-function logout() { state.currentType = null; state.currentId = null; saveState(); navigate('#/'); toast('Déconnecté'); }
+// ─────────────────────────────────────────────────────────────────────────────
+// POLLING registrations équipe (Option A — J0)
+// Toutes les 30s, si un compte équipe est connecté en mode réel,
+// rafraîchir les inscriptions depuis Supabase et re-render le dashboard.
+// Remplacé à J2 par Supabase Realtime (Option B).
+// ─────────────────────────────────────────────────────────────────────────────
+var _registrationsPolling = null;
+
+function _isSafeToPollingRender() {
+  // Ne pas interrompre si une modal est ouverte
+  const modal = document.getElementById('modal-container');
+  if (modal && modal.innerHTML.trim()) return false;
+  // Ne pas interrompre si un champ de saisie a le focus (formulaire en cours)
+  const active = document.activeElement;
+  if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT')) return false;
+  // Ne pas interrompre si on n'est pas sur le dashboard
+  if (typeof getRoute === 'function' && getRoute() !== '/dashboard') return false;
+  return true;
+}
+
+function startRegistrationsPolling() {
+  if (_registrationsPolling) return; // déjà actif
+  _registrationsPolling = setInterval(async () => {
+    const a = getAccount();
+    if (!a || a.type !== 'team' || !a.email || !supabaseClient || signupMode !== 'real') return;
+    await mergeRegistrationsByEmail(a.email, a.id);
+    // Re-render uniquement si aucun formulaire/modal actif sur le dashboard
+    if (_isSafeToPollingRender()) render();
+  }, 30000); // 30 secondes
+}
+
+function stopRegistrationsPolling() {
+  if (_registrationsPolling) {
+    clearInterval(_registrationsPolling);
+    _registrationsPolling = null;
+  }
+}
+
+function logout() {
+  stopRegistrationsPolling();
+  state.currentType = null; state.currentId = null; saveState(); navigate('#/'); toast('Déconnecté');
+}
 
 const ICONS = {
   fb: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c5.05-.5 9-4.76 9-9.95z"/></svg>',
@@ -6555,9 +6598,28 @@ ph('login_success', { account_type: loginType });
 toast('Bienvenue !', 'success');
 navigate('#/dashboard');
 
-// Récupérer d'éventuelles candidatures faites sans compte (même email),
-// y compris celles rattachées depuis un autre appareil
-if (loginType === 'team') mergeRegistrationsByEmail(email, r.account.id);
+// Récupérer les inscriptions de l'équipe depuis Supabase
+// await : garantit que le dashboard est rendu avec les données à jour
+if (loginType === 'team') {
+  // Si les tournois ne sont pas encore chargés, attendre la fin de initRemoteData
+  if (!_tournamentsSyncDone) {
+    const waitAndMerge = async () => {
+      let tries = 0;
+      while (!_tournamentsSyncDone && tries < 20) {
+        await new Promise(r => setTimeout(r, 300));
+        tries++;
+      }
+      await mergeRegistrationsByEmail(email, r.account.id);
+      if (typeof getRoute === 'function' && getRoute() === '/dashboard') render();
+    };
+    waitAndMerge();
+  } else {
+    await mergeRegistrationsByEmail(email, r.account.id);
+    if (typeof getRoute === 'function' && getRoute() === '/dashboard') render();
+  }
+  // Option A : démarrer le polling 30s pour les mises à jour de statut en temps quasi-réel
+  startRegistrationsPolling();
+}
 }
 
 // DASHBOARD - branches by account type
