@@ -3566,11 +3566,13 @@ async function mergeRegistrationsByEmail(email, teamId) {
 
     // T-06 : si des registrations pointent vers des tournois non encore chargés,
     // relancer le merge une fois la synchronisation Supabase terminée
-    if (pendingRows.length > 0 && !_tournamentsSyncDone) {
+    if (pendingRows.length > 0) {
       const retryMerge = async () => {
-        if (!_tournamentsSyncDone) {
-          setTimeout(retryMerge, 500); // attendre la fin du chargement
-          return;
+        let tries = 0;
+        // Attendre jusqu'à 10s que tous les tournois soient chargés
+        while (!_tournamentsSyncDone && tries < 33) {
+          await new Promise(res => setTimeout(res, 300));
+          tries++;
         }
         let addedRetry = false;
         pendingRows.forEach(row => {
@@ -3585,9 +3587,13 @@ async function mergeRegistrationsByEmail(email, teamId) {
             addedRetry = true;
           }
         });
-        if (addedRetry) { saveState(); render(); }
+        if (addedRetry) {
+          saveState();
+          // Re-render forcé — ce retry est le premier chargement complet, pas de guard ici
+          if (typeof getRoute === 'function' && getRoute() === '/dashboard') render();
+        }
       };
-      setTimeout(retryMerge, 500);
+      retryMerge();
     }
   } catch(e) { /* non bloquant */ }
 }
@@ -6610,6 +6616,7 @@ if (loginType === 'team') {
         tries++;
       }
       await mergeRegistrationsByEmail(email, r.account.id);
+      // Re-render forcé après le premier login — pas de guard ici car pas encore de formulaire actif
       if (typeof getRoute === 'function' && getRoute() === '/dashboard') render();
     };
     waitAndMerge();
