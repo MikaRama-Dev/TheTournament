@@ -6953,38 +6953,24 @@ async function saveProfile() {
   a.mark       = makeMark(name);
 
   // Champs spécifiques par type
-  const patch = {
-    city:       a.city       || null,
-    department: a.department || null
-  };
+  const patch = { city: a.city, department: a.department };
   if (a.type === 'club') {
-    a.president  = document.getElementById('p-pres')?.value.trim() || a.president;
-    a.website    = document.getElementById('p-web')?.value.trim()  || a.website;
-    patch.website    = a.website    || null;
-    patch.shareEmail = a.shareEmail ?? false;
-    patch.sharePhone = a.sharePhone ?? false;
+    a.president = document.getElementById('p-pres')?.value.trim() || a.president;
+    a.website   = document.getElementById('p-web')?.value.trim() || a.website;
+    patch.website = a.website;
   } else if (a.type === 'team') {
-    a.club      = document.getElementById('p-club')?.value.trim()  || a.club;
-    a.category  = document.getElementById('p-category')?.value     || a.category;
-    a.level     = document.getElementById('p-level')?.value        || a.level;
-    a.manager   = document.getElementById('p-mgr')?.value.trim()   || a.manager;
-    a.bio       = document.getElementById('p-bio')?.value.trim()   || a.bio;
-    patch.bio          = a.bio        || null;
-    patch.club         = a.club       || null;
-    patch.category     = a.category   || null;
-    patch.availability = a.availability  || [];
-    patch.preferences  = a.preferences  || {};
-    patch.shareEmail   = a.shareEmail ?? false;
-    patch.sharePhone   = a.sharePhone ?? false;
+    a.club      = document.getElementById('p-club')?.value.trim() || a.club;
+    a.category  = document.getElementById('p-category')?.value || a.category;
+    a.level     = document.getElementById('p-level')?.value || a.level;
+    a.manager   = document.getElementById('p-mgr')?.value.trim() || a.manager;
+    a.bio       = document.getElementById('p-bio')?.value.trim() || a.bio;
+    patch.bio   = a.bio; patch.club = a.club; patch.category = a.category;
   } else {
-    a.sector      = document.getElementById('p-sector')?.value.trim()  || a.sector;
+    a.sector      = document.getElementById('p-sector')?.value.trim() || a.sector;
     a.contact     = document.getElementById('p-contact')?.value.trim() || a.contact;
-    a.budgetRange = document.getElementById('p-budget')?.value         || a.budgetRange;
-    a.description = document.getElementById('p-bio')?.value.trim()     || a.description;
-    patch.description          = a.description || null;
-    patch.preferredCategories  = a.preferredCategories || [];
-    patch.shareEmail           = a.shareEmail ?? false;
-    patch.sharePhone           = a.sharePhone ?? false;
+    a.budgetRange = document.getElementById('p-budget')?.value || a.budgetRange;
+    a.description = document.getElementById('p-bio')?.value.trim() || a.description;
+    patch.description = a.description;
   }
 
   // Persistance locale immédiate
@@ -8911,8 +8897,6 @@ async function updateRegistrationStatus(tid, rid, newStatus, successMsg) {
     const ownerEmail   = a?.email || '';
     if (ownerEmail && recoveryCode) {
       try {
-        // B2c : rid peut être un id local (id-xxx) si la registration a été créée localement
-        // avant que Supabase l'ait retourné. On tente avec rid direct d'abord.
         const { data, error } = await supabaseClient.rpc('organizer_update_registration_status', {
           p_registration_id: rid,
           p_tournament_id:   tid,
@@ -8929,16 +8913,12 @@ async function updateRegistrationStatus(tid, rid, newStatus, successMsg) {
           if (data.error === 'unauthorized') {
             toast('Vérification d\'autorisation échouée. Reconnectez-vous avec votre code de récupération.', 'error');
           } else if (data.error === 'registration_not_found') {
-            // B2c : id local non reconnu en base — logguer pour diagnostic
-            console.warn('[Le Tournoi] registration_not_found pour rid:', rid, '— vérifier sync entre id local et Supabase');
-            toast('Inscription mise à jour localement (id non synchronisé en base)', 'warning');
+            toast('Inscription introuvable en base.', 'error');
           } else {
             toast(successMsg + ' (' + data.error + ')', 'warning');
           }
           return;
         }
-        // B2b : succès confirmé par la RPC
-        console.log('[Le Tournoi] organizer_update_registration_status ok:', tid, rid, newStatus);
       } catch(e) {
         console.warn('[Le Tournoi] organizer_update_registration_status exception:', e.message);
         toast(successMsg + ' (erreur réseau)', 'warning');
@@ -8947,14 +8927,6 @@ async function updateRegistrationStatus(tid, rid, newStatus, successMsg) {
     }
   }
   toast(successMsg, 'success');
-
-  // B2a : re-render immédiat — le participant voit le changement de statut sans F5
-  // Si l'équipe concernée est connectée sur ce même device, son dashboard se met à jour
-  const teamEmail = r.captainEmail?.toLowerCase();
-  const currentA  = getAccount();
-  if (currentA?.type === 'team' && currentA.email?.toLowerCase() === teamEmail) {
-    render(); // re-render le dashboard équipe participant
-  }
 }
 
 async function approveTeam(tid, rid) {
