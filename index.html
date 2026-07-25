@@ -8654,7 +8654,7 @@ async function renderTabTeams(t, isOwner, a) {
         <div class="dash-empty">
           <div class="dash-empty-title">Pas encore d'équipe confirmée</div>
           <p class="dash-empty-text">${a?.type === 'team' ? 'Aucune équipe confirmée pour le moment.' : 'Les inscriptions vont arriver.'}</p>
-          ${a?.type === 'team' && !t.registrations.some(r => (r.teamId && r.teamId === a.id) || (a.email && r.captainEmail && r.captainEmail.toLowerCase() === a.email.toLowerCase())) ? `<button class="btn btn-orange btn-sm" onclick="applyTournamentModal('${t.id}')">Postuler</button>` : ''}
+          ${a?.type === 'team' && !a._participantView?.find(v => v.tournamentId === t.id) && !t.registrations.some(r => (r.teamId && r.teamId === a.id) || (a.email && r.captainEmail && r.captainEmail.toLowerCase() === a.email.toLowerCase())) ? `<button class="btn btn-orange btn-sm" onclick="applyTournamentModal('${t.id}')">Postuler</button>` : ''}
           ${isOwner ? `<button class="btn btn-outline btn-sm" onclick="quickRegisterModal('${t.id}')">Inscrire manuellement</button>` : ''}
         </div>` : `
         <div class="list">
@@ -8872,8 +8872,10 @@ function renderAside(t, isOwner, a) {
   const teamsRev = t.registrations.filter(r => r.status === 'approved').length * t.entryFee;
   const accountEmail = (a?.email || '').toLowerCase();
   const isRegistered = r => (r.teamId && r.teamId === a?.id) || (accountEmail && r.captainEmail && r.captainEmail.toLowerCase() === accountEmail);
-  const canApply  = a?.type === 'team' && !t.registrations.some(isRegistered);
-  const hasApplied = a?.type === 'team' && t.registrations.some(isRegistered);
+  // Vérifier _participantView (source Supabase) en priorité sur t.registrations (state local)
+  const viewEntry    = a?._participantView?.find(v => v.tournamentId === t.id);
+  const hasApplied   = a?.type === 'team' && (!!viewEntry || t.registrations.some(isRegistered));
+  const canApply     = a?.type === 'team' && !hasApplied;
   // myReg : source de vérité _participantView si disponible, sinon state local
   const participantAccount = a;
   const participantView    = participantAccount?._participantView;
