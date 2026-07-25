@@ -3902,6 +3902,7 @@ async function loadMyTournaments(ownerEmail, recoveryCode) {
     (data || []).forEach(row => {
       const t = rowToTournament(row);
       t.ownerEmail = ownerEmail;
+      t._loadedByOwner = ownerEmail.toLowerCase(); // marqueur pour isOwner cross-device
       if (!existingIds.has(t.id)) {
         state.tournaments.push(t);
         existingIds.add(t.id);
@@ -6885,6 +6886,9 @@ function renderTeamDashboard(team) {
       if (byId || byEmail) myApps.push({ t, r });
     }));
   }
+  const statusOrder = { approved: 0, pending: 1, rejected: 2, withdrawn: 3 };
+  myApps.sort((a, b) => (statusOrder[a.r.status] ?? 9) - (statusOrder[b.r.status] ?? 9));
+
   const approved = myApps.filter(a => a.r.status === 'approved').length;
   const pending  = myApps.filter(a => a.r.status === 'pending').length;
   const matching = state.tournaments.filter(t =>
@@ -8345,7 +8349,9 @@ function renderTournamentDetail(id) {
   const a = getAccount();
   const isOwner = a?.type === 'club' && (
     a.id === t.clubId ||
-    (a.email && t.ownerEmail && a.email.toLowerCase() === t.ownerEmail.toLowerCase())
+    (a.email && t.ownerEmail && a.email.toLowerCase() === t.ownerEmail.toLowerCase()) ||
+    // Cas cross-device : ownerEmail absent du state local mais tournoi chargé via loadMyTournaments
+    (a.email && !t.ownerEmail && t._loadedByOwner === a.email.toLowerCase())
   );
   const pendT = t.registrations.filter(r => r.status === 'pending').length;
   // Active count = approved only
