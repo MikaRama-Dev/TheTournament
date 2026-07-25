@@ -3224,6 +3224,35 @@ function initSupabase() {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// RSSI — Gestion de session sécurisée (LeTournoi-RSSI-Session-Dev)
+// lt_session_id : identifiant de session unique par onglet (sessionStorage)
+// clearSensitiveOnUnload : efface recoveryCode de state au fermeture onglet
+// ─────────────────────────────────────────────────────────────────────────────
+function generateSessionId() {
+  const arr = new Uint8Array(16);
+  crypto.getRandomValues(arr);
+  return Array.from(arr).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+// Initialiser l'ID de session si absent (par onglet, pas par fenêtre)
+if (!sessionStorage.getItem('lt_session_id')) {
+  sessionStorage.setItem('lt_session_id', generateSessionId());
+}
+
+// Effacer le recoveryCode de tous les comptes à la fermeture de l'onglet
+// Le recoveryCode ne doit pas persister en localStorage entre sessions
+window.addEventListener('beforeunload', () => {
+  try {
+    ['clubs', 'teams', 'sponsors'].forEach(coll => {
+      (state[coll] || []).forEach(a => {
+        if (a.recoveryCode) a.recoveryCode = '';
+      });
+    });
+    saveState();
+  } catch(e) { /* silencieux — beforeunload doit être rapide */ }
+});
+
 document.addEventListener('DOMContentLoaded', initSupabase);
 // Helper : envoyer une inscription réelle vers Supabase
 
@@ -6376,17 +6405,31 @@ function escapeHtml(s) {
 // LOGIN
 // ===== RÉCUPÉRATION MOT DE PASSE =====
 function showRecoveryCodeModal(code) {
+  const safeCode = esc(code);
   modal('Votre code de récupération',
     `<div style="background:var(--ink);color:var(--paper);padding:1.5rem;border-radius:2px;text-align:center;margin:1rem 0;">
        <div style="font-family:var(--font-mono);font-size:1rem;letter-spacing:0.15em;color:var(--accent-soft);">CODE DE RÉCUPÉRATION</div>
-       <div style="font-family:var(--font-serif);font-size:1.5rem;letter-spacing:0.05em;margin-top:0.75rem;word-break:break-all;">${esc(code)}</div>
+       <div id="rc-code" style="font-family:var(--font-serif);font-size:1.5rem;letter-spacing:0.05em;margin-top:0.75rem;word-break:break-all;">${safeCode}</div>
      </div>
      <p style="font-family:var(--font-serif);font-size:0.92rem;line-height:1.6;color:var(--ink-soft);">
-       <strong style="color:var(--ink);">Notez ce code maintenant.</strong><br>
-       Il vous permettra de réinitialiser votre mot de passe si vous l'oubliez.
-       Il ne sera plus affiché après la fermeture de cette fenêtre.
-     </p>`,
-    `<button class="btn btn-primary" onclick="closeModal(); toast('Bienvenue !', 'success')">J'ai noté mon code</button>`);
+       <strong style="color:var(--ink);">Notez ce code maintenant : il ne sera plus affiché.</strong><br>
+       Il vous permettra de vous reconnecter depuis un autre appareil et de mettre à jour votre profil.
+     </p>
+     <div style="display:flex;gap:0.75rem;margin-top:0.5rem;">
+       <button class="btn btn-outline btn-sm" onclick="
+         navigator.clipboard.writeText('${safeCode}').then(() => {
+           this.textContent = 'Copié !';
+           setTimeout(() => this.textContent = 'Copier le code', 2000);
+         }).catch(() => this.textContent = 'Erreur copie');
+       ">Copier le code</button>
+       <button class="btn btn-outline btn-sm" onclick="
+         const a = document.createElement('a');
+         a.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent('Code de récupération Le Tournoi\\n\\n${safeCode}\\n\\nConservez ce code dans un endroit sûr.');
+         a.download = 'letournoi-code-recuperation.txt';
+         a.click();
+       ">Télécharger (.txt)</button>
+     </div>`,
+    `<button class="btn btn-primary" onclick="closeModal(); toast('Bienvenue !', 'success')">J'ai sécurisé mon code</button>`);
 }
 
 // Stockage temporaire pendant la récupération en 2 étapes
@@ -8444,7 +8487,17 @@ function renderTab(t, isOwner, a) {
     })()}`;
   }
   if (activeTab === 'calendar') return renderTabCalendar(t, isOwner);
-  if (activeTab === 'teams') return renderTabTeams(t, isOwner, a);
+  if (activeTab === 'teams') {
+    // renderTabTeams est async (appel get_my_registrations si isOwner)
+    // Afficher un placeholder immédiatement, puis injecter le HTML final
+    const placeholder = `<div id="tab-teams-content" style="padding:2rem;color:var(--ink-mute);font-style:italic;">Chargement des inscriptions…</div>`;
+    setTimeout(async () => {
+      const html = await renderTabTeams(t, isOwner, a);
+      const el = document.getElementById('tab-teams-content');
+      if (el) el.outerHTML = html;
+    }, 0);
+    return placeholder;
+  }
   if (activeTab === 'sponsors') return renderTabSponsors(t, isOwner, a);
   if (activeTab === 'animations') return renderTabAnimations(t, isOwner);
   if (activeTab === 'finances') return renderTabFinances(t, isOwner);
@@ -8514,7 +8567,49 @@ function matchRow(m, t, isOwner) {
 }
 
 // TEAMS TAB
-function renderTabTeams(t, isOwner, a) {
+async function renderTabTeams(t, isOwner, a) {
+  // Si organisateur connecté : charger toutes les inscriptions depuis Supabase via get_my_registrations
+  // (t.registrations en state local ne contient que les approved du SELECT public)
+  if (isOwner && supabaseClient && a?.email && a?.recoveryCode && signupMode === 'real') {
+    try {
+      const { data, error } = await supabaseClient.rpc('get_my_registrations', {
+        p_tournament_id: t.id,
+        p_owner_email:   a.email,
+        p_recovery_code: a.recoveryCode
+      });
+      if (!error && data) {
+        // Fusionner les données Supabase dans t.registrations (source de vérité)
+        const existingIds = new Set(t.registrations.map(r => r.id));
+        data.forEach(row => {
+          const reg = {
+            id:           row.id,
+            teamId:       row.team_id   || null,
+            teamName:     row.team_name || '',
+            clubName:     row.club_name || '',
+            captainName:  row.captain_name  || '',
+            captainEmail: row.captain_email || '',
+            captainPhone: row.captain_phone || '',
+            department:   row.department    || '',
+            city:         row.city          || '',
+            status:       row.status        || 'pending',
+            message:      row.message       || '',
+            registeredAt: row.registered_at || ''
+          };
+          if (!existingIds.has(reg.id)) {
+            t.registrations.push(reg);
+            existingIds.add(reg.id);
+          } else {
+            const existing = t.registrations.find(r => r.id === reg.id);
+            if (existing) Object.assign(existing, reg);
+          }
+        });
+        saveState();
+      }
+    } catch(e) {
+      console.warn('[Le Tournoi] renderTabTeams get_my_registrations:', e.message);
+    }
+  }
+
   const approved  = t.registrations.filter(r => r.status === 'approved');
   const pending   = t.registrations.filter(r => r.status === 'pending');
   const rejected  = t.registrations.filter(r => r.status === 'rejected');
@@ -8529,9 +8624,9 @@ function renderTabTeams(t, isOwner, a) {
           ${pending.map(r => `
             <div class="app-card">
               <div>
-                <div class="app-card-title">${esc(r.teamName)}</div>
+                <div class="app-card-title">${esc(r.teamName)}${r.captainName ? ' · ' + esc(r.captainName) : ''}</div>
                 <div class="app-card-meta">${esc(r.clubName)} · inscription ${fmtDate(r.registeredAt)}${r.teamId && state.teams.find(t => t.id === r.teamId && t.status === 'active') ? ' · <a href="#/teams/' + r.teamId + '" style="color: var(--accent); border-bottom: 1px solid;">Voir profil</a>' : ''}</div>
-                ${!r.teamId && r.captainEmail ? `<div class="app-card-meta" style="margin-top:0.25rem;">Contact : <strong>${esc(r.captainEmail)}</strong>${r.captainPhone ? ' · ' + esc(r.captainPhone) : ''}</div>` : ''}
+                ${r.captainEmail ? `<div class="app-card-meta" style="margin-top:0.25rem;">Contact : <strong>${esc(r.captainEmail)}</strong>${r.captainPhone ? ' · ' + esc(r.captainPhone) : ''}${r.city ? ' · ' + esc(r.city) : ''}${r.department ? ' (' + esc(r.department) + ')' : ''}</div>` : ''}
                 ${r.message ? `<div class="app-card-msg">"${esc(r.message)}"</div>` : ''}
               </div>
               <div class="app-actions">
@@ -8539,9 +8634,6 @@ function renderTabTeams(t, isOwner, a) {
                 <button class="btn btn-danger btn-sm" onclick="rejectTeam('${t.id}', '${r.id}')">× Refuser</button>
               </div>
             </div>`).join('')}
-        <p style="font-size:11px;color:var(--ink-mute);margin-top:0.5rem;">
-          Les décisions d'approbation sont enregistrées sur cet appareil uniquement jusqu'à la mise en place de l'authentification avancée (J2).
-        </p>
         </div>
       </div>`;
   }
