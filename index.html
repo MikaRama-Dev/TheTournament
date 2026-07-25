@@ -3227,7 +3227,9 @@ function initSupabase() {
 // ─────────────────────────────────────────────────────────────────────────────
 // RSSI — Gestion de session sécurisée (LeTournoi-RSSI-Session-Dev)
 // lt_session_id : identifiant de session unique par onglet (sessionStorage)
-// clearSensitiveOnUnload : efface recoveryCode de state au fermeture onglet
+// Note : l'effacement du recoveryCode au beforeunload est différé à l'implémentation
+// de create_session / verify_session (session persistante) — sans ces RPC,
+// le beforeunload forcerait la resaisie du code à chaque chargement de page.
 // ─────────────────────────────────────────────────────────────────────────────
 function generateSessionId() {
   const arr = new Uint8Array(16);
@@ -3239,19 +3241,6 @@ function generateSessionId() {
 if (!sessionStorage.getItem('lt_session_id')) {
   sessionStorage.setItem('lt_session_id', generateSessionId());
 }
-
-// Effacer le recoveryCode de tous les comptes à la fermeture de l'onglet
-// Le recoveryCode ne doit pas persister en localStorage entre sessions
-window.addEventListener('beforeunload', () => {
-  try {
-    ['clubs', 'teams', 'sponsors'].forEach(coll => {
-      (state[coll] || []).forEach(a => {
-        if (a.recoveryCode) a.recoveryCode = '';
-      });
-    });
-    saveState();
-  } catch(e) { /* silencieux — beforeunload doit être rapide */ }
-});
 
 document.addEventListener('DOMContentLoaded', initSupabase);
 // Helper : envoyer une inscription réelle vers Supabase
@@ -6608,7 +6597,17 @@ function renderLogin() {
             </div>
           </div>
 
-          ${signupMode === 'real' && (loginType === 'club' || loginType === 'team') ? `
+          ${signupMode === 'real' && (loginType === 'club' || loginType === 'team') ? (() => {
+            // Vérifier si un compte local a déjà un recoveryCode pour cet email
+            // Si oui : champ masqué (même navigateur, même compte)
+            // Si non : champ affiché (cross-device ou premier login)
+            const emailVal = document.getElementById('l-email')?.value?.trim().toLowerCase() || '';
+            const coll = loginType === 'club' ? state.clubs : state.teams;
+            const hasCode = emailVal
+              ? coll.some(a => a.email?.toLowerCase() === emailVal && a.recoveryCode)
+              : false;
+            if (hasCode) return ''; // champ masqué — code déjà en mémoire locale
+            return `
             <div class="form-group">
               <label class="form-label">Code de récupération${loginType === 'club' ? ' organisateur' : ' équipe'}</label>
               <input type="text" class="input" id="l-recovery" autocomplete="one-time-code" ${loginType === 'club' ? 'required' : ''}>
@@ -6617,8 +6616,8 @@ function renderLogin() {
                   ? 'Nécessaire pour rattacher vos tournois à votre tableau de bord. Noté à la création du compte.'
                   : 'Optionnel — permet de retrouver vos candidatures depuis un autre appareil.'}
               </div>
-            </div>
-          ` : ''}
+            </div>`;
+          })() : ''}
 
           <button type="submit" class="btn btn-primary btn-full btn-lg">Se connecter <span class="btn-arrow"></span></button>
         </form>
@@ -6640,7 +6639,12 @@ e.preventDefault();
 
   const email = document.getElementById('l-email').value.trim().toLowerCase();
   const pwd   = document.getElementById('l-pwd').value;
-  const recoveryCodeInput = (document.getElementById('l-recovery')?.value || '').trim();
+  // Si le champ l-recovery est absent (compte local avec code déjà stocké),
+  // récupérer le code depuis le compte local
+  const fieldCode = (document.getElementById('l-recovery')?.value || '').trim();
+  const coll = loginType === 'club' ? state.clubs : loginType === 'team' ? state.teams : state.sponsors;
+  const localAccount = coll.find(a => a.email?.toLowerCase() === email);
+  const recoveryCodeInput = fieldCode || localAccount?.recoveryCode || '';
 
   const errEl = document.getElementById('login-err');
   errEl.classList.remove('show');
