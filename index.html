@@ -8874,7 +8874,18 @@ function renderAside(t, isOwner, a) {
   const isRegistered = r => (r.teamId && r.teamId === a?.id) || (accountEmail && r.captainEmail && r.captainEmail.toLowerCase() === accountEmail);
   const canApply  = a?.type === 'team' && !t.registrations.some(isRegistered);
   const hasApplied = a?.type === 'team' && t.registrations.some(isRegistered);
-  const myReg = hasApplied ? t.registrations.find(r => r.teamId === a.id) : null;
+  // myReg : source de vérité _participantView si disponible, sinon state local
+  const participantAccount = a;
+  const participantView    = participantAccount?._participantView;
+  const myRegFromView      = participantView?.find(v => v.tournamentId === t.id);
+  const myReg = hasApplied
+    ? (myRegFromView
+        ? { status: myRegFromView.registrationStatus, id: myRegFromView.registrationId }
+        : t.registrations.find(r =>
+            (r.teamId && r.teamId === a.id) ||
+            (a.email && r.captainEmail && r.captainEmail.toLowerCase() === a.email.toLowerCase())
+          ))
+    : null;
   const canPropose = a?.type === 'sponsor' && !t.sponsorProposals.some(sp => sp.sponsorId === a.id);
   const hasProposed = a?.type === 'sponsor' && t.sponsorProposals.some(sp => sp.sponsorId === a.id);
   const myProp = hasProposed ? t.sponsorProposals.find(sp => sp.sponsorId === a.id) : null;
@@ -8897,7 +8908,17 @@ function renderAside(t, isOwner, a) {
   } else if (canApply && conf < t.maxTeams) {
     html += `<button class="btn btn-orange btn-full" onclick="applyTournamentModal('${t.id}')">Postuler avec mon équipe <span class="btn-arrow"></span></button>`;
   } else if (hasApplied) {
-    html += `<div style="padding: 0.8rem; background: var(--paper-deep); border-left: 3px solid var(--accent); font-family: var(--font-mono); font-size: 12px;">Statut : <strong>${myReg.status === 'pending' ? 'En attente' : myReg.status === 'approved' ? 'Confirmée' : 'Refusée'}</strong></div>`;
+    const statusLabel = myReg?.status === 'approved'
+      ? { icon: '✓', text: 'Inscription confirmée', color: 'var(--accent)', bg: '#edf7f0', border: 'var(--accent)' }
+      : myReg?.status === 'rejected'
+      ? { icon: '×', text: 'Candidature refusée', color: 'var(--rouge, #c0392b)', bg: '#fdedec', border: '#c0392b' }
+      : myReg?.status === 'withdrawn'
+      ? { icon: '·', text: 'Participation retirée', color: 'var(--ink-mute)', bg: 'var(--paper-deep)', border: 'var(--line)' }
+      : { icon: '·', text: 'Candidature envoyée — réponse de l\'organisateur attendue', color: 'var(--ink-soft)', bg: 'var(--paper-deep)', border: 'var(--accent-2)' };
+    html += `<div style="padding:0.9rem 1rem;background:${statusLabel.bg};border-left:3px solid ${statusLabel.border};border-radius:0 2px 2px 0;">
+      <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;color:var(--ink-mute);margin-bottom:4px;">VOTRE INSCRIPTION</div>
+      <div style="font-family:var(--font-serif);font-size:14px;font-weight:700;color:${statusLabel.color};">${statusLabel.icon} ${statusLabel.text}</div>
+    </div>`;
   } else if (conf >= t.maxTeams) {
     html += `<button class="btn btn-outline btn-full" disabled>Complet</button>`;
   } else if (a?.type === 'club') {
