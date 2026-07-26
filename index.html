@@ -3146,10 +3146,9 @@ function getSaison() {
 
 /** Nombre de places restantes pour un tournoi (calcul côté client) */
 function placesRestantes(tournoi) {
-  if (!tournoi.maxTeams) return null;
-  const inscrits = (state.registrations || [])
-    .filter(r => r.tournamentId === tournoi.id && r.status === 'approved')
-    .length;
+  if (!tournoi || !tournoi.maxTeams) return null;
+  const regs = (typeof state !== 'undefined' && state.registrations) ? state.registrations : [];
+  const inscrits = regs.filter(r => r.tournamentId === tournoi.id && r.status === 'approved').length;
   return tournoi.maxTeams - inscrits;
 }
 
@@ -6241,6 +6240,13 @@ function renderSignupForm(type) {
 
 // Pré-remplissage formulaire inscription équipe depuis sessionStorage lt_visitor_prefill
 // Appelée après le rendu pour éviter les conflits de guillemets dans les attributs HTML value
+function submitDashRecoveryCode() {
+  const code = document.getElementById('dash-recovery-input')?.value.trim();
+  if (!code) return;
+  const a = getAccount();
+  if (a) { a.recoveryCode = code; saveState(); renderDashboard(); }
+}
+
 function prefillSignupFromVisitor() {
   try {
     const raw = sessionStorage.getItem('lt_visitor_prefill');
@@ -6767,12 +6773,7 @@ function renderClubDashboard(c) {
                   placeholder="Votre code de récupération"
                   autocomplete="one-time-code"
                   style="flex:1;">
-                <button class="btn btn-primary btn-sm" onclick="
-                  const code = document.getElementById('dash-recovery-input').value.trim();
-                  if (!code) return;
-                  const a = getAccount();
-                  if (a) { a.recoveryCode = code; saveState(); renderDashboard(); }
-                ">Valider</button>
+                <button class="btn btn-primary btn-sm" onclick="submitDashRecoveryCode()">Valider</button>
               </div>
               <p style="margin-top:0.75rem;font-size:12px;color:var(--ink-mute);">
                 Code perdu ? <a href="#/recover" style="color:var(--accent);">Récupérer l'accès</a>
@@ -6780,6 +6781,7 @@ function renderClubDashboard(c) {
             </div>
           </div>`;
         return;
+      } // fin if (!c.recoveryCode)
 
       const loadKey = emailKey + ':' + c.recoveryCode;
 
