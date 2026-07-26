@@ -6198,17 +6198,23 @@ function renderSignupForm(type) {
   if (type === 'team') return `
     <form onsubmit="handleSignup(event, 'team')" autocomplete="off">
       ${HP}
-      <div class="form-group"><label class="form-label">Nom de l'équipe</label><input class="input" id="f-name" required placeholder="FCB U15 A"></div>
-      <div class="form-group"><label class="form-label">Email</label><input type="email" class="input" id="f-email" required></div>
+      ${(() => {
+        // Pré-remplissage depuis une candidature visiteur précédente (sessionStorage)
+        let pre = {};
+        try { pre = JSON.parse(sessionStorage.getItem('lt_visitor_prefill') || '{}'); } catch(e) {}
+        return `
+      <div class="form-group"><label class="form-label">Nom de l'équipe</label><input class="input" id="f-name" required placeholder="FCB U15 A" value="${esc(pre.teamName || '')}"></div>
+      <div class="form-group"><label class="form-label">Email</label><input type="email" class="input" id="f-email" required value="${esc(pre.email || '')}"></div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Mot de passe</label><div class="input-pwd-wrap"><input type="password" class="input" id="f-pwd" required minlength="6" placeholder="6 caractères minimum"><button type="button" class="btn-toggle-pwd" aria-label="Afficher le mot de passe" onclick="togglePassword('f-pwd',this)">👁</button></div></div>
         <div class="form-group"><label class="form-label">Confirmer le mot de passe</label><div class="input-pwd-wrap"><input type="password" class="input" id="f-pwd2" required minlength="6"><button type="button" class="btn-toggle-pwd" aria-label="Afficher le mot de passe" onclick="togglePassword('f-pwd2',this)">👁</button></div></div>
         <p class="form-help" style="margin-top:-0.5rem;">Choisissez un mot de passe dédié à cette application. Ne réutilisez pas votre mot de passe principal.</p>
       </div>
       <div class="form-group"><label class="form-label">Responsable</label><input class="input" id="f-mgr" required></div>
-      <div class="form-group"><label class="form-label">Téléphone</label><input class="input" id="f-phone" placeholder="06 12 34 56 78"></div>
+      <div class="form-group"><label class="form-label">Téléphone</label><input class="input" id="f-phone" placeholder="06 12 34 56 78" value="${esc(pre.captainPhone || '')}"></div>
       <p class="form-help">Club d'origine, catégorie, ville et site web pourront être complétés depuis votre profil équipe une fois connecté.</p>
-      <button type="submit" class="btn btn-primary btn-full btn-lg">Créer un compte équipe <span class="btn-arrow"></span></button>
+      <button type="submit" class="btn btn-primary btn-full btn-lg">Créer un compte équipe <span class="btn-arrow"></span></button>`;
+      })()}
     </form>`;
   return `
     <form onsubmit="handleSignup(event, 'sponsor')" autocomplete="off">
@@ -6359,7 +6365,10 @@ async function handleSignup(e, type) {
       saveState();
 
       // Rattacher d'éventuelles candidatures faites sans compte (même email)
-      if (type === 'team') linkPastRegistrations(localAccount.email, localAccount.id);
+      if (type === 'team') {
+        linkPastRegistrations(localAccount.email, localAccount.id);
+        try { sessionStorage.removeItem('lt_visitor_prefill'); } catch(e) {}
+      }
 
       // PostHog §4.3 : account_creation_completed (mode réel)
       ph('account_creation_completed', { mode: 'real', account_type: type, departement: d.department || null });
@@ -6374,7 +6383,11 @@ async function handleSignup(e, type) {
   const r = signupAccount(type, d);
   if (r.error) { errEl.textContent = r.error; errEl.classList.add('show'); return; }
   if (r.pending) { navigate('#/pending'); return; }
-  if (type === 'team') linkPastRegistrations(r.account.email, r.account.id);
+  if (type === 'team') {
+    linkPastRegistrations(r.account.email, r.account.id);
+    // Effacer le prefill visiteur — utilisé une seule fois à la création du compte
+    try { sessionStorage.removeItem('lt_visitor_prefill'); } catch(e) {}
+  }
   // PostHog §4.3 : account_creation_completed (mode démo)
   ph('account_creation_completed', { mode: 'demo', account_type: type });
   navigate('#/dashboard');
@@ -9155,6 +9168,14 @@ async function confirmApplyVisitor(tid) {
 
   if (submitBtn) { submitBtn.disabled = false; }
 
+  // Stocker les données visiteur en sessionStorage pour pré-remplir l'inscription équipe
+  // Données non-sensibles (nom équipe, email, téléphone) — sessionStorage effacé à la fermeture
+  try {
+    sessionStorage.setItem('lt_visitor_prefill', JSON.stringify({
+      teamName, email, captainPhone
+    }));
+  } catch(e) { /* non bloquant */ }
+
   // Écran de confirmation — recap + "créer mon espace" en option, jamais bloquant
   modal('Candidature envoyée !', `
     <div style="text-align:center;padding:0.5rem 0 1rem;">
@@ -9172,7 +9193,7 @@ async function confirmApplyVisitor(tid) {
     <p class="detail-text" style="font-size:13px;">Pas besoin de créer de compte pour suivre cette candidature : l'organisateur te recontacte directement par email. Tu peux toutefois créer ton espace équipe dès maintenant pour compléter ton profil (club, catégorie, contact) et gérer tes futures inscriptions.</p>
   `, `
     <button class="btn btn-ghost" onclick="closeModal()">Fermer</button>
-    <a href="#/signup" class="btn btn-orange" onclick="closeModal()">Créer mon espace équipe</a>
+    <button class="btn btn-orange" onclick="closeModal(); signupType='team'; navigate('#/signup')">Créer mon espace équipe</button>
   `);
 }
 
