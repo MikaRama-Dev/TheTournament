@@ -6621,28 +6621,6 @@ function renderLogin() {
             </div>
           </div>
 
-          ${signupMode === 'real' && (loginType === 'club' || loginType === 'team') ? (() => {
-            // Vérifier si un compte local a déjà un recoveryCode pour cet email
-            // Si oui : champ masqué (même navigateur, même compte)
-            // Si non : champ affiché (cross-device ou premier login)
-            const emailVal = document.getElementById('l-email')?.value?.trim().toLowerCase() || '';
-            const coll = loginType === 'club' ? state.clubs : state.teams;
-            const hasCode = emailVal
-              ? coll.some(a => a.email?.toLowerCase() === emailVal && a.recoveryCode)
-              : false;
-            if (hasCode) return ''; // champ masqué — code déjà en mémoire locale
-            return `
-            <div class="form-group">
-              <label class="form-label">Code de récupération${loginType === 'club' ? ' organisateur' : ' équipe'}</label>
-              <input type="text" class="input" id="l-recovery" autocomplete="one-time-code" ${loginType === 'club' ? 'required' : ''}>
-              <div class="form-help">
-                ${loginType === 'club'
-                  ? 'Nécessaire pour rattacher vos tournois à votre tableau de bord. Noté à la création du compte.'
-                  : 'Optionnel — permet de retrouver vos candidatures depuis un autre appareil.'}
-              </div>
-            </div>`;
-          })() : ''}
-
           <button type="submit" class="btn btn-primary btn-full btn-lg">Se connecter <span class="btn-arrow"></span></button>
         </form>
         <div class="auth-demo">
@@ -6663,21 +6641,15 @@ e.preventDefault();
 
   const email = document.getElementById('l-email').value.trim().toLowerCase();
   const pwd   = document.getElementById('l-pwd').value;
-  // Si le champ l-recovery est absent (compte local avec code déjà stocké),
-  // récupérer le code depuis le compte local
-  const fieldCode = (document.getElementById('l-recovery')?.value || '').trim();
+  // Recovery code : lu depuis le compte local uniquement — jamais demandé à la connexion
+  // Utilisé uniquement pour les RPCs qui en ont besoin (get_my_tournaments, etc.)
   const coll = loginType === 'club' ? state.clubs : loginType === 'team' ? state.teams : state.sponsors;
   const localAccount = coll.find(a => a.email?.toLowerCase() === email);
-  const recoveryCodeInput = fieldCode || localAccount?.recoveryCode || '';
+  const recoveryCodeInput = localAccount?.recoveryCode || '';
 
   const errEl = document.getElementById('login-err');
   errEl.classList.remove('show');
 
-  if (signupMode === 'real' && loginType === 'club' && !recoveryCodeInput) {
-    errEl.textContent = 'Saisissez le code de récupération organisateur pour charger vos tournois.';
-    errEl.classList.add('show');
-    return;
-  }
   // PostHog §4.4 : login_attempted — pas de PII (pas d'email)
   ph('login_attempted', { mode: getCurrentMode() });
 
