@@ -6745,27 +6745,41 @@ function renderClubDashboard(c) {
     const emailKey = c.email.toLowerCase();
 
     const hasLinkedTournaments = state.tournaments.some(t =>
-      t.ownerEmail &&
-      t.ownerEmail.toLowerCase() === emailKey
+      (t.ownerEmail && t.ownerEmail.toLowerCase() === emailKey) ||
+      (t._loadedByOwner && t._loadedByOwner === emailKey)
     );
 
     if (!hasLinkedTournaments) {
       if (!c.recoveryCode) {
+        // Afficher un champ de saisie inline — pas de logout forcé
         document.getElementById('app').innerHTML = `
           <div class="container" style="padding-top: 2.5rem; padding-bottom: 3rem;">
             <h1 class="dash-greeting"><em>${esc(c.name || c.email)}</em></h1>
             <p class="dash-sub">Tableau de bord organisateur.</p>
-
             <div class="dash-empty">
-              <div class="dash-empty-title">Session organisateur incomplète</div>
+              <div class="dash-empty-title">Code de récupération requis</div>
               <p class="dash-empty-text">
-                Reconnectez-vous avec votre code de récupération organisateur pour charger vos tournois.
+                Saisissez votre code de récupération pour charger vos tournois depuis Supabase.
+                Ce code vous a été communiqué à la création de votre compte.
               </p>
-              <button class="btn btn-primary btn-sm" onclick="logout()">Se reconnecter</button>
+              <div style="display:flex;gap:0.75rem;max-width:420px;margin:1rem auto 0;">
+                <input type="text" class="input" id="dash-recovery-input"
+                  placeholder="Votre code de récupération"
+                  autocomplete="one-time-code"
+                  style="flex:1;">
+                <button class="btn btn-primary btn-sm" onclick="
+                  const code = document.getElementById('dash-recovery-input').value.trim();
+                  if (!code) return;
+                  const a = getAccount();
+                  if (a) { a.recoveryCode = code; saveState(); renderDashboard(); }
+                ">Valider</button>
+              </div>
+              <p style="margin-top:0.75rem;font-size:12px;color:var(--ink-mute);">
+                Code perdu ? <a href="#/recover" style="color:var(--accent);">Récupérer l'accès</a>
+              </p>
             </div>
           </div>`;
         return;
-      }
 
       const loadKey = emailKey + ':' + c.recoveryCode;
 
