@@ -9050,7 +9050,11 @@ function applyTournamentVisitorModal(tid) {
       <input type="email" class="input" id="va-email" required autocomplete="email" aria-describedby="va-email-err" onblur="vaCheckEmail()">
       <p class="field-error" id="va-email-err"></p></div>
 
-    <p class="form-help" style="margin-bottom:1rem;">Club, catégorie, responsable, téléphone, département et ville pourront être complétés une fois votre espace équipe créé.</p>
+    <div class="form-group"><label class="form-label">Téléphone de contact <span style="font-weight:400;color:var(--ink-mute);">(optionnel)</span></label>
+      <input type="tel" class="input" id="va-phone" autocomplete="tel" placeholder="06 XX XX XX XX">
+    </div>
+
+    <p class="form-help" style="margin-bottom:1rem;">Club, catégorie, responsable, département et ville pourront être complétés une fois votre espace équipe créé.</p>
 
     <label class="consent-label">
       <input type="checkbox" id="va-consent-data" required style="flex-shrink:0;margin-top:2px;accent-color:var(--accent);width:16px;height:16px;">
@@ -9111,6 +9115,7 @@ async function confirmApplyVisitor(tid) {
 
   const teamName      = document.getElementById('va-team').value.trim();
   const email         = document.getElementById('va-email').value.trim().toLowerCase();
+  const captainPhone  = (document.getElementById('va-phone')?.value || '').trim();
   const consentComms  = document.getElementById('va-consent-comms')?.checked === true;
 
   const submitBtn = document.getElementById('va-submit-btn');
@@ -9123,7 +9128,7 @@ async function confirmApplyVisitor(tid) {
   // à compléter depuis le profil équipe une fois un compte créé.
   const registration = {
     id: uid(), teamId: null, teamName, clubName: '',
-    captainName: '', captainEmail: email, captainPhone: '',
+    captainName: '', captainEmail: email, captainPhone,
     department: '', city: '',
     status: 'pending', registeredAt: new Date().toISOString(), message: ''
   };
