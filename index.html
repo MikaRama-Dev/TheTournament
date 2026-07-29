@@ -3826,27 +3826,79 @@ async function loadRegistrationsFromSupabase() {
 }
 
 // Charge les propositions de sponsoring depuis leur table dédiée (RSSI)
-async function loadSponsorProposalsFromSupabase() {
-  if (!supabaseClient) return;
+// ─────────────────────────────────────────────────────────────────────────────
+// Sponsor proposals — Option B RSSI (arbitrage 2026-07-30)
+// Option A (SELECT public USING(true)) refusée : expose PII via REST direct.
+// Deux RPC SECURITY DEFINER distinctes :
+//   get_tournament_sponsors      → public, status=confirme, jamais PII
+//   get_my_sponsor_proposals     → organisateur authentifié, toutes colonnes métier
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Chargement public des sponsors confirmés — appelé pour chaque tournoi visible
+// Ne retourne que id, tournament_id, name, tier, status (jamais amount, contact)
+async function loadTournamentSponsors(tournamentId) {
+  if (!supabaseClient || !tournamentId) return;
   try {
-    // RSSI A0-3 : select explicite — contact, contact_name (PII) exclus pour anon.
-    // Si sponsor_proposals est INSERT-only pour anon → retourne [] silencieusement (comportement attendu).
-    const { data, error } = await supabaseClient
-      .from('sponsor_proposals')
-      .select('id, tournament_id, sponsor_id, name, tier, tier_label, amount, status');
-    if (error) { console.error('[Le Tournoi] loadSponsorProposals:', error); return; }
+    const { data, error } = await supabaseClient.rpc('get_tournament_sponsors', {
+      p_tournament_id: tournamentId
+    });
+    if (error) { console.warn('[Le Tournoi] get_tournament_sponsors:', error.message); return; }
+    const t = state.tournaments.find(x => x.id === tournamentId);
+    if (!t) return;
     (data || []).forEach(row => {
-      const t = state.tournaments.find(t => t.id === row.tournament_id);
-      if (t && !t.sponsorProposals.some(s => s.id === row.id)) {
+      if (!t.sponsorProposals.some(s => s.id === row.id)) {
         t.sponsorProposals.push({
-          id: row.id, sponsorId: row.sponsor_id, name: row.name,
-          tier: row.tier, tierLabel: row.tier_label,
-          amount: row.amount, status: row.status,
+          id: row.id, tournamentId: row.tournament_id,
+          name: row.name, tier: row.tier, status: row.status
         });
+      } else {
+        const existing = t.sponsorProposals.find(s => s.id === row.id);
+        if (existing) { existing.status = row.status; existing.tier = row.tier; }
       }
     });
-    if (data && data.length) render();
-  } catch (e) { console.error('[Le Tournoi] loadSponsorProposals exception:', e); }
+  } catch(e) { console.warn('[Le Tournoi] get_tournament_sponsors exception:', e.message); }
+}
+
+// Chargement des proposals pour l'organisateur — scope strict, bcrypt requis
+async function loadMySponsorProposals(tournamentId, ownerEmail, recoveryCode) {
+  if (!supabaseClient || !tournamentId || !ownerEmail || !recoveryCode) return;
+  try {
+    const { data, error } = await supabaseClient.rpc('get_my_sponsor_proposals', {
+      p_tournament_id: tournamentId,
+      p_owner_email:   ownerEmail,
+      p_recovery_code: recoveryCode
+    });
+    if (error) {
+      if (error.code === '28000') {
+        console.warn('[Le Tournoi] get_my_sponsor_proposals unauthorized sur ' + tournamentId);
+      } else {
+        console.warn('[Le Tournoi] get_my_sponsor_proposals:', error.message);
+      }
+      return;
+    }
+    const t = state.tournaments.find(x => x.id === tournamentId);
+    if (!t) return;
+    (data || []).forEach(row => {
+      const existing = t.sponsorProposals.find(s => s.id === row.id);
+      const proposal = {
+        id: row.id, tournamentId: row.tournament_id, sponsorId: row.sponsor_id,
+        name: row.name, tier: row.tier, tierLabel: row.tier_label,
+        amount: row.amount, status: row.status,
+        contactName: row.contact_name, contact: row.contact, // PII scope RSSI strict
+        createdAt: row.created_at
+      };
+      if (!existing) t.sponsorProposals.push(proposal);
+      else Object.assign(existing, proposal);
+    });
+  } catch(e) { console.warn('[Le Tournoi] get_my_sponsor_proposals exception:', e.message); }
+}
+
+async function loadSponsorProposalsFromSupabase() {
+  if (!supabaseClient) return;
+  // Charger les sponsors confirmés pour tous les tournois en vue publique
+  for (const t of state.tournaments) {
+    await loadTournamentSponsors(t.id);
+  }
 }
 
 // Initialise les données distantes uniquement APRÈS la création du client Supabase.
@@ -3983,6 +4035,15 @@ async function loadMyRegistrations(tournamentIds, ownerEmail, recoveryCode) {
     }
   }
   console.log('[Le Tournoi] get_my_registrations : ' + loaded + '/' + tournamentIds.length + ' tournoi(s) chargé(s)');
+
+  // Charger les proposals sponsor pour chaque tournoi organisateur (scope RSSI strict)
+  const a = getAccount();
+  if (a && a.type === 'club' && a.email && a.recoveryCode) {
+    for (const tid of tournamentIds) {
+      await loadMySponsorProposals(tid, a.email, a.recoveryCode);
+    }
+  }
+
   saveState();
 }
 
