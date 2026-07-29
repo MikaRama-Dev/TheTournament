@@ -10368,7 +10368,7 @@ function renderSponsorsList() {
               <p class="t-card-meta">Budget ${esc(s.budgetRange)}</p>
               <div class="t-card-foot">
                 <span class="t-card-status open">Sponsor</span>
-                <span class="t-card-progress">${s.preferredCategories.length} cat.</span>
+                <span class="t-card-progress">${(s.preferredCategories || []).length} cat.</span>
               </div>
             </div>
           </div>`).join('')}
@@ -10405,9 +10405,9 @@ function renderSponsorProfile(id) {
           </div>
           <div class="detail-section">
             <h3 class="detail-section-title">Catégories préférées</h3>
-            ${s.preferredCategories.length ? `
+            ${(s.preferredCategories || []).length ? `
               <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
-                ${s.preferredCategories.map(c => `<span class="avail-day on">${formatLabel(c)}</span>`).join('')}
+                ${(s.preferredCategories || []).map(c => `<span class="avail-day on">${formatLabel(c)}</span>`).join('')}
               </div>` : '<p class="detail-text"><em style="color: var(--ink-mute);">Aucune préférence définie. Ouvert à tous les tournois.</em></p>'}
           </div>
           ${props.length > 0 ? `
