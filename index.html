@@ -3833,15 +3833,15 @@ async function loadSponsorProposalsFromSupabase() {
     // Si sponsor_proposals est INSERT-only pour anon → retourne [] silencieusement (comportement attendu).
     const { data, error } = await supabaseClient
       .from('sponsor_proposals')
-      .select('id, tournament_id, name, tier, tier_label, amount, status');
+      .select('id, tournament_id, sponsor_id, name, tier, tier_label, amount, status');
     if (error) { console.error('[Le Tournoi] loadSponsorProposals:', error); return; }
     (data || []).forEach(row => {
       const t = state.tournaments.find(t => t.id === row.tournament_id);
       if (t && !t.sponsorProposals.some(s => s.id === row.id)) {
         t.sponsorProposals.push({
-          id: row.id, name: row.name, tier: row.tier,
-          tierLabel: row.tier_label, amount: row.amount, status: row.status,
-          // contactName/contact/notes/message : PII non accordée à anon — undefined attendu
+          id: row.id, sponsorId: row.sponsor_id, name: row.name,
+          tier: row.tier, tierLabel: row.tier_label,
+          amount: row.amount, status: row.status,
         });
       }
     });
@@ -7039,7 +7039,8 @@ function renderSponsorDashboard(s) {
   const conf = myProps.filter(p => p.sp.status === 'confirme').length;
   const pend = myProps.filter(p => p.sp.status === 'pending').length;
   const total = myProps.filter(p => p.sp.status === 'confirme').reduce((sum, p) => sum + p.sp.amount, 0);
-  const matching = state.tournaments.filter(t => t.status === 'open' && !t.sponsorProposals.some(sp => sp.sponsorId === s.id) && (s.preferredCategories.length === 0 || s.preferredCategories.includes(t.format)));
+  const prefCats = s.preferredCategories || [];
+  const matching = state.tournaments.filter(t => t.status === 'open' && !t.sponsorProposals.some(sp => sp.sponsorId === s.id) && (prefCats.length === 0 || prefCats.includes(t.format)));
 
   document.getElementById('app').innerHTML = `
     <div class="container" style="padding-top: 2.5rem; padding-bottom: 3rem;">
