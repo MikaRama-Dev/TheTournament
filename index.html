@@ -8807,7 +8807,28 @@ function renderTabSponsors(t, isOwner, a) {
         </div>
       </div>`;
   }
+  const pend = t.sponsorProposals.filter(sp => sp.status === 'pending');
+  const rej  = t.sponsorProposals.filter(sp => sp.status === 'rejected' || sp.status === 'refuse');
   return `
+    ${pend.length > 0 ? `
+    <div class="detail-section">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;padding-bottom:0.75rem;border-bottom:1px solid var(--line);flex-wrap:wrap;gap:0.5rem;">
+        <h3 class="detail-section-title" style="border:none;padding:0;margin:0;">Demandes en attente (${pend.length})</h3>
+      </div>
+      <div class="list">
+        ${pend.map(sp => `
+          <div class="app-card">
+            <div>
+              <div class="app-card-title">${esc(sp.name)}${sp.tier && sp.tier !== '_autre' ? ` · Palier ${esc(sp.tier)}` : sp.tierLabel ? ` · ${esc(sp.tierLabel)}` : ''}</div>
+              <div class="app-card-meta">${sp.amount > 0 ? sp.amount + ' €' : 'Montant non précisé'}${sp.contactName ? ' · ' + esc(sp.contactName) : ''}${sp.contact ? ' · ' + esc(sp.contact) : ''}</div>
+            </div>
+            <div class="app-actions">
+              <button class="btn btn-success btn-sm" onclick="confirmSponsor('${t.id}', '${sp.id}')">✓ Confirmer</button>
+              <button class="btn btn-danger btn-sm" onclick="rejectSponsor('${t.id}', '${sp.id}')">× Refuser</button>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>` : ''}
     <div class="detail-section">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--line); flex-wrap: wrap; gap: 0.5rem;">
         <h3 class="detail-section-title" style="border: none; padding: 0; margin: 0;">Sponsors (${conf.length})</h3>
@@ -9476,6 +9497,29 @@ function confirmAddSponsor(tid) {
   closeModal(); toast('Sponsor ajouté !', 'success');
   activeTab = 'sponsors'; renderTournamentDetail(tid);
 }
+function confirmSponsor(tid, spid) {
+  const t  = getTournament(tid);
+  const sp = t?.sponsorProposals.find(s => s.id === spid);
+  if (!sp) return;
+  sp.status = 'confirme';
+  saveState();
+  // TODO J1 : RPC update_sponsor_proposal_status (même pattern que organizer_update_registration_status)
+  toast('Sponsor confirmé', 'success');
+  activeTab = 'sponsors';
+  renderTournamentDetail(tid);
+}
+
+function rejectSponsor(tid, spid) {
+  const t  = getTournament(tid);
+  const sp = t?.sponsorProposals.find(s => s.id === spid);
+  if (!sp) return;
+  sp.status = 'rejected';
+  saveState();
+  toast('Demande refusée', 'success');
+  activeTab = 'sponsors';
+  renderTournamentDetail(tid);
+}
+
 function removeSponsor(tid, spid) {
   if (!confirm('Supprimer ce sponsor ?')) return;
   const t = getTournament(tid);
