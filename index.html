@@ -3893,6 +3893,35 @@ async function loadMySponsorProposals(tournamentId, ownerEmail, recoveryCode) {
   } catch(e) { console.warn('[Le Tournoi] get_my_sponsor_proposals exception:', e.message); }
 }
 
+// Chargement des proposals du sponsor connecté
+// SELECT direct filtré par sponsor_id — has_table_privilege = true accordé
+// Colonnes non-PII uniquement (pas contact, contact_name, notes, message)
+async function loadSponsorOwnProposals(sponsorId) {
+  if (!supabaseClient || !sponsorId) return;
+  try {
+    const { data, error } = await supabaseClient
+      .from('sponsor_proposals')
+      .select('id, tournament_id, sponsor_id, name, tier, tier_label, amount, status, created_at')
+      .eq('sponsor_id', sponsorId);
+    if (error) { console.warn('[Le Tournoi] loadSponsorOwnProposals:', error.message); return; }
+    (data || []).forEach(row => {
+      const t = state.tournaments.find(x => x.id === row.tournament_id);
+      if (!t) return;
+      const existing = t.sponsorProposals.find(s => s.id === row.id);
+      const proposal = {
+        id: row.id, tournamentId: row.tournament_id, sponsorId: row.sponsor_id,
+        name: row.name, tier: row.tier, tierLabel: row.tier_label,
+        amount: row.amount, status: row.status, createdAt: row.created_at
+      };
+      if (!existing) t.sponsorProposals.push(proposal);
+      else Object.assign(existing, proposal);
+    });
+    saveState();
+    if (_isSafeToPollingRender()) render();
+    console.log('[Le Tournoi] loadSponsorOwnProposals : ' + (data || []).length + ' proposal(s) chargée(s)');
+  } catch(e) { console.warn('[Le Tournoi] loadSponsorOwnProposals exception:', e.message); }
+}
+
 async function loadSponsorProposalsFromSupabase() {
   if (!supabaseClient) return;
   // Charger les sponsors confirmés pour tous les tournois en vue publique
@@ -3922,6 +3951,10 @@ async function initRemoteData() {
   const a = getAccount();
   if (a && a.type === 'club' && a.email && a.recoveryCode) {
     await loadMyTournaments(a.email, a.recoveryCode);
+  }
+  // Charger les proposals du sponsor connecté via SELECT direct (sponsor_id = s.id)
+  if (a && a.type === 'sponsor' && a.id) {
+    await loadSponsorOwnProposals(a.id);
   }
   // Charger la vue participant si compte connecté avec recoveryCode (RPC RSSI validée)
   // Fallback vers mergeRegistrationsByEmail si pas de recoveryCode (visiteur, cross-device sans code)
@@ -6787,6 +6820,10 @@ if (loginType === 'team' || loginType === 'sponsor') {
       }
       await mergeRegistrationsByEmail(email, r.account.id);
     }
+    // Charger les proposals du sponsor connecté
+    if (loginType === 'sponsor' && r.account.id) {
+      await loadSponsorOwnProposals(r.account.id);
+    }
     if (typeof getRoute === 'function' && getRoute() === '/dashboard') render();
   };
   doLoad();
@@ -7095,11 +7132,17 @@ function renderTeamDashboard(team) {
 }
 
 function renderSponsorDashboard(s) {
+  const sponsorEmail = (s.email || '').toLowerCase();
   const myProps = [];
-  state.tournaments.forEach(t => t.sponsorProposals.forEach(sp => { if (sp.sponsorId === s.id) myProps.push({ t, sp }); }));
-  const conf = myProps.filter(p => p.sp.status === 'confirme').length;
-  const pend = myProps.filter(p => p.sp.status === 'pending').length;
-  const total = myProps.filter(p => p.sp.status === 'confirme').reduce((sum, p) => sum + p.sp.amount, 0);
+  // Chercher par sponsorId OU par email (cas cross-device : id rebuilt ≠ id original)
+  state.tournaments.forEach(t => t.sponsorProposals.forEach(sp => {
+    const byId    = sp.sponsorId && sp.sponsorId === s.id;
+    const byEmail = sponsorEmail && sp.contact && sp.contact.toLowerCase() === sponsorEmail;
+    if (byId || byEmail) myProps.push({ t, sp });
+  }));
+  const conf  = myProps.filter(p => p.sp.status === 'confirme').length;
+  const pend  = myProps.filter(p => p.sp.status === 'pending').length;
+  const total = myProps.filter(p => p.sp.status === 'confirme').reduce((sum, p) => sum + (p.sp.amount || 0), 0);
   const prefCats = s.preferredCategories || [];
   const matching = state.tournaments.filter(t => t.status === 'open' && !t.sponsorProposals.some(sp => sp.sponsorId === s.id) && (prefCats.length === 0 || prefCats.includes(t.format)));
 
@@ -7143,9 +7186,10 @@ function renderSponsorDashboard(s) {
                 <div class="list-num">${p.sp.status === 'confirme' ? '✓' : p.sp.status === 'pending' ? '·' : '×'}</div>
                 <div class="list-info">
                   <div class="list-name">${esc(p.t.name)}</div>
-                  <div class="list-sub">${esc(p.sp.tier).toUpperCase()} · ${p.sp.amount}€ · ${fmtDate(p.t.date)}</div>
+                  <div class="list-sub">${esc(p.sp.tier).toUpperCase()} · ${p.sp.amount || 0}€ · ${fmtDate(p.t.date)}</div>
                 </div>
                 <span class="list-status ${p.sp.status}">${p.sp.status === 'confirme' ? 'Confirmé' : p.sp.status === 'pending' ? 'En attente' : 'Refusé'}</span>
+                ${p.sp.status === 'pending' ? `<button class="btn btn-ghost btn-sm" style="color:var(--rouge,#c0392b);" onclick="withdrawSponsorProposal('${p.t.id}','${p.sp.id}')">Retirer</button>` : ''}
                 <a href="#/tournaments/${p.t.id}" class="btn btn-outline btn-sm">Voir</a>
               </div>`).join('')}
           </div>` : `
@@ -9497,6 +9541,17 @@ function confirmAddSponsor(tid) {
   closeModal(); toast('Sponsor ajouté !', 'success');
   activeTab = 'sponsors'; renderTournamentDetail(tid);
 }
+function withdrawSponsorProposal(tid, spid) {
+  const t  = getTournament(tid);
+  const sp = t?.sponsorProposals.find(s => s.id === spid);
+  if (!sp || sp.status !== 'pending') return;
+  if (!confirm('Retirer votre proposition de sponsoring pour "' + (t?.name || '') + '" ?')) return;
+  sp.status = 'withdrawn';
+  saveState();
+  toast('Proposition retirée', 'success');
+  render();
+}
+
 function confirmSponsor(tid, spid) {
   const t  = getTournament(tid);
   const sp = t?.sponsorProposals.find(s => s.id === spid);
