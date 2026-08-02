@@ -8827,8 +8827,9 @@ async function renderTabTeams(t, isOwner, a) {
             <div class="app-card">
               <div>
                 <div class="app-card-title">${esc(r.teamName)}${r.captainName ? ' · ' + esc(r.captainName) : ''}</div>
-                <div class="app-card-meta">${esc(r.clubName)} · inscription ${fmtDate(r.registeredAt)}${r.teamId && state.teams.find(t => t.id === r.teamId && t.status === 'active') ? ' · <a href="#/teams/' + r.teamId + '" style="color: var(--accent); border-bottom: 1px solid;">Voir profil</a>' : ''}</div>
-                ${r.captainEmail ? `<div class="app-card-meta" style="margin-top:0.25rem;">Contact : <strong>${esc(r.captainEmail)}</strong>${r.captainPhone ? ' · ' + esc(r.captainPhone) : ''}${r.city ? ' · ' + esc(r.city) : ''}${r.department ? ' (' + esc(r.department) + ')' : ''}</div>` : ''}
+                <div class="app-card-meta">${esc(r.clubName)} · inscription ${fmtDate(r.registeredAt)}</div>
+                ${r.captainEmail || r.captainPhone ? `<div class="app-card-meta" style="margin-top:0.25rem;">Contact : ${r.captainEmail ? `<a href="mailto:${esc(r.captainEmail)}" style="color:var(--accent);">${esc(r.captainEmail)}</a>` : ''}${r.captainPhone ? ` · <a href="tel:${esc(r.captainPhone)}" style="color:var(--accent);">${esc(r.captainPhone)}</a>` : ''}${r.city ? ' · ' + esc(r.city) : ''}${r.department ? ' (' + esc(r.department) + ')' : ''}</div>` : ''}
+                ${r.teamId ? `<div class="app-card-meta" style="margin-top:0.25rem;"><a href="#/teams/${r.teamId}" style="color:var(--accent);border-bottom:1px solid;">Voir profil équipe →</a></div>` : ''}
                 ${r.message ? `<div class="app-card-msg">"${esc(r.message)}"</div>` : ''}
               </div>
               <div class="app-actions">
@@ -8939,7 +8940,10 @@ function renderTabSponsors(t, isOwner, a) {
           <div class="app-card">
             <div>
               <div class="app-card-title">${esc(sp.name)}${sp.tier && sp.tier !== '_autre' ? ` · Palier ${esc(sp.tier)}` : sp.tierLabel ? ` · ${esc(sp.tierLabel)}` : ''}</div>
-              <div class="app-card-meta">${sp.amount > 0 ? sp.amount + ' €' : 'Montant non précisé'}${sp.contactName ? ' · ' + esc(sp.contactName) : ''}${sp.contact ? ' · ' + esc(sp.contact) : ''}</div>
+              <div class="app-card-meta">${sp.amount > 0 ? '<strong>' + sp.amount + ' €</strong>' : 'Montant non précisé'}</div>
+              ${sp.contactName ? `<div class="app-card-meta" style="margin-top:0.25rem;">Contact : <strong>${esc(sp.contactName)}</strong></div>` : ''}
+              ${sp.contact ? `<div class="app-card-meta" style="margin-top:0.1rem;"><a href="mailto:${esc(sp.contact)}" style="color:var(--accent);">${esc(sp.contact)}</a></div>` : ''}
+              ${sp.sponsorId ? `<div class="app-card-meta" style="margin-top:0.25rem;"><a href="#/sponsors/${sp.sponsorId}" style="color:var(--accent);border-bottom:1px solid;">Voir profil sponsor →</a></div>` : ''}
             </div>
             <div class="app-actions">
               <button class="btn btn-success btn-sm" onclick="confirmSponsor('${t.id}', '${sp.id}')">✓ Confirmer</button>
