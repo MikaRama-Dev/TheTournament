@@ -7183,25 +7183,14 @@ function renderSponsorDashboard(s) {
     if (byId || byEmail) myProps.push({ t, sp });
   }));
 
-  // Recharger les proposals depuis Supabase à chaque affichage du dashboard
-  // pour refléter les changements de statut faits par l'organisateur
+  // Recharger les proposals depuis Supabase en arrière-plan (throttle 30s)
   if (s.recoveryCode && signupMode === 'real' && supabaseClient) {
-    loadSponsorOwnProposals(s.id).then(() => {
-      // Re-calculer myProps après chargement
-      const updatedProps = [];
-      state.tournaments.forEach(t => t.sponsorProposals.forEach(sp => {
-        const byId    = sp.sponsorId && String(sp.sponsorId) === String(s.id);
-        const byEmail = sponsorEmail && sp.contact && sp.contact.toLowerCase() === sponsorEmail;
-        if (byId || byEmail) updatedProps.push({ t, sp });
-      }));
-      const newConf  = updatedProps.filter(p => p.sp.status === 'confirme').length;
-      const newPend  = updatedProps.filter(p => p.sp.status === 'pending').length;
-      const newTotal = updatedProps.filter(p => p.sp.status === 'confirme').reduce((sum, p) => sum + (p.sp.amount || 0), 0);
-      // Ne re-render que si les stats ont changé (évite boucle infinie)
-      if (newConf !== conf || newPend !== pend || newTotal !== total) {
-        renderSponsorDashboard(s);
-      }
-    });
+    const now = Date.now();
+    if (!s._lastProposalLoad || now - s._lastProposalLoad > 30000) {
+      s._lastProposalLoad = now;
+      loadSponsorOwnProposals(s.id);
+      // Pas de re-render ici — le polling 30s s'en charge
+    }
   }
   const conf  = myProps.filter(p => p.sp.status === 'confirme').length;
   const pend  = myProps.filter(p => p.sp.status === 'pending').length;
