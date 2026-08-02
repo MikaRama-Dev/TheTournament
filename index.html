@@ -4383,8 +4383,8 @@ function getClub(id, tournament) {
 function clubLine(club) {
   return [club?.name, club?.city].filter(Boolean).join(' · ') || 'Organisateur';
 }
-function getTeam(id) { return state.teams.find(t => t.id === id); }
-function getSponsor(id) { return state.sponsors.find(s => s.id === id); }
+function getTeam(id) { return state.teams.find(t => String(t.id) === String(id)); }
+function getSponsor(id) { return state.sponsors.find(s => String(s.id) === String(id)); }
 function esc(s) { if (s == null) return ''; return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 // RSSI : valide une URL externe — bloque javascript:, data:, vbscript:
 function safeUrl(u) {
@@ -10269,29 +10269,22 @@ function proposeSponsorModal(tid, tier) {
 function confirmPropose(tid) {
   const a = getAccount();
   const t = getTournament(tid);
-  t.sponsorProposals.push({
+  const proposal = {
     id: uid(), name: a.name, sponsorId: a.id,
     tier: document.getElementById('prop-tier').value,
-    amount: parseInt(document.getElementById('prop-amt').value),
-    status: 'pending', message: document.getElementById('prop-msg').value.trim()
-  });
-  saveState(); syncTournament(t, false);
-  syncSponsorProposal(t.id, t.sponsorProposals[t.sponsorProposals.length - 1]); // RSSI : table dédiée
+    amount: parseInt(document.getElementById('prop-amt').value) || 0,
+    status: 'pending',
+    message: document.getElementById('prop-msg').value.trim(),
+    // Contact du sponsor — affiché à l'organisateur dans les demandes pending
+    contactName: a.contact || a.name || '',
+    contact: a.email || '',
+  };
+  t.sponsorProposals.push(proposal);
+  saveState();
+  // syncTournament retiré : la proposal n'impacte pas le tournoi lui-même
+  syncSponsorProposal(t.id, proposal);
   closeModal(); toast('Proposition envoyée !', 'success'); renderTournamentDetail(tid);
 }
-function approveSponsor(tid, spid) {
-  const t = getTournament(tid);
-  const sp = t.sponsorProposals.find(s => s.id === spid);
-  sp.status = 'confirme';
-  saveState(); syncTournament(t, false); toast('Sponsor accepté !', 'success'); renderTournamentDetail(tid);
-}
-function rejectSponsor(tid, spid) {
-  const t = getTournament(tid);
-  const sp = t.sponsorProposals.find(s => s.id === spid);
-  sp.status = 'refuse';
-  saveState(); syncTournament(t, false); toast('Sponsor refusé'); renderTournamentDetail(tid);
-}
-
 // MATCH MANAGEMENT
 function addMatchModal(tid) {
   const t = getTournament(tid);
