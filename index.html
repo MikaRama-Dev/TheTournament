@@ -6347,7 +6347,17 @@ function submitDashRecoveryCode() {
   const code = document.getElementById('dash-recovery-input')?.value.trim();
   if (!code) return;
   const a = getAccount();
-  if (a) { a.recoveryCode = code; saveState(); renderDashboard(); }
+  if (!a) return;
+  a.recoveryCode = code;
+  saveState();
+  // Après saisie du recovery code, charger les données privées selon le type
+  if (a.type === 'club' && a.email) {
+    loadMyTournaments(a.email, code).then(() => renderDashboard());
+  } else if (a.type === 'sponsor') {
+    loadSponsorOwnProposals(a.id).then(() => renderDashboard());
+  } else {
+    renderDashboard();
+  }
 }
 
 function prefillSignupFromVisitor() {
@@ -7141,6 +7151,29 @@ function renderTeamDashboard(team) {
 }
 
 function renderSponsorDashboard(s) {
+  // Guard recovery code — même pattern que renderClubDashboard
+  if (signupMode === 'real' && supabaseClient && !s.recoveryCode) {
+    document.getElementById('app').innerHTML = `
+      <div class="container" style="padding-top: 2.5rem; padding-bottom: 3rem;">
+        <h1 class="dash-greeting"><em>${esc(s.name)}</em></h1>
+        <p class="dash-sub">Tableau de bord sponsor.</p>
+        <div class="dash-empty">
+          <div class="dash-empty-title">Code de récupération requis</div>
+          <p class="dash-empty-text">Saisissez votre code de récupération pour charger vos propositions.</p>
+          <div style="display:flex;gap:0.75rem;max-width:420px;margin:1rem auto 0;">
+            <input type="text" class="input" id="dash-recovery-input"
+              placeholder="Votre code de récupération"
+              autocomplete="one-time-code" style="flex:1;">
+            <button class="btn btn-primary btn-sm" onclick="submitDashRecoveryCode()">Valider</button>
+          </div>
+          <p style="margin-top:0.75rem;font-size:12px;color:var(--ink-mute);">
+            Code perdu ? <a href="#/recover" style="color:var(--accent);">Récupérer l'accès</a>
+          </p>
+        </div>
+      </div>`;
+    return;
+  }
+
   const sponsorEmail = (s.email || '').toLowerCase();
   const myProps = [];
   // Chercher par sponsorId OU par email (cas cross-device : id rebuilt ≠ id original)
@@ -7149,6 +7182,12 @@ function renderSponsorDashboard(s) {
     const byEmail = sponsorEmail && sp.contact && sp.contact.toLowerCase() === sponsorEmail;
     if (byId || byEmail) myProps.push({ t, sp });
   }));
+
+  // Si recoveryCode disponible mais aucune proposal chargée, déclencher le chargement async
+  if (myProps.length === 0 && s.recoveryCode && signupMode === 'real' && supabaseClient && !s._sponsorProposalsLoaded) {
+    s._sponsorProposalsLoaded = true; // éviter boucle infinie
+    loadSponsorOwnProposals(s.id).then(() => { renderDashboard(); });
+  }
   const conf  = myProps.filter(p => p.sp.status === 'confirme').length;
   const pend  = myProps.filter(p => p.sp.status === 'pending').length;
   const total = myProps.filter(p => p.sp.status === 'confirme').reduce((sum, p) => sum + (p.sp.amount || 0), 0);
