@@ -7178,7 +7178,7 @@ function renderSponsorDashboard(s) {
   const myProps = [];
   // Chercher par sponsorId OU par email (cas cross-device : id rebuilt ≠ id original)
   state.tournaments.forEach(t => t.sponsorProposals.forEach(sp => {
-    const byId    = sp.sponsorId && sp.sponsorId === s.id;
+    const byId    = sp.sponsorId && String(sp.sponsorId) === String(s.id);
     const byEmail = sponsorEmail && sp.contact && sp.contact.toLowerCase() === sponsorEmail;
     if (byId || byEmail) myProps.push({ t, sp });
   }));
@@ -7192,7 +7192,7 @@ function renderSponsorDashboard(s) {
   const pend  = myProps.filter(p => p.sp.status === 'pending').length;
   const total = myProps.filter(p => p.sp.status === 'confirme').reduce((sum, p) => sum + (p.sp.amount || 0), 0);
   const prefCats = s.preferredCategories || [];
-  const matching = state.tournaments.filter(t => t.status === 'open' && !t.sponsorProposals.some(sp => sp.sponsorId === s.id) && (prefCats.length === 0 || prefCats.includes(t.format)));
+  const matching = state.tournaments.filter(t => t.status === 'open' && !t.sponsorProposals.some(sp => String(sp.sponsorId) === String(s.id)) && (prefCats.length === 0 || prefCats.includes(t.format)));
 
   document.getElementById('app').innerHTML = `
     <div class="container" style="padding-top: 2.5rem; padding-bottom: 3rem;">
@@ -9097,9 +9097,9 @@ function renderAside(t, isOwner, a) {
             (a.email && r.captainEmail && r.captainEmail.toLowerCase() === a.email.toLowerCase())
           ))
     : null;
-  const canPropose = a?.type === 'sponsor' && !t.sponsorProposals.some(sp => sp.sponsorId === a.id);
-  const hasProposed = a?.type === 'sponsor' && t.sponsorProposals.some(sp => sp.sponsorId === a.id);
-  const myProp = hasProposed ? t.sponsorProposals.find(sp => sp.sponsorId === a.id) : null;
+  const canPropose = a?.type === 'sponsor' && !t.sponsorProposals.some(sp => String(sp.sponsorId) === String(a.id));
+  const hasProposed = a?.type === 'sponsor' && t.sponsorProposals.some(sp => String(sp.sponsorId) === String(a.id));
+  const myProp = hasProposed ? t.sponsorProposals.find(sp => String(sp.sponsorId) === String(a.id)) : null;
 
   let html = `
     <div class="aside-card">
@@ -10667,7 +10667,7 @@ function renderSponsorProfile(id) {
   const a = getAccount();
   const isOwner = a?.type === 'sponsor' && a.id === s.id;
   const props = [];
-  state.tournaments.forEach(t => t.sponsorProposals.forEach(sp => { if (sp.sponsorId === s.id) props.push({ t, sp }); }));
+  state.tournaments.forEach(t => t.sponsorProposals.forEach(sp => { if (String(sp.sponsorId) === String(s.id)) props.push({ t, sp }); }));
 
   document.getElementById('app').innerHTML = `
     <section class="profile-hero sponsor">
