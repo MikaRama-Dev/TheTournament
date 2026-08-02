@@ -7204,6 +7204,25 @@ function renderSponsorDashboard(s) {
           <div class="dash-section-h"><div class="dash-section-title">Tournois qui te correspondent (${matching.length})</div></div>
           <div class="grid grid-3">${matching.slice(0, 3).map(tournCard).join('')}</div>
         </div>` : ''}
+
+      ${conf > 0 ? `
+        <div class="dash-section">
+          <div class="dash-section-h">
+            <div class="dash-section-title">Tournois sponsorisés (${conf})</div>
+          </div>
+          <div class="list">
+            ${myProps.filter(p => p.sp.status === 'confirme').map(p => `
+              <div class="list-row">
+                <div class="list-num" style="color:var(--accent);">✓</div>
+                <div class="list-info">
+                  <div class="list-name">${esc(p.t.name)}</div>
+                  <div class="list-sub">${fmtDate(p.t.date)} · ${esc(p.t.city || '')} · Palier ${esc(p.sp.tier || '')} · ${p.sp.amount || 0} €</div>
+                </div>
+                <span class="list-status confirmed" style="background:var(--accent);color:var(--paper);border-color:var(--accent);">Partenaire</span>
+                <a href="#/tournaments/${p.t.id}" class="btn btn-outline btn-sm">Voir</a>
+              </div>`).join('')}
+          </div>
+        </div>` : ''}
     </div>`;
 }
 
@@ -8507,7 +8526,11 @@ function renderTournamentDetail(id) {
           <div class="detail-tab ${activeTab === 'overview' ? 'active' : ''}" onclick="activeTab='overview'; renderTournamentDetail('${t.id}')">Présentation</div>
           <div class="detail-tab ${activeTab === 'calendar' ? 'active' : ''}" onclick="activeTab='calendar'; renderTournamentDetail('${t.id}')">Calendrier${t.matches.length ? ' (' + t.matches.length + ')' : ''}</div>
           <div class="detail-tab ${activeTab === 'teams' ? 'active' : ''}" onclick="activeTab='teams'; renderTournamentDetail('${t.id}')">Équipes (${t.registrations.filter(r => r.status !== 'rejected' && r.status !== 'withdrawn').length})${isOwner && pendT > 0 ? '<span class="tab-badge">' + pendT + '</span>' : ''}</div>
-          ${(isOwner || t.sponsorProposals.filter(sp => sp.status === 'confirme').length > 0) ? `<div class="detail-tab ${activeTab === 'sponsors' ? 'active' : ''}" onclick="activeTab='sponsors'; renderTournamentDetail('${t.id}')">Sponsors (${t.sponsorProposals.filter(sp => sp.status === 'confirme').length})</div>` : ''}
+          ${(isOwner || t.sponsorProposals.filter(sp => sp.status === 'confirme').length > 0) ? (() => {
+            const confCount = t.sponsorProposals.filter(sp => sp.status === 'confirme').length;
+            const pendCount = isOwner ? t.sponsorProposals.filter(sp => sp.status === 'pending').length : 0;
+            return `<div class="detail-tab ${activeTab === 'sponsors' ? 'active' : ''}" onclick="activeTab='sponsors'; renderTournamentDetail('${t.id}')">Sponsors (${confCount})${pendCount > 0 ? `<span style="display:inline-flex;align-items:center;justify-content:center;background:var(--accent-2);color:var(--ink);font-size:9px;font-weight:700;border-radius:50%;width:16px;height:16px;margin-left:4px;font-family:var(--font-mono);">${pendCount}</span>` : ''}</div>`;
+          })() : ''}
           ${(isOwner || t.animations.length > 0 || (t.customAnimations && t.customAnimations.length > 0)) ? `<div class="detail-tab ${activeTab === 'animations' ? 'active' : ''}" onclick="activeTab='animations'; renderTournamentDetail('${t.id}')">Animations (${t.animations.length + (t.customAnimations ? t.customAnimations.length : 0)})</div>` : ''}
           ${isOwner ? `<div class="detail-tab ${activeTab === 'finances' ? 'active' : ''}" onclick="activeTab='finances'; renderTournamentDetail('${t.id}')">Finances</div>` : ''}
         </div>
@@ -9552,27 +9575,81 @@ function withdrawSponsorProposal(tid, spid) {
   render();
 }
 
-function confirmSponsor(tid, spid) {
+async function confirmSponsor(tid, spid) {
   const t  = getTournament(tid);
   const sp = t?.sponsorProposals.find(s => s.id === spid);
   if (!sp) return;
+  const a = getAccount();
+
+  // Mise à jour locale optimiste
   sp.status = 'confirme';
   saveState();
-  // TODO J1 : RPC update_sponsor_proposal_status (même pattern que organizer_update_registration_status)
-  toast('Sponsor confirmé', 'success');
   activeTab = 'sponsors';
   renderTournamentDetail(tid);
+
+  // Persistance en base via RPC RSSI validée
+  if (signupMode === 'real' && supabaseClient && a?.email && a?.recoveryCode) {
+    try {
+      const { data, error } = await supabaseClient.rpc('update_sponsor_proposal_status', {
+        p_proposal_id:   spid,
+        p_tournament_id: tid,
+        p_owner_email:   a.email,
+        p_recovery_code: a.recoveryCode,
+        p_status:        'confirme'
+      });
+      if (error || (data && !data.ok)) {
+        console.warn('[Le Tournoi] update_sponsor_proposal_status confirm:', error?.message || data?.error);
+        // Rollback local
+        sp.status = 'pending';
+        saveState(); renderTournamentDetail(tid);
+        toast('Confirmation non persistée — vérifiez vos identifiants.', 'error');
+        return;
+      }
+      toast('Sponsor confirmé', 'success');
+    } catch(e) {
+      console.warn('[Le Tournoi] update_sponsor_proposal_status exception:', e.message);
+      sp.status = 'pending'; saveState(); renderTournamentDetail(tid);
+      toast('Erreur réseau — confirmation non persistée.', 'error');
+    }
+  } else {
+    toast('Sponsor confirmé (mode démo)', 'success');
+  }
 }
 
-function rejectSponsor(tid, spid) {
+async function rejectSponsor(tid, spid) {
   const t  = getTournament(tid);
   const sp = t?.sponsorProposals.find(s => s.id === spid);
   if (!sp) return;
+  const a = getAccount();
+  const prev = sp.status;
+
   sp.status = 'rejected';
-  saveState();
-  toast('Demande refusée', 'success');
-  activeTab = 'sponsors';
-  renderTournamentDetail(tid);
+  saveState(); activeTab = 'sponsors'; renderTournamentDetail(tid);
+
+  if (signupMode === 'real' && supabaseClient && a?.email && a?.recoveryCode) {
+    try {
+      const { data, error } = await supabaseClient.rpc('update_sponsor_proposal_status', {
+        p_proposal_id:   spid,
+        p_tournament_id: tid,
+        p_owner_email:   a.email,
+        p_recovery_code: a.recoveryCode,
+        p_status:        'refuse'
+      });
+      if (error || (data && !data.ok)) {
+        console.warn('[Le Tournoi] update_sponsor_proposal_status reject:', error?.message || data?.error);
+        sp.status = prev; saveState(); renderTournamentDetail(tid);
+        toast('Refus non persisté — vérifiez vos identifiants.', 'error');
+        return;
+      }
+      toast('Demande refusée', 'success');
+    } catch(e) {
+      console.warn('[Le Tournoi] update_sponsor_proposal_status exception:', e.message);
+      sp.status = prev; saveState(); renderTournamentDetail(tid);
+      toast('Erreur réseau — refus non persisté.', 'error');
+    }
+  } else {
+    toast('Demande refusée (mode démo)', 'success');
+  }
 }
 
 function removeSponsor(tid, spid) {
