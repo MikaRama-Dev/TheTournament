@@ -3894,16 +3894,25 @@ async function loadMySponsorProposals(tournamentId, ownerEmail, recoveryCode) {
 }
 
 // Chargement des proposals du sponsor connecté
-// SELECT direct filtré par sponsor_id — has_table_privilege = true accordé
-// Colonnes non-PII uniquement (pas contact, contact_name, notes, message)
+// Via RPC get_my_sponsor_proposals_by_sponsor (SECURITY DEFINER, bcrypt)
+// SELECT direct bloqué par RLS sans policy SELECT pour anon (décision RSSI)
 async function loadSponsorOwnProposals(sponsorId) {
-  if (!supabaseClient || !sponsorId) return;
+  if (!supabaseClient) return;
+  const a = getAccount();
+  if (!a || !a.email || !a.recoveryCode) return;
   try {
-    const { data, error } = await supabaseClient
-      .from('sponsor_proposals')
-      .select('id, tournament_id, sponsor_id, name, tier, tier_label, amount, status, created_at')
-      .eq('sponsor_id', sponsorId);
-    if (error) { console.warn('[Le Tournoi] loadSponsorOwnProposals:', error.message); return; }
+    const { data, error } = await supabaseClient.rpc('get_my_sponsor_proposals_by_sponsor', {
+      p_email:         a.email,
+      p_recovery_code: a.recoveryCode
+    });
+    if (error) {
+      if (error.code === '28000') {
+        console.warn('[Le Tournoi] get_my_sponsor_proposals_by_sponsor: unauthorized');
+      } else {
+        console.warn('[Le Tournoi] get_my_sponsor_proposals_by_sponsor:', error.message);
+      }
+      return;
+    }
     (data || []).forEach(row => {
       const t = state.tournaments.find(x => x.id === row.tournament_id);
       if (!t) return;
@@ -3918,8 +3927,8 @@ async function loadSponsorOwnProposals(sponsorId) {
     });
     saveState();
     if (_isSafeToPollingRender()) render();
-    console.log('[Le Tournoi] loadSponsorOwnProposals : ' + (data || []).length + ' proposal(s) chargée(s)');
-  } catch(e) { console.warn('[Le Tournoi] loadSponsorOwnProposals exception:', e.message); }
+    console.log('[Le Tournoi] get_my_sponsor_proposals_by_sponsor : ' + (data || []).length + ' proposal(s)');
+  } catch(e) { console.warn('[Le Tournoi] get_my_sponsor_proposals_by_sponsor exception:', e.message); }
 }
 
 async function loadSponsorProposalsFromSupabase() {
