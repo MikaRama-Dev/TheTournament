@@ -10496,12 +10496,37 @@ function renderClubPublic(id) {
 }
 
 function renderTeamProfile(id) {
-  const team = getTeam(id);
+  let team = getTeam(id);
+
+  // Fallback : si l'équipe n'est pas dans state.teams (organisateur sur un autre device),
+  // construire un profil minimal depuis les registrations des tournois
+  if (!team) {
+    let foundReg = null;
+    state.tournaments.forEach(t => t.registrations.forEach(r => {
+      if (String(r.teamId) === String(id) && !foundReg) foundReg = r;
+    }));
+    if (foundReg) {
+      team = {
+        id: id,
+        type: 'team',
+        name: foundReg.teamName || 'Équipe',
+        club: foundReg.clubName || '',
+        city: foundReg.city || '',
+        department: foundReg.department || '',
+        category: '',
+        manager: foundReg.captainName || '',
+        mark: makeMark(foundReg.teamName || 'E'),
+        players: [],
+        availability: []
+      };
+    }
+  }
+
   if (!team) { document.getElementById('app').innerHTML = '<div class="page-head"><h1 class="page-title">Équipe introuvable</h1></div>'; return; }
   const a = getAccount();
-  const isOwner = a?.type === 'team' && a.id === team.id;
+  const isOwner = a?.type === 'team' && String(a.id) === String(team.id);
   const apps = [];
-  state.tournaments.forEach(t => t.registrations.forEach(r => { if (r.teamId === team.id) apps.push({ t, r }); }));
+  state.tournaments.forEach(t => t.registrations.forEach(r => { if (String(r.teamId) === String(team.id)) apps.push({ t, r }); }));
   const approvedApps = apps.filter(x => x.r.status === 'approved').length;
 
   document.getElementById('app').innerHTML = `
@@ -10663,7 +10688,30 @@ function renderSponsorsList() {
 }
 
 function renderSponsorProfile(id) {
-  const s = getSponsor(id);
+  let s = getSponsor(id);
+
+  // Fallback : si le sponsor n'est pas dans state.sponsors (organisateur sur un autre device),
+  // construire un profil minimal depuis les sponsorProposals des tournois
+  if (!s) {
+    let foundProposal = null;
+    state.tournaments.forEach(t => t.sponsorProposals.forEach(sp => {
+      if (String(sp.sponsorId) === String(id) && !foundProposal) foundProposal = sp;
+    }));
+    if (foundProposal) {
+      s = {
+        id: id,
+        type: 'sponsor',
+        name: foundProposal.name || 'Sponsor',
+        sector: '',
+        city: '',
+        budgetRange: '',
+        description: '',
+        mark: makeMark(foundProposal.name || 'S'),
+        preferredCategories: []
+      };
+    }
+  }
+
   if (!s) { document.getElementById('app').innerHTML = '<div class="page-head"><h1 class="page-title">Sponsor introuvable</h1></div>'; return; }
   const a = getAccount();
   const isOwner = a?.type === 'sponsor' && a.id === s.id;
