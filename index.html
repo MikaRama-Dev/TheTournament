@@ -10706,9 +10706,33 @@ function renderSponsorProfile(id) {
         city: '',
         budgetRange: '',
         description: '',
+        contact: foundProposal.contact || '',
+        contactName: foundProposal.contactName || '',
+        phone: '',
+        email: foundProposal.contact || '',
         mark: makeMark(foundProposal.name || 'S'),
         preferredCategories: []
       };
+      // Tenter de charger les données publiques du sponsor depuis Supabase (une seule fois)
+      if (supabaseClient && !s._fetchedFromDb) {
+        s._fetchedFromDb = true;
+        supabaseClient.from('sponsors')
+          .select('id, name, sector, city, department, website')
+          .eq('id', String(id))
+          .single()
+          .then(({ data }) => {
+            if (data) {
+              s.sector = data.sector || s.sector;
+              s.city   = data.city   || s.city;
+              s.name   = data.name   || s.name;
+              s.department = data.department || '';
+              s.website    = data.website    || '';
+              s.mark       = makeMark(s.name);
+              renderSponsorProfile(id); // re-render avec les données complètes
+            }
+          })
+          .catch(() => {}); // silencieux si RLS bloque
+      }
     }
   }
 
